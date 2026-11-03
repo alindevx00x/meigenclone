@@ -34,7 +34,32 @@ class WebpImageStorage
         return static::storeContents($contents, $directory === '.' ? 'prompt-covers' : $directory);
     }
 
-    private static function storeContents(string $contents, string $directory): string
+    public static function storeFromUrl(string $url, string $directory = 'prompt-covers', int $timeout = 10): ?string
+    {
+        try {
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => $timeout,
+                    'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                ],
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                ],
+            ]);
+
+            $contents = @file_get_contents($url, false, $context);
+            if ($contents === false || strlen($contents) < 100) {
+                return null;
+            }
+
+            return static::storeContents($contents, $directory);
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    public static function storeContents(string $contents, string $directory): string
     {
         $webp = static::encode($contents);
         $path = trim($directory, '/').'/'.Str::random(40).'.webp';

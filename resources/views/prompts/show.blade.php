@@ -1,5 +1,26 @@
 @extends('layouts.app')
 @section('title', $prompt->title)
+@section('structured_data')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": "{{ addslashes($prompt->title) }}",
+    "headline": "{{ addslashes($prompt->title) }}",
+    "text": "{{ addslashes(Str::limit($prompt->prompt_text, 1000)) }}",
+    "datePublished": "{{ $prompt->created_at->toIso8601String() }}",
+    "dateModified": "{{ $prompt->updated_at->toIso8601String() }}",
+    "author": {
+        "@type": "Person",
+        "name": "{{ addslashes($prompt->user?->name ?? 'MeiGen Community') }}"
+    },
+    @if ($prompt->cover_url)
+    "image": "{{ $prompt->cover_url }}",
+    @endif
+    "keywords": "{{ $prompt->category->name }}, {{ $prompt->model }}, AI Image Prompt"
+}
+</script>
+@endsection
 @section('content')
 <div class="detail-page">
     <a class="back-link" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('prompts.index') }}"><span>←</span> Back to gallery</a>

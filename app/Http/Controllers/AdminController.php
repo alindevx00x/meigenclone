@@ -89,13 +89,57 @@ class AdminController extends Controller
     public function prompts(Request $request)
     {
         $status = $request->string('status')->toString();
-        $query = Prompt::with(['user', 'category'])->latest();
+        $query = Prompt::with(['user', 'category']);
+
         if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
             $query->where('status', $status);
         }
-        $prompts = $query->paginate(20)->withQueryString();
 
-        return view('admin.prompts', compact('prompts', 'status'));
+        if ($request->filled('q')) {
+            $q = $request->string('q')->trim()->toString();
+            $query->where(fn ($sub) => $sub
+                ->where('title', 'like', "%{$q}%")
+                ->orWhere('prompt_text', 'like', "%{$q}%")
+                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$q}%"))
+            );
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        if ($request->filled('model')) {
+            $query->where('model', $request->input('model'));
+        }
+
+        if ($request->filled('featured')) {
+            if ($request->input('featured') === '1') {
+                $query->where('is_featured', true);
+            } elseif ($request->input('featured') === '0') {
+                $query->where('is_featured', false);
+            }
+        }
+
+        $sort = $request->input('sort', 'newest');
+        match ($sort) {
+            'oldest' => $query->oldest(),
+            'likes' => $query->orderByDesc('likes_count'),
+            'title' => $query->orderBy('title'),
+            default => $query->latest(),
+        };
+
+        $prompts = $query->paginate(24)->withQueryString();
+        $categories = Category::orderBy('name')->get();
+        $models = AiModel::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+
+        $counts = [
+            'all' => Prompt::count(),
+            'pending' => Prompt::where('status', 'pending')->count(),
+            'approved' => Prompt::where('status', 'approved')->count(),
+            'rejected' => Prompt::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.prompts', compact('prompts', 'status', 'categories', 'models', 'counts'));
     }
 
     public function approve(Prompt $prompt)

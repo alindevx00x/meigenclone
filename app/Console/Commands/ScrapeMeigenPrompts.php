@@ -7,34 +7,64 @@ use App\Models\Category;
 use App\Models\Prompt;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ScrapeMeigenPrompts extends Command
 {
-    protected $signature = 'prompts:scrape-meigen {--count=1000 : Target number of prompts} {--batch=100 : Batch size}';
+    protected $signature = 'prompts:scrape-meigen
+        {--count=5000 : Target number of prompts to import}
+        {--batch=100 : API batch limit}
+        {--concurrency=25 : Parallel image download concurrency}
+        {--localize-existing : Also download and localize images for existing prompts}';
 
-    protected $description = 'Scrapes the latest prompts from meigen.ai and imports them with categories, creators, and AI models';
+    protected $description = 'Scrapes prompts from meigen.ai, downloads images locally to storage, and imports categories, creators, and AI models';
 
     public function handle(): int
     {
+        // 1. If requested or needed, localize existing prompts first
+        if ($this->option('localize-existing')) {
+            $this->localizeExistingPrompts();
+        }
+
         $targetCount = (int) $this->option('count');
         $batchSize = min(100, max(20, (int) $this->option('batch')));
+        $concurrency = min(40, max(5, (int) $this->option('concurrency')));
 
-        $this->info("Fetching up to {$targetCount} prompts from meigen.ai API...");
+        $this->info("Fetching up to {$targetCount} new prompts with local image storage...");
 
         $imported = 0;
         $skipped = 0;
         $offset = 0;
         $seenIds = [];
 
-        // Search queries to cycle through if needed to ensure 1000 distinct prompts
-        $searchQueries = ['', 'design', 'portrait', 'illustration', 'poster', 'product', 'cinematic', 'wallpaper', 'logo', '3d', 'character', 'anime'];
+        // Preload existing image filenames or remote URLs to prevent duplicates
+        $existingImageUrls = Prompt::whereNotNull('image_url')->pluck('image_url', 'id')->toArray();
+        $existingImagePaths = Prompt::whereNotNull('image_path')->pluck('image_path', 'id')->toArray();
+
+        // 40+ diverse search queries to ensure 5,000+ distinct prompts
+        $searchQueries = [
+            '', 'design', 'portrait', 'illustration', 'product', 'cinematic', 'wallpaper',
+            'logo', '3d', 'character', 'anime', 'art', 'photography', 'fashion',
+            'architecture', 'cyberpunk', 'fantasy', 'nature', 'vintage', 'futuristic',
+            'minimalist', 'watercolor', 'digital art', 'isometric', 'neon', 'retro',
+            'typography', 'food', 'space', 'landscape', 'animals', 'sci-fi', 'interior',
+            'macro', 'textures', 'comic', 'render', 'hyperrealistic', 'concept art', 'poster',
+            'editorial', 'urban', 'surreal', 'street style', 'automotive', 'wildlife'
+        ];
         $queryIndex = 0;
 
         $bar = $this->output->createProgressBar($targetCount);
         $bar->start();
+
+        // Ensure storage directory exists
+        $storageDir = storage_path('app/public/prompt-covers');
+        if (! File::isDirectory($storageDir)) {
+            File::makeDirectory($storageDir, 0755, true);
+        }
 
         while ($imported < $targetCount && $queryIndex < count($searchQueries)) {
             $currentQuery = $searchQueries[$queryIndex];
@@ -54,7 +84,7 @@ class ScrapeMeigenPrompts extends Command
                 ])->timeout(15)->get($url, $params);
 
                 if (! $response->successful()) {
-                    $this->warn("\nAPI returned status {$response->status()} for query '{$currentQuery}' offset {$offset}. Moving to next query.");
+                    $this->warn("\nAPI returned status {$response->status()} for query '{$currentQuery}' offset {$offset}. Next query.");
                     $queryIndex++;
                     $offset = 0;
                     continue;
@@ -69,8 +99,10 @@ class ScrapeMeigenPrompts extends Command
                     continue;
                 }
 
+                // Filter candidates that need downloading
+                $pendingItems = [];
                 foreach ($items as $item) {
-                    if ($imported >= $targetCount) {
+                    if ($imported + count($pendingItems) >= $targetCount) {
                         break;
                     }
 
@@ -92,60 +124,91 @@ class ScrapeMeigenPrompts extends Command
                         continue;
                     }
 
-                    // Check if prompt text already exists in database
-                    if (Prompt::where('image_url', $imageUrl)->exists()) {
+                    // Check if already in database by image URL
+                    if (in_array($imageUrl, $existingImageUrls, true)) {
                         $skipped++;
                         continue;
                     }
 
-                    // 1. Author / Creator User
-                    $user = $this->resolveUser($item);
+                    $pendingItems[] = [
+                        'item' => $item,
+                        'text' => $text,
+                        'imageUrl' => $imageUrl,
+                    ];
+                }
 
-                    // 2. AI Model
-                    $modelName = $this->resolveModel($item['model'] ?? null);
+                // Download images in concurrent chunks
+                $downloadChunks = array_chunk($pendingItems, $concurrency);
+                foreach ($downloadChunks as $chunk) {
+                    $urlsToDownload = array_column($chunk, 'imageUrl');
+                    $downloadedPaths = $this->downloadImagesConcurrently($urlsToDownload, $storageDir);
 
-                    // 3. Category Detection / Creation
-                    $category = $this->resolveCategory($text, $modelName);
+                    foreach ($chunk as $candidate) {
+                        $rawUrl = $candidate['imageUrl'];
+                        $localPath = $downloadedPaths[$rawUrl] ?? null;
 
-                    // 4. Clean Title Extraction
-                    $title = $this->extractTitle($text, $category->name);
+                        if (! $localPath) {
+                            $skipped++;
+                            continue;
+                        }
 
-                    // 5. Slug
-                    $slug = Str::slug($title);
-                    if (empty($slug)) {
-                        $slug = 'prompt';
+                        $item = $candidate['item'];
+                        $text = $candidate['text'];
+
+                        // 1. Author / Creator User
+                        $user = $this->resolveUser($item);
+
+                        // 2. AI Model
+                        $modelName = $this->resolveModel($item['model'] ?? null);
+
+                        // 3. Category Detection / Creation
+                        $category = $this->resolveCategory($text, $modelName);
+
+                        // 4. Clean Title Extraction
+                        $title = $this->extractTitle($text, $category->name);
+
+                        // 5. Unique Slug
+                        $slug = Str::slug($title);
+                        if (empty($slug)) {
+                            $slug = 'prompt';
+                        }
+                        $uniqueSlug = $slug . '-' . Str::lower(Str::random(6));
+
+                        // 6. Stats & Dates
+                        $likes = (int) ($item['likes'] ?? 0);
+                        $favorites = (int) ($item['favorites_count'] ?? 0);
+                        $totalLikes = max($likes, $favorites, rand(5, 120));
+                        $isFeatured = $totalLikes > 85 || ($item['rank'] ?? 0) > 0.02;
+
+                        $createdAt = ! empty($item['created_at'])
+                            ? rescue(fn () => \Carbon\Carbon::parse($item['created_at']), now(), false)
+                            : now()->subDays(rand(0, 45));
+
+                        Prompt::create([
+                            'user_id' => $user->id,
+                            'category_id' => $category->id,
+                            'title' => mb_strimwidth($title, 0, 120, '', 'UTF-8'),
+                            'slug' => $uniqueSlug,
+                            'prompt_text' => $text,
+                            'image_url' => null, // Explicitly null to enforce local storage
+                            'image_path' => $localPath, // Relative to public disk, e.g. prompt-covers/xyz.png
+                            'model' => $modelName,
+                            'status' => 'approved',
+                            'is_featured' => $isFeatured,
+                            'likes_count' => $totalLikes,
+                            'approved_at' => $createdAt,
+                            'created_at' => $createdAt,
+                            'updated_at' => $createdAt,
+                        ]);
+
+                        $existingImageUrls[] = $rawUrl;
+                        $imported++;
+                        $bar->advance();
+
+                        if ($imported >= $targetCount) {
+                            break 2;
+                        }
                     }
-                    $uniqueSlug = $slug . '-' . Str::lower(Str::random(6));
-
-                    // 6. Stats & Dates
-                    $likes = (int) ($item['likes'] ?? 0);
-                    $favorites = (int) ($item['favorites_count'] ?? 0);
-                    $totalLikes = max($likes, $favorites, rand(5, 120));
-                    $isFeatured = $totalLikes > 80 || ($item['rank'] ?? 0) > 0.02;
-
-                    $createdAt = ! empty($item['created_at'])
-                        ? rescue(fn () => \Carbon\Carbon::parse($item['created_at']), now(), false)
-                        : now()->subDays(rand(0, 45));
-
-                    Prompt::create([
-                        'user_id' => $user->id,
-                        'category_id' => $category->id,
-                        'title' => Str::limit($title, 120, ''),
-                        'slug' => $uniqueSlug,
-                        'prompt_text' => $text,
-                        'image_url' => $imageUrl,
-                        'image_path' => null,
-                        'model' => $modelName,
-                        'status' => 'approved',
-                        'is_featured' => $isFeatured,
-                        'likes_count' => $totalLikes,
-                        'approved_at' => $createdAt,
-                        'created_at' => $createdAt,
-                        'updated_at' => $createdAt,
-                    ]);
-
-                    $imported++;
-                    $bar->advance();
                 }
 
                 $offset += $batchSize;
@@ -154,8 +217,7 @@ class ScrapeMeigenPrompts extends Command
                     $offset = 0;
                 }
 
-                // Tiny breathing pause to be polite
-                usleep(150000); // 150ms
+                usleep(50000); // 50ms pause
             } catch (\Throwable $e) {
                 $this->warn("\nError fetching batch: {$e->getMessage()}. Advancing query.");
                 $queryIndex++;
@@ -165,12 +227,118 @@ class ScrapeMeigenPrompts extends Command
 
         $bar->finish();
         $this->newLine(2);
-        $this->info("Successfully imported {$imported} prompts! ({$skipped} duplicates or invalid entries skipped)");
+        $this->info("Successfully imported {$imported} prompts with local images! ({$skipped} skipped)");
         $this->info("Total prompts in database: " . Prompt::count());
-        $this->info("Total categories: " . Category::count());
-        $this->info("Total AI models: " . AiModel::count());
+        $this->info("Prompts with local image: " . Prompt::whereNotNull('image_path')->count());
+        $this->info("Prompts with external URL: " . Prompt::whereNotNull('image_url')->count());
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Download multiple image URLs in parallel using curl_multi and save them to disk.
+     * Returns an associative map: [ originalUrl => 'prompt-covers/filename.ext' ]
+     */
+    private function downloadImagesConcurrently(array $urls, string $storageDir): array
+    {
+        $urls = array_unique(array_filter($urls));
+        if (empty($urls)) {
+            return [];
+        }
+
+        $results = [];
+        $mh = curl_multi_init();
+        $handles = [];
+
+        foreach ($urls as $url) {
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 18);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)');
+            curl_multi_add_handle($mh, $ch);
+            $handles[$url] = $ch;
+        }
+
+        $running = null;
+        do {
+            curl_multi_exec($mh, $running);
+            curl_multi_select($mh, 0.05);
+        } while ($running > 0);
+
+        foreach ($handles as $url => $ch) {
+            $contents = curl_multi_getcontent($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_multi_remove_handle($mh, $ch);
+            curl_close($ch);
+
+            if ($code === 200 && is_string($contents) && strlen($contents) > 200) {
+                // Determine extension based on magic bytes
+                $ext = 'png';
+                if (str_starts_with($contents, "\x89PNG")) {
+                    $ext = 'png';
+                } elseif (str_starts_with($contents, "\xFF\xD8\xFF")) {
+                    $ext = 'jpg';
+                } elseif (str_starts_with($contents, "RIFF") && str_contains(substr($contents, 8, 8), 'WEBP')) {
+                    $ext = 'webp';
+                }
+
+                $filename = Str::random(40) . '.' . $ext;
+                $fullPath = $storageDir . '/' . $filename;
+
+                if (file_put_contents($fullPath, $contents) !== false) {
+                    $results[$url] = 'prompt-covers/' . $filename;
+                }
+            }
+        }
+
+        curl_multi_close($mh);
+
+        return $results;
+    }
+
+    /**
+     * Localize existing prompts in database that have external image URLs
+     */
+    public function localizeExistingPrompts(): void
+    {
+        $unlocalized = Prompt::whereNotNull('image_url')->whereNull('image_path')->get();
+        $count = $unlocalized->count();
+
+        if ($count === 0) {
+            $this->info("No existing prompts require local image download.");
+            return;
+        }
+
+        $this->info("Localizing {$count} existing prompts to project storage...");
+        $bar = $this->output->createProgressBar($count);
+        $bar->start();
+
+        $storageDir = storage_path('app/public/prompt-covers');
+        if (! File::isDirectory($storageDir)) {
+            File::makeDirectory($storageDir, 0755, true);
+        }
+
+        $chunks = $unlocalized->chunk(25);
+        foreach ($chunks as $chunk) {
+            $urls = $chunk->pluck('image_url')->toArray();
+            $downloaded = $this->downloadImagesConcurrently($urls, $storageDir);
+
+            foreach ($chunk as $prompt) {
+                if (isset($downloaded[$prompt->image_url])) {
+                    $prompt->image_path = $downloaded[$prompt->image_url];
+                    $prompt->image_url = null; // Clear remote link
+                    $prompt->save();
+                }
+                $bar->advance();
+            }
+        }
+
+        $bar->finish();
+        $this->newLine();
+        $this->info("Existing prompts localized successfully.");
     }
 
     private function resolveUser(array $item): User
@@ -219,7 +387,6 @@ class ScrapeMeigenPrompts extends Command
             default => 'GPT Image',
         };
 
-        // Ensure in database
         AiModel::firstOrCreate(['name' => $mapped], [
             'slug' => Str::slug($mapped),
             'icon' => match ($mapped) {
@@ -262,9 +429,9 @@ class ScrapeMeigenPrompts extends Command
                             'Brand & Logo' => '▦',
                             'Portraits' => '◉',
                             'Posters & Visuals' => '▤',
-                            'Illustration & 3D' => '◓',
+                            'Illustration & 3D' => '◐',
                             'Storyboard & Characters' => '◈',
-                            'Wallpaper' => '▧',
+                            'Wallpaper' => '▥',
                             'Videos' => '▷',
                             default => '✦',
                         },
@@ -274,7 +441,6 @@ class ScrapeMeigenPrompts extends Command
             }
         }
 
-        // If not matched to common categories, check if it fits specialized categories or create dynamic one
         if (str_contains($lower, 'anime') || str_contains($lower, 'manga')) {
             return Category::firstOrCreate(['name' => 'Anime & Manga'], [
                 'slug' => 'anime-manga',
@@ -310,7 +476,6 @@ class ScrapeMeigenPrompts extends Command
     {
         $text = trim($text);
 
-        // If JSON prompt
         if (str_starts_with($text, '{') && str_ends_with($text, '}')) {
             $json = json_decode($text, true);
             if ($json) {
@@ -324,27 +489,24 @@ class ScrapeMeigenPrompts extends Command
             }
         }
 
-        // Remove ratio tags (e.g. 1:1, 4:5, 9:16, 16:9, --ar 16:9)
         $clean = preg_replace('/^(\d+:\d+|--ar\s+\d+:\d+)\s*/i', '', $text);
         $clean = preg_replace('/^(portrait|landscape|vertical|horizontal)\s*:\s*/i', '', $clean);
 
-        // Take first line
         $firstLine = explode("\n", $clean)[0];
-        $firstLine = trim($firstLine, "\"'“”#* ");
+        $firstLine = trim($firstLine, "\"'\u{201c}\u{201d}#* ");
 
-        // Take first sentence or up to 60 characters
         $parts = preg_split('/([.!?])\s+/', $firstLine, 2);
         $candidate = $parts[0] ?? $firstLine;
 
-        if (mb_strlen($candidate) > 65) {
-            $candidate = mb_substr($candidate, 0, 60);
-            $lastSpace = mb_strrpos($candidate, ' ');
+        if (mb_strlen($candidate, 'UTF-8') > 65) {
+            $candidate = mb_strimwidth($candidate, 0, 60, '', 'UTF-8');
+            $lastSpace = mb_strrpos($candidate, ' ', 0, 'UTF-8');
             if ($lastSpace !== false && $lastSpace > 15) {
-                $candidate = mb_substr($candidate, 0, $lastSpace);
+                $candidate = mb_substr($candidate, 0, $lastSpace, 'UTF-8');
             }
         }
 
-        $candidate = ucfirst(trim($candidate, " ,;:-–"));
+        $candidate = ucfirst(trim($candidate, " ,;:-\u{2013}"));
 
         if (mb_strlen($candidate) < 6) {
             $candidate = $categoryName . ' ' . Str::random(4);

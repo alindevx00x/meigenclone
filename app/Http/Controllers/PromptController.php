@@ -86,4 +86,13 @@ class PromptController extends Controller
 
         return back()->with('success', $exists ? 'Removed from your saved prompts.' : 'Saved to your favorites.');
     }
+
+    public function sitemap()
+    {
+        $categories = Category::all();
+        $prompts = Prompt::where('status', 'approved')->latest('approved_at')->limit(5000)->get();
+
+        return response()->view('seo.sitemap', compact('categories', 'prompts'))
+            ->header('Content-Type', 'text/xml; charset=utf-8');
+    }
 }
