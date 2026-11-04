@@ -13,6 +13,7 @@
 }
 
 :root { color-scheme: light; --ink:#17171b; --muted:#85858e; --line:#ececf0; --soft:#f7f7f9; --violet:#7958ee; --green:#16875e; --amber:#a86400; }
+[x-cloak] { display: none !important; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { margin: 0; background: #fff; color: var(--ink); font-family: 'Poppins','Inter',sans-serif; font-size: 15.6px; -webkit-font-smoothing: antialiased; }
