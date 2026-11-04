@@ -1,107 +1,100 @@
 @extends('layouts.app')
 
-@section('title', 'Curated Prompt Packs — Pre-Packaged Bundles for Creators & Marketers')
+@section('title', 'Curated Prompt Packs — Pre-Packaged Bundles for Creators')
+@section('eyebrow', 'MEIGEN MARKETPLACE')
+@section('toolbar-title', 'Prompt Packs')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div class="workspace-page">
+    <!-- Page Header (Matching Dashboard & Workspace) -->
+    <div class="page-heading">
         <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                <span>📦</span> Curated Bundles & Market
-            </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">Curated Prompt Packs</h1>
-            <p class="mt-1 text-sm text-zinc-400">Download high-converting bundles of thematic prompts with instant 1-click JSON exports.</p>
+            <span class="section-kicker">CURATED BUNDLES &amp; MARKET</span>
+            <h1>Curated Prompt Packs</h1>
+            <p>Download high-converting bundles of thematic prompts with instant 1-click JSON exports.</p>
         </div>
-
-        <div class="flex items-center gap-3">
+        <div style="display: flex; gap: 8px; align-items: center;">
             @auth
-            <a href="{{ route('packs.create') }}" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-violet-600/20">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Create Prompt Pack
+            <a href="{{ route('packs.create') }}" class="primary-button">
+                <span>＋</span> Create Prompt Pack
             </a>
             @else
-            <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white text-xs font-semibold transition">
+            <a href="{{ route('login') }}" class="outline-button">
                 Sign In to Publish Packs
             </a>
             @endauth
         </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-900 border border-zinc-800/80 rounded-3xl p-4 mb-8 shadow-xl">
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <a href="{{ route('packs.index') }}" class="px-4 py-2 rounded-xl text-xs font-semibold transition {{ !$isFree ? 'bg-violet-600 text-white' : 'bg-zinc-950 text-zinc-400 hover:text-white' }}">
-                All Packs
+    <!-- Filter & Search Bar -->
+    <div class="panel-card" style="padding: 14px 18px; margin-bottom: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px;">
+        <div class="admin-filter-tabs" style="margin: 0; border-bottom: 0;">
+            <a href="{{ route('packs.index') }}" class="{{ !$isFree ? 'is-active' : '' }}">
+                All Bundles
             </a>
-            <a href="{{ route('packs.index', ['free' => 1]) }}" class="px-4 py-2 rounded-xl text-xs font-semibold transition {{ $isFree ? 'bg-violet-600 text-white' : 'bg-zinc-950 text-zinc-400 hover:text-white' }}">
+            <a href="{{ route('packs.index', ['free' => 1]) }}" class="{{ $isFree ? 'is-active' : '' }}">
                 Free Downloads
             </a>
         </div>
 
-        <form action="{{ route('packs.index') }}" method="GET" class="w-full sm:w-80">
-            <div class="relative">
-                <svg class="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" name="q" value="{{ $searchQuery }}" placeholder="Search bundles..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50">
-            </div>
+        <form action="{{ route('packs.index') }}" method="GET" style="display: flex; gap: 8px; align-items: center;">
+            <input type="search" name="q" value="{{ $searchQuery }}" placeholder="Search bundles..." style="min-height: 36px; border: 1px solid #e6e6eb; border-radius: 8px; padding: 0 12px; font-size: 12.5px; outline: none; background: #fff;" aria-label="Search prompt packs">
+            <button class="primary-button" type="submit" style="min-height: 36px; padding: 0 14px; font-size: 11px;">Search</button>
         </form>
     </div>
 
     <!-- Packs Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
         @forelse($packs as $pack)
-        <div class="bg-zinc-900 border border-zinc-800/80 rounded-3xl overflow-hidden shadow-xl hover:border-violet-500/50 transition flex flex-col group">
-            <!-- Cover -->
-            <a href="{{ route('packs.show', $pack->slug) }}" class="relative aspect-video overflow-hidden bg-zinc-950 block">
+        <div class="panel-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- Cover preview -->
+            <a href="{{ route('packs.show', $pack->slug) }}" style="display: block; aspect-ratio: 16/9; overflow: hidden; background: #f0f0f2; position: relative;">
                 @if($pack->cover_url)
-                <img src="{{ $pack->cover_url }}" alt="{{ $pack->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                <img src="{{ $pack->cover_url }}" alt="{{ $pack->title }}" style="width: 100%; height: 100%; object-fit: cover;">
                 @else
-                <div class="w-full h-full bg-gradient-to-tr from-amber-900 to-violet-900 flex items-center justify-center text-zinc-500">Bundle Preview</div>
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #a86400, #7958ee); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px;">📦</div>
                 @endif
 
-                <!-- Badges -->
-                <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-xs font-bold {{ $pack->is_free ? 'text-emerald-400' : 'text-amber-400' }}">
+                <span style="position: absolute; top: 12px; right: 12px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.7); color: #fff; backdrop-blur: 4px;">
                     {{ $pack->is_free ? 'FREE' : '$' . number_format($pack->price, 2) }}
-                </div>
-
-                <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-zinc-900/80 backdrop-blur-md text-[11px] font-semibold text-white">
-                    {{ $pack->prompt_count }} Prompts
-                </div>
+                </span>
             </a>
 
-            <!-- Content -->
-            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+            <!-- Card Body -->
+            <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
-                    <a href="{{ route('packs.show', $pack->slug) }}" class="block text-lg font-bold text-white hover:text-violet-400 transition">
-                        {{ $pack->title }}
-                    </a>
-                    <p class="mt-2 text-xs text-zinc-400 line-clamp-2 leading-relaxed">
-                        {{ $pack->description }}
-                    </p>
+                    <h3 style="margin: 0 0 6px; font-size: 15px; font-weight: 600; color: #222228;">
+                        <a href="{{ route('packs.show', $pack->slug) }}" style="color: inherit; text-decoration: none;">{{ $pack->title }}</a>
+                    </h3>
+                    <p style="margin: 0 0 14px; font-size: 12px; color: #777; line-height: 1.5;">{{ Str::limit($pack->description, 95) }}</p>
                 </div>
 
-                <div class="pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs">
-                    <div class="text-zinc-500">
-                        <span>By <strong class="text-zinc-300">{{ $pack->user->name }}</strong></span>
-                        <span class="mx-1.5">&bull;</span>
-                        <span>{{ number_format($pack->downloads_count) }} downloads</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f0f2; padding-top: 12px;">
+                    <div style="font-size: 11.5px; color: #888;">
+                        <strong style="color: #222228;">{{ $pack->prompts_count }}</strong> prompts &bull; {{ $pack->downloads_count }} downloads
                     </div>
 
-                    <a href="{{ route('packs.show', $pack->slug) }}" class="px-3.5 py-1.5 rounded-xl bg-violet-600/10 hover:bg-violet-600 border border-violet-500/20 text-violet-300 hover:text-white font-semibold transition">
+                    <a href="{{ route('packs.show', $pack->slug) }}" class="primary-button" style="min-height: 32px; padding: 0 12px; font-size: 11px;">
                         View Pack &rarr;
                     </a>
                 </div>
             </div>
         </div>
         @empty
-        <div class="col-span-full text-center py-16 bg-zinc-900 border border-zinc-800 rounded-3xl">
-            <p class="text-zinc-400 text-sm">No prompt packs found.</p>
+        <div class="empty-panel" style="grid-column: 1 / -1;">
+            <span class="empty-icon">📦</span>
+            <div>
+                <strong>No prompt packs found.</strong>
+                <p>Be the first to create and publish a curated bundle of prompts.</p>
+            </div>
+            @auth
+            <a class="outline-button" href="{{ route('packs.create') }}">Create Pack &rarr;</a>
+            @endauth
         </div>
         @endforelse
     </div>
 
-    <!-- Pagination -->
-    <div class="mt-10">
+    <div class="pagination-wrap" style="margin-top: 24px;">
         {{ $packs->links() }}
     </div>
 </div>

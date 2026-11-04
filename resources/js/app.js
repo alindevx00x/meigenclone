@@ -123,6 +123,150 @@ Alpine.data('globalAppModal', () => ({
     }
 }));
 
+Alpine.data('remixStudio', (config = {}) => ({
+    initialPrompt: config.initial || '',
+    prompt: config.initial || '',
+    activeTags: [],
+    snippetsMap: {},
+    copied: false,
+
+    resetPrompt() {
+        this.prompt = this.initialPrompt;
+        this.activeTags = [];
+        this.snippetsMap = {};
+    },
+
+    toggleSnippet(name, snippet) {
+        const idx = this.activeTags.indexOf(name);
+        if (idx > -1) {
+            this.activeTags.splice(idx, 1);
+            this.prompt = this.prompt.replace(', ' + snippet, '').replace(snippet, '').trim();
+            delete this.snippetsMap[name];
+        } else {
+            this.activeTags.push(name);
+            this.snippetsMap[name] = snippet;
+            this.prompt = this.prompt.trim() + (this.prompt.trim() ? ', ' : '') + snippet;
+        }
+    },
+
+    removeTag(name) {
+        const snippet = this.snippetsMap[name];
+        if (snippet) {
+            this.prompt = this.prompt.replace(', ' + snippet, '').replace(snippet, '').trim();
+        }
+        this.activeTags = this.activeTags.filter(t => t !== name);
+        delete this.snippetsMap[name];
+    },
+
+    setParam(type, val) {
+        this.prompt = this.prompt.replace(/--ar\s+\d+:\d+/g, '').trim();
+        this.prompt += ' ' + val;
+    },
+
+    toggleParam(p) {
+        if (this.prompt.includes(p)) {
+            this.prompt = this.prompt.replace(p, '').replace(/\s+/g, ' ').trim();
+        } else {
+            this.prompt += ' ' + p;
+        }
+    },
+
+    toggleSref(code) {
+        const srefTag = '--sref ' + code;
+        if (this.prompt.includes(srefTag)) {
+            this.prompt = this.prompt.replace(srefTag, '').replace(/\s+/g, ' ').trim();
+        } else {
+            this.prompt = this.prompt.replace(/--sref\s+\d+/g, '').trim();
+            this.prompt += ' ' + srefTag;
+        }
+    },
+
+    async copyPrompt() {
+        try {
+            await navigator.clipboard.writeText(this.prompt);
+        } catch {
+            const input = document.createElement('textarea');
+            input.value = this.prompt;
+            document.body.append(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+        }
+        this.copied = true;
+        setTimeout(() => this.copied = false, 2000);
+    },
+
+    sendToGenerator() {
+        const url = '/generate?prompt=' + encodeURIComponent(this.prompt);
+        window.location.href = url;
+    }
+}));
+
+Alpine.data('generationStudio', (config = {}) => ({
+    promptText: config.prefilled || '',
+    promptId: config.promptId || null,
+    credits: config.userCredits !== undefined ? config.userCredits : 25,
+    model: 'flux-schnell',
+    provider: 'flux',
+    aspectRatio: '1:1',
+    apiKey: '',
+    isLoading: false,
+    resultImage: null,
+    resultModel: '',
+    resultAspect: '',
+    generationId: null,
+
+    clearPrompt() {
+        this.promptText = '';
+    },
+
+    async generateImage() {
+        if (!this.promptText.trim()) return;
+
+        this.isLoading = true;
+        this.resultImage = null;
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        try {
+            const response = await fetch('/generations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf
+                },
+                body: JSON.stringify({
+                    prompt_text: this.promptText,
+                    provider: this.provider,
+                    model: this.model,
+                    aspect_ratio: this.aspectRatio,
+                    api_key: this.apiKey,
+                    prompt_id: this.promptId
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                this.resultImage = data.generation.image_url;
+                this.resultModel = data.generation.model;
+                this.resultAspect = data.generation.aspect_ratio;
+                this.generationId = data.generation.id;
+                if (data.credits_remaining !== null && data.credits_remaining !== undefined) {
+                    this.credits = data.credits_remaining;
+                }
+            } else {
+                alert(data.message || 'Generation failed. Please try again.');
+            }
+        } catch (err) {
+            alert('A network error occurred during generation: ' + err.message);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

@@ -1,170 +1,140 @@
 @extends('layouts.app')
 
 @section('title', 'AI Image Generator — One-Click Flux & DALL-E 3 Generation')
+@section('eyebrow', 'MEIGEN STUDIO')
+@section('toolbar-title', 'AI Generator')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10" x-data="generationStudio({{ json_encode(['prefilled' => $prefilledPrompt?->prompt_text ?? '', 'promptId' => $prefilledPrompt?->id ?? null, 'userCredits' => $user?->credits ?? 25]) }})">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div class="workspace-page" x-data="generationStudio({{ json_encode(['prefilled' => $prefilledPrompt?->prompt_text ?? '', 'promptId' => $prefilledPrompt?->id ?? null, 'userCredits' => $user?->credits ?? 25]) }})">
+    <!-- Page Header (Matching Dashboard & Workspace) -->
+    <div class="page-heading">
         <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold uppercase tracking-wider mb-2">
-                <span class="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span> One-Click Generation Studio
-            </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">Generate AI Images Real-Time</h1>
-            <p class="mt-1 text-sm text-zinc-400">Powered by Flux 1.1 Pro, Flux Schnell & OpenAI DALL-E 3. Use platform credits or your own API key.</p>
+            <span class="section-kicker">ONE-CLICK GENERATION STUDIO</span>
+            <h1>Generate AI Images Real-Time</h1>
+            <p>Powered by Flux 1.1 Pro, Flux Schnell &amp; OpenAI DALL-E 3. Use platform credits or your own API key.</p>
         </div>
-
-        @auth
-        <div class="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 py-3 shadow-sm">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white text-lg font-bold shadow-inner">
-                ✦
+        <div>
+            @auth
+            <div class="stat-card" style="min-height: auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px;">
+                <span class="stat-icon stat-violet" style="width: 32px; height: 32px; font-size: 16px;">⚡</span>
+                <div>
+                    <div style="font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase;">Available Credits</div>
+                    <strong style="margin: 0; font-size: 18px; color: #222228;" x-text="credits + ' Credits'"></strong>
+                </div>
             </div>
-            <div>
-                <div class="text-xs text-zinc-400 uppercase font-semibold">Platform Credits</div>
-                <div class="text-xl font-extrabold text-white" x-text="credits + ' Credits'"></div>
+            @else
+            <div class="panel-card" style="padding: 10px 14px; font-size: 11.5px; color: #555;">
+                <span style="color: #7958ee; font-weight: 600;">Demo Sandbox:</span> Generates instant previews. <a href="{{ route('login') }}" class="subtle-link" style="color: #17171b; font-weight: 600;">Sign in</a> to save generations.
             </div>
+            @endauth
         </div>
-        @else
-        <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 text-xs text-zinc-300">
-            <span class="text-violet-400 font-semibold">Demo Sandbox:</span> Generates instant high-fidelity previews. <a href="{{ route('login') }}" class="underline text-white font-medium hover:text-violet-400">Sign in</a> to save to your creator profile.
-        </div>
-        @endauth
     </div>
 
     <!-- Main Studio Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; align-items: start;">
         <!-- Controls Column -->
-        <div class="lg:col-span-5 bg-zinc-900 border border-zinc-800/80 rounded-3xl p-6 sm:p-7 shadow-xl space-y-6">
+        <div class="panel-card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
             <!-- Prompt Textarea -->
             <div>
-                <label for="prompt_text" class="block text-sm font-semibold text-zinc-200 mb-2 flex items-center justify-between">
-                    <span>Prompt Text</span>
-                    <button type="button" @click="clearPrompt()" class="text-xs text-zinc-500 hover:text-zinc-300 transition">Clear</button>
-                </label>
-                <div class="relative">
-                    <textarea id="prompt_text" x-model="promptText" rows="6" placeholder="Describe the image you want to generate in detail, including lighting, style, composition, and mood..." class="w-full bg-zinc-950/80 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition resize-none"></textarea>
-                    <div class="absolute bottom-3 right-3 text-xs text-zinc-500" x-text="promptText.length + '/2000'"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label for="prompt_text" style="font-size: 12.5px; font-weight: 600; color: #222228;">Prompt Text</label>
+                    <button type="button" @click="clearPrompt()" class="subtle-link" style="border: 0; background: none; cursor: pointer; font-size: 11px;">Clear</button>
+                </div>
+                <div style="position: relative;">
+                    <textarea id="prompt_text" x-model="promptText" rows="6" placeholder="Describe the image you want to generate in detail, including lighting, style, composition, and mood..." style="width: 100%; min-height: 140px; border: 1px solid #e6e6eb; border-radius: 9px; background: #fff; padding: 12px; color: #17171b; font-family: inherit; font-size: 13.5px; line-height: 1.6; resize: vertical; box-sizing: border-box; outline: none;"></textarea>
+                    <div style="position: absolute; bottom: 8px; right: 10px; font-size: 10px; color: #aaa;" x-text="promptText.length + '/2000'"></div>
                 </div>
             </div>
 
             <!-- Model Selector -->
             <div>
-                <label class="block text-sm font-semibold text-zinc-200 mb-2">AI Model & Engine</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" @click="model = 'flux-schnell'; provider = 'flux'" :class="model === 'flux-schnell' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="p-3 rounded-2xl border text-center transition flex flex-col items-center">
-                        <span class="text-base">⚡</span>
-                        <span class="text-xs mt-1 font-medium">Flux Schnell</span>
-                        <span class="text-[10px] text-zinc-500">Fastest</span>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #222228; margin-bottom: 8px;">AI Model &amp; Engine</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <button type="button" @click="model = 'flux-schnell'; provider = 'flux'" :style="model === 'flux-schnell' ? 'background: #f0edff; border-color: #7958ee; color: #514497;' : 'background: #fff; border: 1px solid #e6e6eb; color: #555;'" style="padding: 10px 8px; border-radius: 9px; cursor: pointer; text-align: center; transition: all 0.15s; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 16px;">⚡</span>
+                        <strong style="font-size: 11.5px; margin-top: 3px;">Flux Schnell</strong>
+                        <small style="font-size: 9.5px; color: #888;">Fastest (1 credit)</small>
                     </button>
-                    <button type="button" @click="model = 'flux-1.1-pro'; provider = 'flux'" :class="model === 'flux-1.1-pro' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="p-3 rounded-2xl border text-center transition flex flex-col items-center">
-                        <span class="text-base">✦</span>
-                        <span class="text-xs mt-1 font-medium">Flux 1.1 Pro</span>
-                        <span class="text-[10px] text-zinc-500">High Quality</span>
+                    <button type="button" @click="model = 'flux-1.1-pro'; provider = 'flux'" :style="model === 'flux-1.1-pro' ? 'background: #f0edff; border-color: #7958ee; color: #514497;' : 'background: #fff; border: 1px solid #e6e6eb; color: #555;'" style="padding: 10px 8px; border-radius: 9px; cursor: pointer; text-align: center; transition: all 0.15s; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 16px;">✦</span>
+                        <strong style="font-size: 11.5px; margin-top: 3px;">Flux 1.1 Pro</strong>
+                        <small style="font-size: 9.5px; color: #888;">Highest fidelity</small>
                     </button>
-                    <button type="button" @click="model = 'dall-e-3'; provider = 'openai'" :class="model === 'dall-e-3' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="p-3 rounded-2xl border text-center transition flex flex-col items-center">
-                        <span class="text-base">◈</span>
-                        <span class="text-xs mt-1 font-medium">DALL-E 3</span>
-                        <span class="text-[10px] text-zinc-500">OpenAI</span>
+                    <button type="button" @click="model = 'dall-e-3'; provider = 'openai'" :style="model === 'dall-e-3' ? 'background: #f0edff; border-color: #7958ee; color: #514497;' : 'background: #fff; border: 1px solid #e6e6eb; color: #555;'" style="padding: 10px 8px; border-radius: 9px; cursor: pointer; text-align: center; transition: all 0.15s; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 16px;">🤖</span>
+                        <strong style="font-size: 11.5px; margin-top: 3px;">DALL-E 3</strong>
+                        <small style="font-size: 9.5px; color: #888;">OpenAI HD</small>
                     </button>
                 </div>
             </div>
 
             <!-- Aspect Ratio -->
             <div>
-                <label class="block text-sm font-semibold text-zinc-200 mb-2">Aspect Ratio</label>
-                <div class="grid grid-cols-4 gap-2">
-                    <button type="button" @click="aspectRatio = '1:1'" :class="aspectRatio === '1:1' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="py-2.5 rounded-xl border text-xs text-center transition">
-                        1:1 Square
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #222228; margin-bottom: 8px;">Aspect Ratio</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    @foreach(['1:1' => 'Square (1:1)', '16:9' => 'Landscape (16:9)', '9:16' => 'Story (9:16)'] as $ratio => $label)
+                    <button type="button" @click="aspectRatio = '{{ $ratio }}'" :style="aspectRatio === '{{ $ratio }}' ? 'background: #17171b; color: #fff; border-color: #17171b;' : 'background: #fff; border: 1px solid #e6e6eb; color: #555;'" style="padding: 8px; border-radius: 8px; font-size: 11px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.15s;">
+                        {{ $label }}
                     </button>
-                    <button type="button" @click="aspectRatio = '16:9'" :class="aspectRatio === '16:9' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="py-2.5 rounded-xl border text-xs text-center transition">
-                        16:9 Cinema
-                    </button>
-                    <button type="button" @click="aspectRatio = '9:16'" :class="aspectRatio === '9:16' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="py-2.5 rounded-xl border text-xs text-center transition">
-                        9:16 Story
-                    </button>
-                    <button type="button" @click="aspectRatio = '4:5'" :class="aspectRatio === '4:5' ? 'bg-violet-600/20 border-violet-500 text-white font-semibold' : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700'" class="py-2.5 rounded-xl border text-xs text-center transition">
-                        4:5 Social
-                    </button>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- API Key Accordion (Optional BYOK) -->
-            <div x-data="{ openKey: false }" class="border-t border-zinc-800/80 pt-4">
-                <button type="button" @click="openKey = !openKey" class="flex items-center justify-between w-full text-xs font-medium text-zinc-400 hover:text-zinc-200 transition">
-                    <span class="flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-                        Bring Your Own API Key (Optional)
-                    </span>
-                    <span x-text="openKey ? '−' : '+'" class="text-sm font-bold"></span>
+            <!-- Custom API Key Section (Accordion) -->
+            <div x-data="{ openKey: false }" style="border-top: 1px solid #eee; padding-top: 14px;">
+                <button type="button" @click="openKey = !openKey" style="border: 0; background: none; padding: 0; font-size: 11.5px; font-weight: 500; color: #765bd7; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <span x-text="openKey ? '▾' : '▸'"></span> Bring Your Own API Key (Optional)
                 </button>
-                <div x-show="openKey" x-collapse class="mt-3 space-y-2">
-                    <input type="password" x-model="apiKey" placeholder="Enter your Replicate or OpenAI API key..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                    <p class="text-[11px] text-zinc-500">Using your personal API key does not consume platform credits. Keys are encrypted and never shared.</p>
+                <div x-show="openKey" style="margin-top: 10px;">
+                    <input type="password" x-model="apiKey" placeholder="sk-... (Replicate API token or OpenAI key)" style="width: 100%; min-height: 36px; border: 1px solid #e6e6eb; border-radius: 8px; background: #fff; padding: 8px 12px; font-size: 12px; color: #17171b; box-sizing: border-box; outline: none;">
+                    <small style="color: #999; font-size: 10px; margin-top: 4px; display: block;">When specified, generations bypass platform credit limits.</small>
                 </div>
             </div>
 
             <!-- Submit Button -->
-            <button type="button" @click="generateImage()" :disabled="isLoading || !promptText.trim()" class="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-violet-600/25 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm">
-                <template x-if="!isLoading">
-                    <span class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Generate Image Now
-                    </span>
-                </template>
-                <template x-if="isLoading">
-                    <span class="flex items-center gap-2">
-                        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                        Rendering Image...
-                    </span>
-                </template>
+            <button type="button" @click="generateImage()" :disabled="isLoading || !promptText.trim()" class="primary-button" style="width: 100%; min-height: 44px; justify-content: center; font-size: 13.5px; font-weight: 600;">
+                <span x-show="!isLoading">⚡ Generate Artwork (1 Credit)</span>
+                <span x-show="isLoading" style="display: none;">Generating preview&hellip;</span>
             </button>
         </div>
 
-        <!-- Output Canvas Column -->
-        <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800/80 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col items-center justify-center min-h-[520px] relative overflow-hidden">
-            <!-- Empty State -->
-            <div x-show="!resultImage && !isLoading" class="text-center py-16 px-4">
-                <div class="w-20 h-20 mx-auto rounded-3xl bg-zinc-950 border border-zinc-800/80 flex items-center justify-center text-zinc-600 mb-4 shadow-inner">
-                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </div>
-                <h3 class="text-lg font-bold text-white">Your generated artwork will appear here</h3>
-                <p class="mt-1 text-sm text-zinc-400 max-w-md mx-auto">Select a model, tweak your prompt or remix an existing community prompt, then click Generate.</p>
+        <!-- Canvas / Result Column -->
+        <div class="panel-card" style="padding: 24px; min-height: 440px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <!-- Empty state -->
+            <div x-show="!resultImage && !isLoading" class="empty-panel" style="width: 100%; border: 0; background: transparent; flex-direction: column; text-align: center; justify-content: center; padding: 40px 10px;">
+                <span class="empty-icon" style="width: 44px; height: 44px; font-size: 22px; margin-bottom: 8px;">✦</span>
+                <strong style="font-size: 14px;">Interactive Generation Canvas</strong>
+                <p style="max-width: 340px;">Select your preferred model, adjust prompt instructions, and click Generate to see real-time outputs here.</p>
             </div>
 
-            <!-- Loading Spinner State -->
-            <div x-show="isLoading" class="text-center py-20">
-                <div class="relative w-24 h-24 mx-auto mb-6">
-                    <div class="absolute inset-0 rounded-full border-4 border-violet-500/20"></div>
-                    <div class="absolute inset-0 rounded-full border-4 border-violet-500 border-t-transparent animate-spin"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-violet-400 text-xl font-bold">✦</div>
-                </div>
-                <h3 class="text-lg font-bold text-white">Synthesizing Imagery...</h3>
-                <p class="mt-1 text-xs text-zinc-400">Diffusion steps in progress. High-resolution canvas rendering.</p>
+            <!-- Loading state -->
+            <div x-show="isLoading" style="display: none; text-align: center; padding: 60px 20px;">
+                <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid #f0edff; border-top-color: #7958ee; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <div style="font-weight: 600; color: #222228; font-size: 14px; margin-top: 14px;">Generating AI Masterpiece&hellip;</div>
+                <p style="font-size: 11px; color: #888; margin-top: 4px;">Rendering via Flux 1.1 Pro inference engine.</p>
             </div>
 
-            <!-- Result State -->
-            <div x-show="resultImage && !isLoading" class="w-full space-y-4">
-                <div class="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 shadow-2xl flex items-center justify-center">
-                    <img :src="resultImage" alt="Generated Artwork" class="w-full max-h-[580px] object-contain">
+            <!-- Output canvas -->
+            <div x-show="resultImage && !isLoading" style="display: none; width: 100%;">
+                <div style="border-radius: 12px; overflow: hidden; border: 1px solid #ececf0; background: #000; max-height: 480px; display: flex; align-items: center; justify-content: center;">
+                    <img :src="resultImage" alt="Generated Output" style="max-width: 100%; max-height: 480px; object-fit: contain;">
                 </div>
 
-                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                    <div class="text-xs text-zinc-400">
-                        <span class="text-white font-medium" x-text="resultModel"></span> &bull; <span x-text="resultAspect"></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div style="font-size: 11.5px; color: #777;">
+                        <span style="color: #222228; font-weight: 600;" x-text="resultModel"></span> &bull; <span x-text="resultAspect"></span>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <a :href="resultImage" download="generated-artwork.png" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold transition flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download High-Res
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <a :href="resultImage" download="generated-artwork.png" class="outline-button" style="min-height: 34px; font-size: 11px; text-decoration: none;">
+                            Download High-Res &darr;
                         </a>
 
                         @auth
-                        <form :action="'/generations/' + generationId + '/publish'" method="POST" class="inline">
+                        <form :action="'/generations/' + generationId + '/publish'" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                Publish to Community
+                            <button type="submit" class="primary-button" style="min-height: 34px; font-size: 11px;">
+                                Publish to Gallery ✦
                             </button>
                         </form>
                         @endauth
@@ -174,101 +144,44 @@
         </div>
     </div>
 
-    <!-- Recent Generations Gallery -->
+    <!-- Recent Generations Showcase (Matching dashboard#favorites prompt grid) -->
     @if($recentGenerations->count() > 0)
-    <div class="mt-16">
-        <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <span>Recent Generations</span>
-            <span class="text-xs font-normal text-zinc-500">({{ $recentGenerations->total() }})</span>
-        </h2>
+    <section class="workspace-section" style="margin-top: 40px;">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">COMMUNITY CREATIONS</span>
+                <h2>Recent generations <span class="heading-count">{{ $recentGenerations->total() }}</span></h2>
+            </div>
+        </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;">
             @foreach($recentGenerations as $gen)
-            <div class="group relative rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900 aspect-square hover:border-violet-500/50 transition">
+            <div class="panel-card" style="padding: 0; overflow: hidden; position: relative;">
                 @if($gen->image_url)
-                <img src="{{ $gen->image_url }}" alt="Generation" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition p-3 flex flex-col justify-end">
-                    <p class="text-[11px] text-white line-clamp-2">{{ $gen->prompt_text }}</p>
-                    <span class="text-[9px] text-violet-400 mt-1 font-semibold uppercase">{{ $gen->model }}</span>
+                <div style="aspect-ratio: 1; overflow: hidden; background: #f0f0f2;">
+                    <img src="{{ $gen->image_url }}" alt="AI Generation" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="padding: 10px;">
+                    <div style="font-size: 10.5px; color: #444; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $gen->prompt_text }}</div>
+                    <span style="font-size: 9.5px; color: #7958ee; font-weight: 600; text-transform: uppercase;">{{ $gen->model }}</span>
                 </div>
                 @else
-                <div class="w-full h-full flex items-center justify-center text-zinc-600 text-xs">Failed</div>
+                <div style="aspect-ratio: 1; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 11px;">Failed</div>
                 @endif
             </div>
             @endforeach
         </div>
 
-        <div class="mt-6">
+        <div class="pagination-wrap" style="margin-top: 20px;">
             {{ $recentGenerations->links() }}
         </div>
-    </div>
+    </section>
     @endif
 </div>
 
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('generationStudio', (config) => ({
-        promptText: config.prefilled || '',
-        promptId: config.promptId || null,
-        credits: config.userCredits || 25,
-        model: 'flux-schnell',
-        provider: 'flux',
-        aspectRatio: '1:1',
-        apiKey: '',
-        isLoading: false,
-        resultImage: null,
-        resultModel: '',
-        resultAspect: '',
-        generationId: null,
-
-        clearPrompt() {
-            this.promptText = '';
-        },
-
-        async generateImage() {
-            if (!this.promptText.trim()) return;
-
-            this.isLoading = true;
-            this.resultImage = null;
-
-            try {
-                const response = await fetch('{{ route('generations.store') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        prompt_text: this.promptText,
-                        provider: this.provider,
-                        model: this.model,
-                        aspect_ratio: this.aspectRatio,
-                        api_key: this.apiKey,
-                        prompt_id: this.promptId
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    this.resultImage = data.generation.image_url;
-                    this.resultModel = data.generation.model;
-                    this.resultAspect = data.generation.aspect_ratio;
-                    this.generationId = data.generation.id;
-                    if (data.credits_remaining !== null && data.credits_remaining !== undefined) {
-                        this.credits = data.credits_remaining;
-                    }
-                } else {
-                    alert(data.message || 'Generation failed. Please try again.');
-                }
-            } catch (err) {
-                alert('A network error occurred during generation: ' + err.message);
-            } finally {
-                this.isLoading = false;
-            }
-        }
-    }));
-});
-</script>
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
 @endsection
