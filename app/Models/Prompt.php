@@ -33,6 +33,21 @@ class Prompt extends Model
         return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
     }
 
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class, 'collection_prompt')->withTimestamps();
+    }
+
+    public function packs(): BelongsToMany
+    {
+        return $this->belongsToMany(PromptPack::class, 'prompt_pack_items')->withTimestamps();
+    }
+
+    public function generations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Generation::class);
+    }
+
     public function getCoverUrlAttribute(): ?string
     {
         if ($this->image_path) {

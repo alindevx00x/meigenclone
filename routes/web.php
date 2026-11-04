@@ -2,15 +2,57 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GenerationController;
+use App\Http\Controllers\InstantSearchController;
 use App\Http\Controllers\PromptController;
+use App\Http\Controllers\PromptPackController;
+use App\Http\Controllers\RemixStudioController;
+use App\Http\Controllers\SrefController;
+use App\Http\Controllers\TipController;
 use Illuminate\Support\Facades\Route;
 
+// Public Core Directory
 Route::get('/', [PromptController::class, 'index'])->name('prompts.index');
 Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware('auth')->name('prompts.favorite');
 
+// 1. One-Click Real-Time Generation
+Route::get('/generate', [GenerationController::class, 'index'])->name('generations.index');
+Route::post('/api/generate', [GenerationController::class, 'store'])->middleware('throttle:30,1')->name('generations.store');
+Route::post('/generations/{generation}/publish', [GenerationController::class, 'publish'])->middleware('auth')->name('generations.publish');
+
+// 2. Interactive Prompt Remixing Studio
+Route::get('/remix', [RemixStudioController::class, 'index'])->name('studio.remix');
+
+// 3. Midjourney Style Reference (SREF) & Seed Catalog
+Route::get('/sref', [SrefController::class, 'index'])->name('srefs.index');
+Route::get('/sref/{code}', [SrefController::class, 'show'])->name('srefs.show');
+Route::post('/api/sref/{sref}/copy', [SrefController::class, 'copy'])->name('srefs.copy');
+Route::post('/api/sref/{sref}/like', [SrefController::class, 'like'])->name('srefs.like');
+
+// 4. Instant Typo-Tolerant Search API
+Route::get('/api/prompts/instant-search', [InstantSearchController::class, 'search'])->name('prompts.instant_search');
+
+// 5. Creator Monetization & Prompt Packs
+Route::get('/packs', [PromptPackController::class, 'index'])->name('packs.index');
+Route::get('/packs/create', [PromptPackController::class, 'create'])->middleware('auth')->name('packs.create');
+Route::post('/packs', [PromptPackController::class, 'store'])->middleware('auth')->name('packs.store');
+Route::get('/packs/{slug}', [PromptPackController::class, 'show'])->name('packs.show');
+Route::get('/packs/{pack}/download', [PromptPackController::class, 'download'])->name('packs.download');
+Route::post('/creators/{user}/tip', [TipController::class, 'store'])->name('creators.tip');
+
+// 6. User Moodboards & Collections
+Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
+Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
+Route::post('/collections', [CollectionController::class, 'store'])->middleware('auth')->name('collections.store');
+Route::post('/collections/{collection}/toggle', [CollectionController::class, 'togglePrompt'])->middleware('auth')->name('collections.toggle');
+Route::get('/api/my-collections', [CollectionController::class, 'userCollections'])->name('collections.user_collections');
+Route::delete('/collections/{collection}', [CollectionController::class, 'destroy'])->middleware('auth')->name('collections.destroy');
+
+// Authentication
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');
@@ -19,6 +61,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+// User Dashboard
 Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('index');
     Route::get('/prompts/create', [DashboardController::class, 'create'])->name('prompts.create');
@@ -28,6 +71,7 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::delete('/prompts/{prompt}', [DashboardController::class, 'destroy'])->name('prompts.destroy');
 });
 
+// Admin Panel
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/prompts', [AdminController::class, 'prompts'])->name('prompts.index');

@@ -29,6 +29,9 @@ class User extends Authenticatable
         'bio',
         'website',
         'avatar_url',
+        'credits',
+        'openai_api_key',
+        'replicate_api_token',
     ];
 
     /**
@@ -39,6 +42,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'openai_api_key',
+        'replicate_api_token',
     ];
 
     /**
@@ -51,6 +56,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'credits' => 'integer',
         ];
     }
 
@@ -62,6 +68,26 @@ class User extends Authenticatable
     public function favorites(): BelongsToMany
     {
         return $this->belongsToMany(Prompt::class, 'favorites')->withTimestamps();
+    }
+
+    public function generations(): HasMany
+    {
+        return $this->hasMany(Generation::class);
+    }
+
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    public function promptPacks(): HasMany
+    {
+        return $this->hasMany(PromptPack::class);
+    }
+
+    public function receivedTips(): HasMany
+    {
+        return $this->hasMany(Tip::class, 'creator_id');
     }
 
     public function isAdmin(): bool

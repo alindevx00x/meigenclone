@@ -28,6 +28,8 @@
             <span class="card-model-label">{{ $prompt->model }}</span>
             <span class="prompt-likes">♥ {{ number_format($prompt->likes_count) }}</span>
             <button class="copy-button" type="button" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
+            <button class="copy-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })" title="Save to Moodboard" style="padding: 4px 8px; margin-left: 2px;">📌</button>
+            <a href="{{ route('studio.remix', ['from' => $prompt->slug]) }}" title="Remix Prompt" class="copy-button" style="text-decoration: none; padding: 4px 8px; margin-left: 2px;">🪄</a>
         </div>
     </div>
 </article>
