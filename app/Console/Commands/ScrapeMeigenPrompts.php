@@ -41,9 +41,10 @@ class ScrapeMeigenPrompts extends Command
         $offset = 0;
         $seenIds = [];
 
-        // Preload existing image filenames or remote URLs to prevent duplicates
+        // Preload existing image filenames, remote URLs, and prompt text hashes to prevent duplicates
         $existingImageUrls = Prompt::whereNotNull('image_url')->pluck('image_url', 'id')->toArray();
         $existingImagePaths = Prompt::whereNotNull('image_path')->pluck('image_path', 'id')->toArray();
+        $existingTextHashes = Prompt::select('prompt_text')->get()->mapWithKeys(fn ($p) => [md5(trim($p->prompt_text)) => true])->toArray();
 
         // 40+ diverse search queries to ensure 5,000+ distinct prompts
         $searchQueries = [
@@ -123,6 +124,14 @@ class ScrapeMeigenPrompts extends Command
                         $skipped++;
                         continue;
                     }
+
+                    // Check if prompt text already exists
+                    $textHash = md5($text);
+                    if (isset($existingTextHashes[$textHash])) {
+                        $skipped++;
+                        continue;
+                    }
+                    $existingTextHashes[$textHash] = true;
 
                     // Check if already in database by image URL
                     if (in_array($imageUrl, $existingImageUrls, true)) {
