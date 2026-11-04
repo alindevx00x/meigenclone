@@ -91,7 +91,7 @@
     <!-- Global Modals & Alpine App State -->
     <div x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-save-collection.window="openMoodboard($event.detail)" @open-tip-modal.window="openTip($event.detail)">
         <!-- 1. Instant Typo-Tolerant Search Modal (CMD+K) -->
-        <div x-show="searchOpen" x-cloak class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/80 backdrop-blur-md">
+        <div x-show="searchOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/80 backdrop-blur-md">
             <div @click.away="searchOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
                 <!-- Search Input Bar -->
                 <div class="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-950/60">
@@ -140,7 +140,7 @@
         </div>
 
         <!-- 2. Save to Moodboard Modal -->
-        <div x-show="moodboardOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div x-show="moodboardOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div @click.away="moodboardOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -174,7 +174,7 @@
         </div>
 
         <!-- 3. Tip Creator Modal -->
-        <div x-show="tipOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div x-show="tipOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div @click.away="tipOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
@@ -204,113 +204,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('globalAppModal', () => ({
-            searchOpen: false,
-            searchQuery: '',
-            searchVibe: '',
-            searchResults: [],
-            searchLoading: false,
-
-            moodboardOpen: false,
-            activePromptId: null,
-            userMoodboards: [],
-            newBoardName: '',
-
-            tipOpen: false,
-            tipCreatorId: null,
-            tipCreatorName: '',
-            tipPromptId: null,
-            tipAmount: 5,
-            tipNote: '',
-
-            openSearch() {
-                this.searchOpen = true;
-                this.$nextTick(() => {
-                    if (this.$refs.searchInput) this.$refs.searchInput.focus();
-                });
-                if (this.searchResults.length === 0) {
-                    this.executeSearch();
-                }
-            },
-
-            toggleVibe(vibe) {
-                this.searchVibe = vibe;
-                this.executeSearch();
-            },
-
-            async executeSearch() {
-                this.searchLoading = true;
-                try {
-                    const url = '/api/prompts/instant-search?q=' + encodeURIComponent(this.searchQuery) + '&vibe=' + encodeURIComponent(this.searchVibe);
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    this.searchResults = data.results || [];
-                } catch (e) {
-                    // Ignore search errors
-                } finally {
-                    this.searchLoading = false;
-                }
-            },
-
-            async openMoodboard(detail) {
-                this.activePromptId = detail.promptId;
-                this.moodboardOpen = true;
-                const res = await fetch('/api/my-collections?prompt_id=' + this.activePromptId);
-                const data = await res.json();
-                this.userMoodboards = data.collections || [];
-            },
-
-            async toggleSaveToBoard(board) {
-                const res = await fetch('/collections/' + board.id + '/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ prompt_id: this.activePromptId })
-                });
-                const data = await res.json();
-                board.contains_prompt = data.saved;
-            },
-
-            async createAndSaveBoard() {
-                if (!this.newBoardName.trim()) return;
-                const res = await fetch('/collections', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ name: this.newBoardName, prompt_id: this.activePromptId })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.newBoardName = '';
-                    const refresh = await fetch('/api/my-collections?prompt_id=' + this.activePromptId);
-                    const refData = await refresh.json();
-                    this.userMoodboards = refData.collections || [];
-                }
-            },
-
-            openTip(detail) {
-                this.tipCreatorId = detail.creatorId;
-                this.tipCreatorName = detail.creatorName;
-                this.tipPromptId = detail.promptId || null;
-                this.tipOpen = true;
-            },
-
-            async submitTip() {
-                const res = await fetch('/creators/' + this.tipCreatorId + '/tip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ amount: this.tipAmount, message: this.tipNote, prompt_id: this.tipPromptId })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.tipOpen = false;
-                    alert(data.message);
-                }
-            }
-        }));
-    });
-    </script>
 </body>
 </html>
 

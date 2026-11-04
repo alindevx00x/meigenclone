@@ -92,7 +92,7 @@
     </div>
 
     <!-- Create Modal -->
-    <div x-show="createModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div x-show="createModal" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
         <div @click.away="createModal = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-bold text-white">Create New Moodboard</h3>

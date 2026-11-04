@@ -1,6 +1,128 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
+Alpine.data('globalAppModal', () => ({
+    searchOpen: false,
+    searchQuery: '',
+    searchVibe: '',
+    searchResults: [],
+    searchLoading: false,
+
+    moodboardOpen: false,
+    activePromptId: null,
+    userMoodboards: [],
+    newBoardName: '',
+
+    tipOpen: false,
+    tipCreatorId: null,
+    tipCreatorName: '',
+    tipPromptId: null,
+    tipAmount: 5,
+    tipNote: '',
+
+    openSearch() {
+        this.searchOpen = true;
+        this.$nextTick(() => {
+            if (this.$refs.searchInput) this.$refs.searchInput.focus();
+        });
+        if (this.searchResults.length === 0) {
+            this.executeSearch();
+        }
+    },
+
+    toggleVibe(vibe) {
+        this.searchVibe = vibe;
+        this.executeSearch();
+    },
+
+    async executeSearch() {
+        this.searchLoading = true;
+        try {
+            const url = '/api/prompts/instant-search?q=' + encodeURIComponent(this.searchQuery) + '&vibe=' + encodeURIComponent(this.searchVibe);
+            const res = await fetch(url);
+            const data = await res.json();
+            this.searchResults = data.results || [];
+        } catch {
+            // Ignore search errors
+        } finally {
+            this.searchLoading = false;
+        }
+    },
+
+    async openMoodboard(detail) {
+        this.activePromptId = detail.promptId;
+        this.moodboardOpen = true;
+        try {
+            const res = await fetch('/api/my-collections?prompt_id=' + this.activePromptId);
+            const data = await res.json();
+            this.userMoodboards = data.collections || [];
+        } catch (e) {
+            console.error(e);
+        }
+    },
+
+    async toggleSaveToBoard(board) {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        try {
+            const res = await fetch('/collections/' + board.id + '/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ prompt_id: this.activePromptId })
+            });
+            const data = await res.json();
+            board.contains_prompt = data.saved;
+        } catch (e) {
+            console.error(e);
+        }
+    },
+
+    async createAndSaveBoard() {
+        if (!this.newBoardName.trim()) return;
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        try {
+            const res = await fetch('/collections', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ name: this.newBoardName, prompt_id: this.activePromptId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.newBoardName = '';
+                const refresh = await fetch('/api/my-collections?prompt_id=' + this.activePromptId);
+                const refData = await refresh.json();
+                this.userMoodboards = refData.collections || [];
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    },
+
+    openTip(detail) {
+        this.tipCreatorId = detail.creatorId;
+        this.tipCreatorName = detail.creatorName;
+        this.tipPromptId = detail.promptId || null;
+        this.tipOpen = true;
+    },
+
+    async submitTip() {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        try {
+            const res = await fetch('/creators/' + this.tipCreatorId + '/tip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ amount: this.tipAmount, message: this.tipNote, prompt_id: this.tipPromptId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.tipOpen = false;
+                alert(data.message);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 
