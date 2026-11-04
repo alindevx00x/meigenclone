@@ -90,6 +90,7 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::put('/models/{model}', [AdminController::class, 'updateModel'])->name('models.update');
     Route::delete('/models/{model}', [AdminController::class, 'destroyModel'])->name('models.destroy');
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::patch('/users/{user}/status', [AdminController::class, 'toggleUserStatus'])->name('users.status');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');

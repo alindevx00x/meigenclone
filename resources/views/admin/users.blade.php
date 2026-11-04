@@ -134,10 +134,10 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                <!-- Edit User Button (Opens Dialog) -->
-                                <button type="button" class="outline-button" onclick="document.getElementById('edit-user-modal-{{ $member->id }}').showModal()" style="min-height: 32px; padding: 0 10px; font-size: 11px;">
-                                    Edit settings ⚙
-                                </button>
+                                <!-- Edit User Button (Opens new page) -->
+                                <a href="{{ route('admin.users.edit', $member) }}" class="outline-button" style="min-height: 32px; padding: 0 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    Edit <span>⚙</span>
+                                </a>
 
                                 @if (! $member->is(auth()->user()))
                                     <!-- Toggle Status Button -->
@@ -163,78 +163,6 @@
                                     </form>
                                 @endif
                             </div>
-
-                            <!-- Edit Modal for Member -->
-                            <dialog id="edit-user-modal-{{ $member->id }}" class="user-modal panel-card" style="border: 1px solid #ddd; border-radius: 14px; max-width: 540px; width: 90vw; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
-                                    <div>
-                                        <h3 style="margin: 0; font-size: 18px; color: #1e1e24;">Edit Member: {{ $member->name }}</h3>
-                                        <small style="color: #888;">Account ID #{{ $member->id }} · Registered {{ $member->created_at->format('M j, Y') }}</small>
-                                    </div>
-                                    <button type="button" onclick="document.getElementById('edit-user-modal-{{ $member->id }}').close()" style="border: 0; background: none; font-size: 22px; cursor: pointer; color: #888;">×</button>
-                                </div>
-
-                                <form method="POST" action="{{ route('admin.users.update', $member) }}">
-                                    @csrf
-                                    @method('PUT')
-
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Full name <span class="required-star">*</span>
-                                            <input type="text" name="name" required maxlength="80" value="{{ old('name', $member->name) }}" style="min-height: 36px;">
-                                        </label>
-
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Email address <span class="required-star">*</span>
-                                            <input type="email" name="email" required maxlength="255" value="{{ old('email', $member->email) }}" style="min-height: 36px;">
-                                        </label>
-
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            System Role <span class="required-star">*</span>
-                                            <select name="role" required style="min-height: 36px;" @disabled($member->is(auth()->user()))>
-                                                <option value="user" @selected(old('role', $member->role) === 'user')>Creator (Standard)</option>
-                                                <option value="admin" @selected(old('role', $member->role) === 'admin')>Administrator (Full Access)</option>
-                                            </select>
-                                            @if ($member->is(auth()->user()))
-                                                <input type="hidden" name="role" value="admin">
-                                            @endif
-                                        </label>
-
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Account Status <span class="required-star">*</span>
-                                            <select name="status" required style="min-height: 36px;" @disabled($member->is(auth()->user()))>
-                                                <option value="active" @selected(old('status', $member->status) === 'active')>Active (Can log in)</option>
-                                                <option value="suspended" @selected(old('status', $member->status) === 'suspended')>Suspended (Blocked)</option>
-                                            </select>
-                                            @if ($member->is(auth()->user()))
-                                                <input type="hidden" name="status" value="active">
-                                            @endif
-                                        </label>
-                                    </div>
-
-                                    <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px;">
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Website or Social URL <span class="optional-label">Optional</span>
-                                            <input type="url" name="website" maxlength="255" value="{{ old('website', $member->website) }}" placeholder="https://x.com/username" style="min-height: 36px;">
-                                        </label>
-
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Bio / Creator Headline <span class="optional-label">Optional</span>
-                                            <textarea name="bio" rows="2" maxlength="500" placeholder="Brief creator introduction…" style="min-height: 60px; resize: vertical;">{{ old('bio', $member->bio) }}</textarea>
-                                        </label>
-
-                                        <label style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500;">
-                                            Set New Password <span class="optional-label">Leave blank to keep unchanged</span>
-                                            <input type="password" name="password" minlength="8" placeholder="Enter new password (min. 8 characters)" style="min-height: 36px;">
-                                        </label>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 14px;">
-                                        <button type="button" class="outline-button" onclick="document.getElementById('edit-user-modal-{{ $member->id }}').close()">Cancel</button>
-                                        <button type="submit" class="primary-button">Save Member Settings <span>→</span></button>
-                                    </div>
-                                </form>
-                            </dialog>
                         </td>
                     </tr>
                 @empty

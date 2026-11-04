@@ -342,6 +342,14 @@ class AdminController extends Controller
         return view('admin.users', compact('users', 'stats'));
     }
 
+    public function editUser(User $user)
+    {
+        $user->loadCount(['prompts', 'favorites', 'collections', 'promptPacks', 'generations']);
+        $recentPrompts = $user->prompts()->with('category')->latest()->take(8)->get();
+
+        return view('admin.users.edit', compact('user', 'recentPrompts'));
+    }
+
     public function updateUser(Request $request, User $user)
     {
         $uniqueEmail = Rule::unique('users', 'email')->ignore($user->id);
@@ -353,6 +361,7 @@ class AdminController extends Controller
             'status' => ['required', 'in:active,suspended'],
             'bio' => ['nullable', 'string', 'max:500'],
             'website' => ['nullable', 'url', 'max:255'],
+            'credits' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 
@@ -374,13 +383,21 @@ class AdminController extends Controller
             'website' => $data['website'] ?? null,
         ];
 
+        if (array_key_exists('credits', $data)) {
+            $updateData['credits'] = (int) $data['credits'];
+        }
+
         if (! empty($data['password'])) {
             $updateData['password'] = Hash::make($data['password']);
         }
 
         $user->update($updateData);
 
-        return back()->with('success', "Member '{$user->name}' updated successfully.");
+        if ($request->input('action') === 'save_and_exit') {
+            return redirect()->route('admin.users.index')->with('success', "Member '{$user->name}' updated successfully.");
+        }
+
+        return redirect()->route('admin.users.edit', $user)->with('success', "Member '{$user->name}' settings saved successfully.");
     }
 
     public function toggleUserStatus(Request $request, User $user)
