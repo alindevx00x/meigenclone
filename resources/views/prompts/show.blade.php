@@ -32,9 +32,30 @@
         <div class="detail-info">
             <div class="detail-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }} <i>·</i> {{ $prompt->model }}</div>
             <h1>{{ $prompt->title }}</h1>
-            <div class="detail-author"><span class="avatar">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span><span><strong>{{ $prompt->user?->name ?? 'MeiGen Community' }}</strong><small>Shared with the community</small></span><span class="detail-date">{{ $prompt->approved_at?->diffForHumans() }}</span></div>
+            <div class="detail-author">
+                <span class="avatar">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span>
+                <span>
+                    <strong>
+                        {{ $prompt->user?->name ?? 'MeiGen Community' }}
+                        @if($prompt->user?->is_verified)
+                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9.5px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                        @endif
+                    </strong>
+                    <small>Shared with the community</small>
+                </span>
+                @if($prompt->user && auth()->check() && auth()->id() !== $prompt->user_id)
+                    <form method="POST" action="{{ route('creators.follow', $prompt->user_id) }}" style="margin-left: 8px;">
+                        @csrf
+                        <button type="submit" class="outline-button" style="min-height: 28px; padding: 0 10px; font-size: 11px; border-radius: 99px;">
+                            {{ auth()->user()->isFollowing($prompt->user) ? '✓ Following' : '+ Follow' }}
+                        </button>
+                    </form>
+                @endif
+                <span class="detail-date">{{ $prompt->approved_at?->diffForHumans() }}</span>
+            </div>
             <div class="detail-actions" style="flex-wrap: wrap; gap: 8px;">
                 <button class="primary-button" type="button" data-copy="{{ $prompt->prompt_text }}">Copy prompt <span>⧉</span></button>
+                <button class="outline-button" type="button" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" style="color: #5865f2; border-color: #dce1fc; background: #f8f9ff;">Copy Discord /mj <span>🎮</span></button>
                 <a class="outline-button" style="text-decoration: none;" href="{{ route('studio.remix', ['from' => $prompt->slug]) }}">Remix <span>🪄</span></a>
                 <button class="outline-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })">Board <span>📌</span></button>
                 @if($prompt->user)

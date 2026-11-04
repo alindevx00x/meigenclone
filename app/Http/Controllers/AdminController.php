@@ -50,7 +50,15 @@ class AdminController extends Controller
             'seo_canonical_base' => ['nullable', 'url', 'max:2048'],
             'seo_robots' => ['required', Rule::in(['index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow'])],
             'seo_og_image' => ['nullable', 'url', 'max:2048'],
+            'favicon' => ['nullable', 'image', 'mimes:ico,png,svg,webp,jpg,jpeg', 'max:2048'],
         ]);
+
+        if ($request->hasFile('favicon')) {
+            $path = $request->file('favicon')->store('favicons', 'public');
+            $data['favicon_url'] = '/storage/' . $path;
+        } elseif ($request->boolean('remove_favicon')) {
+            $data['favicon_url'] = '';
+        }
 
         foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled'] as $toggle) {
             $data[$toggle] = $request->boolean($toggle) ? '1' : '0';

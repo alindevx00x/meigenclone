@@ -30,6 +30,7 @@ class User extends Authenticatable
         'website',
         'avatar_url',
         'credits',
+        'is_verified',
         'openai_api_key',
         'replicate_api_token',
     ];
@@ -57,6 +58,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'credits' => 'integer',
+            'is_verified' => 'boolean',
         ];
     }
 
@@ -88,6 +90,21 @@ class User extends Authenticatable
     public function receivedTips(): HasMany
     {
         return $this->hasMany(Tip::class, 'creator_id');
+    }
+
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')->withTimestamps();
+    }
+
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')->withTimestamps();
+    }
+
+    public function isFollowing(User $user): bool
+    {
+        return $this->following()->whereKey($user->id)->exists();
     }
 
     public function isAdmin(): bool

@@ -23,6 +23,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $metaTitle }}</title>
+    @if (!empty($directorySettings['favicon_url']))
+        <link rel="icon" href="{{ $directorySettings['favicon_url'] }}">
+        <link rel="apple-touch-icon" href="{{ $directorySettings['favicon_url'] }}">
+    @else
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z' fill='%237c3aed'/></svg>">
+    @endif
     <meta name="description" content="{{ $metaDescription }}">
     @if (trim($directorySettings['seo_keywords'] ?? '') !== '')<meta name="keywords" content="{{ $directorySettings['seo_keywords'] }}">@endif
     <meta name="robots" content="{{ $robotsPolicy }}">

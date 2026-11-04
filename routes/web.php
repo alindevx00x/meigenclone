@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 
 // Public Core Directory
 Route::get('/', [PromptController::class, 'index'])->name('prompts.index');
+Route::get('/prompts/category/{category:slug}', [PromptController::class, 'categoryLanding'])->name('prompts.category_landing');
+Route::get('/prompts/style/{vibe}', [PromptController::class, 'styleLanding'])->name('prompts.style_landing');
 Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware('auth')->name('prompts.favorite');
@@ -43,6 +45,33 @@ Route::post('/packs', [PromptPackController::class, 'store'])->middleware('auth'
 Route::get('/packs/{slug}', [PromptPackController::class, 'show'])->name('packs.show');
 Route::get('/packs/{pack}/download', [PromptPackController::class, 'download'])->name('packs.download');
 Route::post('/creators/{user}/tip', [TipController::class, 'store'])->name('creators.tip');
+Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
+    $follower = request()->user();
+    if ($follower->id === $user->id) {
+        return back()->with('error', 'You cannot follow yourself.');
+    }
+    $isFollowing = $follower->isFollowing($user);
+    if ($isFollowing) {
+        $follower->following()->detach($user->id);
+        $msg = 'Unfollowed ' . $user->name;
+    } else {
+        $follower->following()->attach($user->id);
+        $msg = 'You are now following ' . $user->name;
+    }
+    return back()->with('success', $msg);
+})->middleware('auth')->name('creators.follow');
+
+// Newsletter subscription
+Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'email' => ['required', 'email', 'max:255'],
+    ]);
+    \Illuminate\Support\Facades\DB::table('newsletter_subscribers')->updateOrInsert(
+        ['email' => strtolower(trim($data['email']))],
+        ['user_id' => auth()->id(), 'is_active' => true, 'updated_at' => now(), 'created_at' => now()]
+    );
+    return back()->with('success', 'Thanks for subscribing! You will receive the weekly Top 10 Prompts digest.');
+})->name('newsletter.subscribe');
 
 // 6. User Moodboards & Collections
 Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');

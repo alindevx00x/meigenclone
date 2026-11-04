@@ -13,7 +13,7 @@
         <span class="settings-live-note"><i></i> Changes apply across the directory</span>
     </div>
 
-    <form method="POST" action="{{ route('admin.settings.update') }}" class="settings-form">
+    <form method="POST" action="{{ route('admin.settings.update') }}" class="settings-form" enctype="multipart/form-data">
         @csrf @method('PUT')
         <div class="settings-grid">
             <section class="settings-card">
@@ -27,6 +27,21 @@
                         <textarea name="site_tagline" rows="3" maxlength="160" required>{{ old('site_tagline', $settings['site_tagline']) }}</textarea>
                         <small>A brief line describing your community.</small>
                     </label>
+                    <div class="settings-field">
+                        <label>Platform Favicon (.ico, .png, .svg)</label>
+                        <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px;">
+                            @if (!empty($settings['favicon_url']))
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #f4f4f6; border-radius: 8px; border: 1px solid #e4e4e7;">
+                                    <img src="{{ $settings['favicon_url'] }}" alt="Favicon" style="width: 24px; height: 24px; object-fit: contain;">
+                                    <label style="font-size: 11px; color: #dc2626; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                        <input type="checkbox" name="remove_favicon" value="1"> Remove
+                                    </label>
+                                </div>
+                            @endif
+                            <input type="file" name="favicon" accept=".ico,.png,.svg,.webp,.jpg" style="font-size: 12px; border: 1px dashed #d4d4d8; padding: 6px 10px; border-radius: 8px; background: #fafafa; cursor: pointer;">
+                        </div>
+                        <small>Displayed on browser tabs and bookmarks (recommended 32x32 or 64x64 PNG/ICO).</small>
+                    </div>
                 </div>
             </section>
 

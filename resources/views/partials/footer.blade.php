@@ -20,6 +20,12 @@
                     <span>🪄</span> Fast Remix Studio
                 </span>
             </div>
+            <form action="{{ route('newsletter.subscribe') }}" method="POST" style="margin-top: 10px; display: flex; gap: 6px; max-width: 380px;">
+                @csrf
+                <input type="email" name="email" required placeholder="Enter your email for weekly Top 10..." style="flex: 1; min-width: 0; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 12px; outline: none;">
+                <button type="submit" class="primary-button" style="min-height: 34px; padding: 0 14px; font-size: 12px; border-radius: 8px;">Subscribe</button>
+            </form>
+            <div style="font-size: 11px; color: #9ca3af;">Weekly digest powered by SMTP. No spam, unsubscribe anytime.</div>
         </div>
 
         <!-- Studio & Explore Column -->

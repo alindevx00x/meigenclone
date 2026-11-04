@@ -10,7 +10,12 @@
     <div class="prompt-card-body">
         <div class="prompt-card-author">
             <span class="avatar avatar-tiny">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span>
-            <span class="author-name">{{ $prompt->user?->name ?? 'MeiGen Community' }}</span>
+            <span class="author-name">
+                {{ $prompt->user?->name ?? 'MeiGen Community' }}
+                @if($prompt->user?->is_verified)
+                    <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                @endif
+            </span>
             <span class="author-handle">{{ $prompt->user ? '@'.str($prompt->user->name)->slug('_') : 'Community pick' }}</span>
             <form method="POST" action="{{ auth()->check() ? route('prompts.favorite', $prompt->slug) : route('login') }}" class="favorite-form">
                 @csrf
@@ -28,6 +33,7 @@
             <span class="card-model-label">{{ $prompt->model }}</span>
             <span class="prompt-likes">♥ {{ number_format($prompt->likes_count) }}</span>
             <button class="copy-button" type="button" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
+            <button class="copy-button" type="button" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" title="Copy Midjourney Discord command (/imagine prompt: ...)" style="padding: 4px 7px; margin-left: 2px; font-weight: 600; color: #5865f2; background: #f0f2ff; border-color: #dce1fc;">/mj</button>
             <button class="copy-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })" title="Save to Moodboard" style="padding: 4px 8px; margin-left: 2px;">📌</button>
             <a href="{{ route('studio.remix', ['from' => $prompt->slug]) }}" title="Remix Prompt" class="copy-button" style="text-decoration: none; padding: 4px 8px; margin-left: 2px;">🪄</a>
         </div>

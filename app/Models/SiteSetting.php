@@ -45,6 +45,7 @@ class SiteSetting extends Model
             'seo_canonical_base' => '',
             'seo_robots' => 'index,follow',
             'seo_og_image' => '',
+            'favicon_url' => '',
         ];
     }
 

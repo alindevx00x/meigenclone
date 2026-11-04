@@ -54,7 +54,15 @@ class PromptController extends Controller
             $modelIcons = ['GPT Image' => '✦', 'Seedance' => '◉', 'Nanobanana' => '◍', 'Midjourney' => '✧'];
         }
 
-        return view('prompts.index', compact('categories', 'prompts', 'models', 'modelIcons') + ['activeSort' => $sort]);
+        $featuredPrompts = Prompt::with(['user', 'category'])
+            ->where('status', 'approved')
+            ->where(fn($q) => $q->whereNotNull('image_url')->orWhereNotNull('image_path'))
+            ->orderByDesc('is_featured')
+            ->orderByDesc('likes_count')
+            ->take(5)
+            ->get();
+
+        return view('prompts.index', compact('categories', 'prompts', 'models', 'modelIcons', 'featuredPrompts') + ['activeSort' => $sort]);
     }
 
     public function show(Prompt $prompt)
@@ -97,6 +105,103 @@ class PromptController extends Controller
         }
 
         return back()->with('success', $exists ? 'Removed from your saved prompts.' : 'Saved to your favorites.');
+    }
+
+    public function categoryLanding(Category $category)
+    {
+        $categories = Category::all();
+        $prompts = $category->prompts()
+            ->where('status', 'approved')
+            ->orderByDesc('likes_count')
+            ->orderByDesc('approved_at')
+            ->paginate(24);
+
+        $topModels = Prompt::where('category_id', $category->id)
+            ->where('status', 'approved')
+            ->select('model', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->groupBy('model')
+            ->orderByDesc('count')
+            ->take(4)
+            ->get();
+
+        $faqs = [
+            [
+                'question' => "What are the best {$category->name} prompts for Midjourney v6 and Flux?",
+                'answer' => "Top {$category->name} prompts focus on specific lighting conditions, materials, camera lenses, and rendering engines. Use high-detail parameter tokens like --ar 16:9, --stylize 250, and 8k commercial photography tags."
+            ],
+            [
+                'question' => "How do I remix and customize these {$category->name} prompts?",
+                'answer' => "Click the Remix (🪄) icon on any card to open the interactive builder. You can swap aspect ratios, adjust color temperatures, and append custom SREF style reference codes."
+            ],
+            [
+                'question' => "Can I use these {$category->name} images commercially?",
+                'answer' => "Prompts are free and open for public creative use. Commercial generation rights depend on the terms of your AI generation tool subscription (Midjourney Pro, Flux, etc.)."
+            ]
+        ];
+
+        return view('prompts.landing', [
+            'type' => 'category',
+            'title' => "Best {$category->name} AI Prompts (2026 Library)",
+            'metaTitle' => "Top {$category->name} Prompts for Midjourney, Flux & DALL-E",
+            'metaDescription' => "Explore curated {$category->name} AI prompts. One-click copy, Remix token builder, and Midjourney Discord command shortcuts.",
+            'category' => $category,
+            'prompts' => $prompts,
+            'categories' => $categories,
+            'topModels' => $topModels,
+            'faqs' => $faqs,
+        ]);
+    }
+
+    public function styleLanding(string $vibe)
+    {
+        $vibeTitles = [
+            'cyberpunk' => ['title' => 'Cyberpunk & Neon Sci-Fi Prompts', 'kw' => 'cyberpunk, neon glow, dystopian sci-fi, futuristic city, blade runner aesthetic'],
+            'minimalist' => ['title' => 'Minimalist & Clean Editorial Prompts', 'kw' => 'minimalist, negative space, clean studio, Scandinavian design, beige aesthetic'],
+            'cinematic' => ['title' => '35mm Cinematic Film Photography Prompts', 'kw' => '35mm, Kodak Portra, anamorphic lens, movie still, volumetric lighting'],
+            'anime' => ['title' => 'Anime, Manga & Makoto Shinkai Prompts', 'kw' => 'anime aesthetic, Studio Ghibli, Makoto Shinkai sky, vibrant cel shading'],
+            'isometric' => ['title' => '3D Isometric & Low-Poly Render Prompts', 'kw' => 'isometric 3D, Blender 3D render, cute low poly, miniature diorama, claymation'],
+        ];
+
+        $info = $vibeTitles[$vibe] ?? [
+            'title' => ucwords(str_replace('-', ' ', $vibe)) . ' Style AI Prompts',
+            'kw' => $vibe . ', aesthetic style, midjourney prompt, flux render'
+        ];
+
+        $categories = Category::all();
+        $prompts = Prompt::where('status', 'approved')
+            ->where(function ($q) use ($vibe, $info) {
+                $q->where('title', 'like', "%{$vibe}%")
+                  ->orWhere('prompt_text', 'like', "%{$vibe}%");
+                foreach (explode(',', $info['kw']) as $word) {
+                    $w = trim($word);
+                    if ($w) $q->orWhere('prompt_text', 'like', "%{$w}%");
+                }
+            })
+            ->orderByDesc('likes_count')
+            ->paginate(24);
+
+        $faqs = [
+            [
+                'question' => "How do I get consistent {$info['title']} results?",
+                'answer' => "Include specific rendering parameters such as volumetric dust, specific camera sensor types, and accurate lighting keywords into your prompt."
+            ],
+            [
+                'question' => "Which models perform best for {$vibe} style prompts?",
+                'answer' => "Midjourney v6.1 and Flux.1 Schnell deliver industry-leading fidelity for textured lighting and artistic style fidelity."
+            ]
+        ];
+
+        return view('prompts.landing', [
+            'type' => 'style',
+            'title' => $info['title'],
+            'metaTitle' => "{$info['title']} \u2014 Curated AI Prompt Index",
+            'metaDescription' => "Browse high-engagement {$vibe} prompts for Midjourney, Flux, and SDXL. 1-click Discord copy, SREF codes, and instant remixing.",
+            'vibe' => $vibe,
+            'prompts' => $prompts,
+            'categories' => $categories,
+            'topModels' => collect([]),
+            'faqs' => $faqs,
+        ]);
     }
 
     public function sitemap()

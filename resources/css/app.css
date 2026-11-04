@@ -458,6 +458,8 @@ a.stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(30,27
     .stats-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .detail-layout { grid-template-columns:minmax(250px,.9fr) minmax(280px,1.1fr); gap:18px; }
     .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
+    .carousel-slide { grid-template-columns: 1fr !important; min-height: auto !important; }
+    .carousel-slide > div:last-child { height: 220px; }
 }
 @media (max-width:640px) {
     .footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }

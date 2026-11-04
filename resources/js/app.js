@@ -366,6 +366,25 @@ document.addEventListener('click', async (event) => {
         }
     }
 
+    const discordBtn = event.target.closest('[data-discord-copy]');
+    if (discordBtn) {
+        const val = discordBtn.getAttribute('data-discord-copy') || '';
+        try {
+            await navigator.clipboard.writeText(val);
+            showToast('Copied Discord /imagine prompt command!');
+        } catch {
+            const input = document.createElement('textarea');
+            input.value = val;
+            input.style.position = 'fixed';
+            input.style.opacity = '0';
+            document.body.append(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+            showToast('Copied Discord /imagine prompt command!');
+        }
+    }
+
     if (event.target.closest('[data-dismiss]')) {
         event.target.closest('.flash')?.remove();
     }
