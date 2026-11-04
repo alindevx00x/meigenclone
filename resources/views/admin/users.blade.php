@@ -134,9 +134,9 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                <!-- Edit User Button (Opens new page) -->
-                                <a href="{{ route('admin.users.edit', $member) }}" class="outline-button" style="min-height: 32px; padding: 0 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                                    Edit <span>⚙</span>
+                                <!-- Edit User Button (Opens in dedicated page) -->
+                                <a href="{{ route('admin.users.edit', $member) }}" class="outline-button" style="min-height: 32px; padding: 0 10px; font-size: 11px; display: inline-flex; align-items: center; text-decoration: none;">
+                                    Edit settings ⚙
                                 </a>
 
                                 @if (! $member->is(auth()->user()))
