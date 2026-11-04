@@ -393,6 +393,122 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+document.addEventListener('submit', async (event) => {
+    const favoriteForm = event.target.closest('.favorite-form');
+    if (!favoriteForm) return;
+
+    if (favoriteForm.action.includes('/login')) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const button = favoriteForm.querySelector('button[type="submit"], .favorite-button');
+    if (!button || button.disabled) return;
+
+    const card = favoriteForm.closest('.prompt-card');
+    const likesBadge = card ? card.querySelector('.prompt-likes') : null;
+    const detailStats = document.querySelector('.detail-stats span:first-child');
+    const favHeadingCount = document.querySelector('#favorites .heading-count');
+
+    const isCardButton = button.classList.contains('favorite-button');
+    const isCurrentlyFavorited = isCardButton
+        ? button.classList.contains('is-favorite')
+        : button.classList.contains('saved');
+
+    const nextFavorited = !isCurrentlyFavorited;
+
+    // Optimistic UI updates
+    if (isCardButton) {
+        button.classList.toggle('is-favorite', nextFavorited);
+        button.textContent = nextFavorited ? '♥' : '♡';
+        button.setAttribute('aria-label', nextFavorited ? 'Remove from saved' : 'Save prompt');
+        if (likesBadge) {
+            const currentMatch = likesBadge.textContent.match(/\d[,\d]*/);
+            if (currentMatch) {
+                const count = parseInt(currentMatch[0].replace(/,/g, ''), 10) || 0;
+                const nextCount = Math.max(0, count + (nextFavorited ? 1 : -1));
+                likesBadge.textContent = `♥ ${nextCount.toLocaleString()}`;
+            }
+        }
+    } else {
+        button.classList.toggle('saved', nextFavorited);
+        button.textContent = nextFavorited ? '♥ Saved' : '♡ Save';
+        if (detailStats) {
+            const currentMatch = detailStats.textContent.match(/\d[,\d]*/);
+            if (currentMatch) {
+                const count = parseInt(currentMatch[0].replace(/,/g, ''), 10) || 0;
+                const nextCount = Math.max(0, count + (nextFavorited ? 1 : -1));
+                detailStats.textContent = `♥ ${nextCount.toLocaleString()} saves`;
+            }
+        }
+    }
+
+    if (favHeadingCount) {
+        const count = parseInt(favHeadingCount.textContent.replace(/,/g, ''), 10) || 0;
+        favHeadingCount.textContent = Math.max(0, count + (nextFavorited ? 1 : -1)).toLocaleString();
+    }
+
+    showToast(nextFavorited ? 'Saved to your favorites' : 'Removed from saved prompts');
+
+    button.style.transform = 'scale(1.25)';
+    setTimeout(() => {
+        button.style.transform = '';
+    }, 180);
+
+    const csrfToken = favoriteForm.querySelector('input[name="_token"]')?.value
+        || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+        const response = await fetch(favoriteForm.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(new FormData(favoriteForm)).toString()
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+        if (data && data.success) {
+            if (isCardButton) {
+                button.classList.toggle('is-favorite', data.is_favorited);
+                button.textContent = data.is_favorited ? '♥' : '♡';
+                if (likesBadge && data.formatted_likes !== undefined) {
+                    likesBadge.textContent = `♥ ${data.formatted_likes}`;
+                }
+            } else {
+                button.classList.toggle('saved', data.is_favorited);
+                button.textContent = data.is_favorited ? '♥ Saved' : '♡ Save';
+                if (detailStats && data.formatted_likes !== undefined) {
+                    detailStats.textContent = `♥ ${data.formatted_likes} saves`;
+                }
+            }
+        } else {
+            revert();
+        }
+    } catch {
+        revert();
+    }
+
+    function revert() {
+        if (isCardButton) {
+            button.classList.toggle('is-favorite', isCurrentlyFavorited);
+            button.textContent = isCurrentlyFavorited ? '♥' : '♡';
+        } else {
+            button.classList.toggle('saved', isCurrentlyFavorited);
+            button.textContent = isCurrentlyFavorited ? '♥ Saved' : '♡ Save';
+        }
+        showToast('Could not update favorite. Please try again.');
+    }
+});
+
 if (new URLSearchParams(window.location.search).get('focus') === 'search') {
     window.setTimeout(() => document.querySelector('#prompt-search input')?.focus(), 150);
 }

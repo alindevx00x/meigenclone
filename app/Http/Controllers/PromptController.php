@@ -44,7 +44,7 @@ class PromptController extends Controller
             default => $query->orderByDesc('is_featured')->orderByDesc('approved_at')->orderByDesc('id'),
         };
 
-        $perPage = min(48, max(12, (int) SiteSetting::value('prompts_per_page', 24)));
+        $perPage = min(250, max(6, (int) SiteSetting::value('prompts_per_page', 24)));
         $prompts = $query->paginate($perPage)->withQueryString();
         $modelList = \App\Models\AiModel::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
         $models = $modelList->pluck('name')->all();
@@ -82,6 +82,18 @@ class PromptController extends Controller
         } else {
             $user->favorites()->attach($prompt->id);
             $prompt->increment('likes_count');
+        }
+
+        $freshLikes = (int) $prompt->fresh()->likes_count;
+
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_favorited' => ! $exists,
+                'likes_count' => $freshLikes,
+                'formatted_likes' => number_format($freshLikes),
+                'message' => $exists ? 'Removed from your saved prompts.' : 'Saved to your favorites.',
+            ]);
         }
 
         return back()->with('success', $exists ? 'Removed from your saved prompts.' : 'Saved to your favorites.');

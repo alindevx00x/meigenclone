@@ -42,7 +42,7 @@
                 <button class="outline-button" type="button" @click="$dispatch('open-tip-modal', { creatorId: {{ $prompt->user_id }}, creatorName: '{{ addslashes($prompt->user->name) }}', promptId: {{ $prompt->id }} })">Tip <span>☕</span></button>
                 @endif
                 @auth
-                    <form method="POST" action="{{ route('prompts.favorite', $prompt->slug) }}">@csrf<button class="outline-button {{ $prompt->is_favorited ? 'saved' : '' }}" type="submit">{{ $prompt->is_favorited ? '♥ Saved' : '♡ Save' }}</button></form>
+                    <form method="POST" action="{{ route('prompts.favorite', $prompt->slug) }}" class="favorite-form" style="display:inline-flex;">@csrf<button class="outline-button {{ $prompt->is_favorited ? 'saved' : '' }}" type="submit">{{ $prompt->is_favorited ? '♥ Saved' : '♡ Save' }}</button></form>
                 @else
                     <a class="outline-button" href="{{ route('login') }}">♡ Save</a>
                 @endauth

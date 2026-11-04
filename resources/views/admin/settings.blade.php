@@ -52,8 +52,16 @@
                     </label>
                     <label class="settings-field">Prompts per page
                         <select name="prompts_per_page">
-                            @foreach ([12, 24, 36, 48] as $count)
-                                <option value="{{ $count }}" @selected((int) $settings['prompts_per_page'] === $count)>{{ $count }} prompts</option>
+                            @php
+                                $counts = [12, 16, 20, 24, 30, 36, 48, 60, 72, 96, 120, 150, 200];
+                                $currentCount = (int) $settings['prompts_per_page'];
+                                if ($currentCount && !in_array($currentCount, $counts)) {
+                                    $counts[] = $currentCount;
+                                    sort($counts);
+                                }
+                            @endphp
+                            @foreach ($counts as $count)
+                                <option value="{{ $count }}" @selected($currentCount === $count)>{{ $count }} prompts</option>
                             @endforeach
                         </select>
                         <small>Controls the gallery page size and pagination.</small>

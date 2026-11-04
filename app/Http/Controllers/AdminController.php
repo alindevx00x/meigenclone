@@ -31,7 +31,7 @@ class AdminController extends Controller
         $data = $request->validate([
             'site_name' => ['required', 'string', 'max:60'],
             'site_tagline' => ['required', 'string', 'max:160'],
-            'prompts_per_page' => ['required', 'integer', 'in:12,24,36,48'],
+            'prompts_per_page' => ['required', 'integer', 'min:6', 'max:250'],
             'default_sort' => ['required', 'in:featured,newest,popular'],
             'mail_mailer' => ['required', 'in:smtp,log,array'],
             'mail_host' => [$mailSettingsEnabled && $mailer === 'smtp' ? 'required' : 'nullable', 'string', 'max:255'],
