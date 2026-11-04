@@ -19,10 +19,10 @@ Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap'
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware('auth')->name('prompts.favorite');
 
-// 1. One-Click Real-Time Generation
-Route::get('/generate', [GenerationController::class, 'index'])->name('generations.index');
-Route::post('/api/generate', [GenerationController::class, 'store'])->middleware('throttle:30,1')->name('generations.store');
-Route::post('/generations/{generation}/publish', [GenerationController::class, 'publish'])->middleware('auth')->name('generations.publish');
+// 1. AI Generation (Disabled for now as requested)
+Route::redirect('/generate', '/remix')->name('generations.index');
+// Route::post('/api/generate', [GenerationController::class, 'store'])->middleware('throttle:30,1')->name('generations.store');
+// Route::post('/generations/{generation}/publish', [GenerationController::class, 'publish'])->middleware('auth')->name('generations.publish');
 
 // 2. Interactive Prompt Remixing Studio
 Route::get('/remix', [RemixStudioController::class, 'index'])->name('studio.remix');
@@ -51,6 +51,12 @@ Route::post('/collections', [CollectionController::class, 'store'])->middleware(
 Route::post('/collections/{collection}/toggle', [CollectionController::class, 'togglePrompt'])->middleware('auth')->name('collections.toggle');
 Route::get('/api/my-collections', [CollectionController::class, 'userCollections'])->name('collections.user_collections');
 Route::delete('/collections/{collection}', [CollectionController::class, 'destroy'])->middleware('auth')->name('collections.destroy');
+
+// Legal & GDPR Compliance Pages
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/terms', 'legal.terms')->name('legal.terms');
+Route::view('/gdpr', 'legal.gdpr')->name('legal.gdpr');
+Route::view('/cookies', 'legal.cookies')->name('legal.cookies');
 
 // Authentication
 Route::middleware('guest')->group(function () {

@@ -84,6 +84,8 @@
         @endif
 
         @yield('content')
+
+        @include('partials.footer')
     </main>
     <div class="sidebar-scrim" data-sidebar-toggle></div>
     <div class="toast" id="copy-toast" role="status">Prompt copied to clipboard</div>

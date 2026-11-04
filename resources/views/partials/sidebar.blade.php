@@ -8,7 +8,6 @@
         <div class="side-group">
             <a class="side-link {{ request()->routeIs('prompts.index', 'prompts.show') && !request('category') ? 'is-active' : '' }}" href="{{ route('prompts.index') }}"><span class="side-icon">⌂</span><span>Home</span></a>
             <a class="side-link {{ request()->routeIs('studio.remix') ? 'is-active' : '' }}" href="{{ route('studio.remix') }}"><span class="side-icon">🪄</span><span>Remix Studio</span></a>
-            <a class="side-link {{ request()->routeIs('generations.*') ? 'is-active' : '' }}" href="{{ route('generations.index') }}"><span class="side-icon">⚡</span><span>AI Generator</span></a>
             <a class="side-link {{ request()->routeIs('srefs.*') ? 'is-active' : '' }}" href="{{ route('srefs.index') }}"><span class="side-icon">🧬</span><span>SREF Catalog</span></a>
             <a class="side-link {{ request()->routeIs('packs.*') ? 'is-active' : '' }}" href="{{ route('packs.index') }}"><span class="side-icon">📦</span><span>Prompt Packs</span></a>
             <a class="side-link {{ request()->routeIs('collections.*') ? 'is-active' : '' }}" href="{{ route('collections.index') }}"><span class="side-icon">📌</span><span>Moodboards</span></a>

@@ -35,7 +35,6 @@
             <div class="detail-author"><span class="avatar">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span><span><strong>{{ $prompt->user?->name ?? 'MeiGen Community' }}</strong><small>Shared with the community</small></span><span class="detail-date">{{ $prompt->approved_at?->diffForHumans() }}</span></div>
             <div class="detail-actions" style="flex-wrap: wrap; gap: 8px;">
                 <button class="primary-button" type="button" data-copy="{{ $prompt->prompt_text }}">Copy prompt <span>⧉</span></button>
-                <a class="primary-button" style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; text-decoration: none;" href="{{ route('generations.index', ['prompt_id' => $prompt->id]) }}">Generate Image <span>✦</span></a>
                 <a class="outline-button" style="text-decoration: none;" href="{{ route('studio.remix', ['from' => $prompt->slug]) }}">Remix <span>🪄</span></a>
                 <button class="outline-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })">Board <span>📌</span></button>
                 @if($prompt->user)

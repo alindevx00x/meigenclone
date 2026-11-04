@@ -14,11 +14,8 @@
             <p>Discover consistent aesthetic codes, color palettes, and stylistic fingerprints for your Midjourney generations.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-            <a href="{{ route('studio.remix') }}" class="outline-button">
+            <a href="{{ route('studio.remix') }}" class="primary-button">
                 <span>🪄</span> Remix in Studio
-            </a>
-            <a href="{{ route('generations.index') }}" class="primary-button">
-                <span>⚡</span> AI Generator
             </a>
         </div>
     </div>

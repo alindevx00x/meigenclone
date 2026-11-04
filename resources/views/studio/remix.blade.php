@@ -14,11 +14,8 @@
             <p>Combine styles, lighting, camera angles, aspect ratios, and SREF reference codes with interactive chips.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button type="button" @click="copyPrompt()" class="outline-button" style="min-height: 38px;">
+            <button type="button" @click="copyPrompt()" class="primary-button" style="min-height: 38px;">
                 <span x-text="copied ? '✓ Copied' : 'Copy prompt ⧉'"></span>
-            </button>
-            <button type="button" @click="sendToGenerator()" class="primary-button" style="min-height: 38px;">
-                <span>⚡</span> Generate This Remix
             </button>
         </div>
     </div>
