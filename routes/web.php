@@ -46,8 +46,8 @@ Route::get('/packs/create', [PromptPackController::class, 'create'])->middleware
 Route::post('/packs', [PromptPackController::class, 'store'])->middleware('auth')->name('packs.store');
 Route::get('/packs/{slug}', [PromptPackController::class, 'show'])->name('packs.show');
 Route::get('/packs/{pack}/download', [PromptPackController::class, 'download'])->name('packs.download');
-Route::get('/creators/{user}', [CreatorController::class, 'show'])->name('creators.show');
-Route::post('/creators/{user}/tip', [TipController::class, 'store'])->name('creators.tip');
+Route::get('/creators/{user}', [CreatorController::class, 'show'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.show');
+Route::post('/creators/{user}/tip', [TipController::class, 'store'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.tip');
 Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
     $follower = request()->user();
     if ($follower->id === $user->id) {
@@ -62,7 +62,11 @@ Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
         $msg = 'You are now following ' . $user->name;
     }
     return back()->with('success', $msg);
-})->middleware('auth')->name('creators.follow');
+})->where('user', '@?[a-zA-Z0-9_\-]+')->middleware('auth')->name('creators.follow');
+
+// 6. Real-time Prompt Analytics & Webhooks
+Route::post('/api/prompts/{prompt}/track-copy', [PromptController::class, 'trackCopy'])->name('prompts.track_copy');
+Route::post('/api/webhooks/tips', [TipController::class, 'webhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->name('tips.webhook');
 
 // Newsletter subscription
 Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request) {

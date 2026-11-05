@@ -1,4 +1,4 @@
-<article class="prompt-card">
+<article class="prompt-card" data-prompt-id="{{ $prompt->id }}">
     <a class="prompt-image" href="{{ route('prompts.show', $prompt->slug) }}" aria-label="View {{ $prompt->title }}">
         @if ($prompt->cover_url)
             <img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}" loading="lazy">
@@ -22,7 +22,7 @@
                             <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
                         @endif
                     </span>
-                    <span class="author-handle">{{ '@'.str($prompt->user->name)->slug('_') }}</span>
+                    <span class="author-handle">{{ $prompt->user->handle }}</span>
                 </a>
             @else
                 <span class="avatar avatar-tiny">M</span>
@@ -44,7 +44,7 @@
             <span class="prompt-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }}</span>
             <span class="card-model-label">{{ $prompt->model }}</span>
             <span class="prompt-likes">♥ {{ number_format($prompt->likes_count) }}</span>
-            <button class="copy-button" type="button" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
+            <button class="copy-button" type="button" data-prompt-id="{{ $prompt->id }}" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
             <button class="copy-button" type="button" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" title="Copy Midjourney Discord command (/imagine prompt: ...)" style="padding: 4px 7px; margin-left: 2px; font-weight: 600; color: #5865f2; background: #f0f2ff; border-color: #dce1fc;">/mj</button>
             <button class="copy-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })" title="Save to Moodboard" style="padding: 4px 8px; margin-left: 2px;">📌</button>
             <a href="{{ route('studio.remix', ['from' => $prompt->slug]) }}" title="Remix Prompt" class="copy-button" style="text-decoration: none; padding: 4px 8px; margin-left: 2px;">🪄</a>

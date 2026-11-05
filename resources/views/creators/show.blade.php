@@ -38,7 +38,10 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 13px; color: #52525c; flex-wrap: wrap;">
-                        <span style="font-weight: 500; color: #71717a;">{{ '@'.str($user->name)->slug('_') }}</span>
+                        <span style="font-weight: 600; color: #6d52d9; background: #f2efff; padding: 2px 8px; border-radius: 6px;">{{ $user->handle }}</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('creators.show', $user) }}'); alert('Creator profile link copied to clipboard!');" style="background: transparent; border: 0; color: #71717a; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;" title="Copy profile URL">
+                            <span>⧉</span> Copy link
+                        </button>
                         <span>&bull;</span>
                         <span>Member since {{ $user->created_at->format('M Y') }}</span>
                         @if ($user->website)
@@ -54,12 +57,22 @@
                             {{ $user->bio }}
                         </p>
                     @endif
+
+                    @if ($user->tip_goal && $user->monetization_enabled)
+                        <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 99px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 12.5px; font-weight: 500;">
+                            <span style="font-size: 14px;">🎯</span>
+                            <strong>Creator Goal:</strong> {{ $user->tip_goal }}
+                            @if (($user->supporters_count ?? 0) > 0)
+                                <span style="color: #b45309; font-size: 11.5px; margin-left: 4px;">({{ $user->supporters_count }} supporters)</span>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
 
             <!-- Right: Stats & Action Buttons -->
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 16px; flex-shrink: 0;">
-                <div style="display: flex; align-items: center; gap: 20px; background: #fafafc; padding: 12px 20px; border-radius: 12px; border: 1px solid #eeeeef;">
+                <div style="display: flex; align-items: center; gap: 18px; background: #fafafc; padding: 12px 20px; border-radius: 12px; border: 1px solid #eeeeef;">
                     <div style="text-align: center;">
                         <strong style="display: block; font-size: 20px; font-weight: 700; color: #18181b;">{{ number_format($user->approved_prompts_count ?? 0) }}</strong>
                         <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Prompts</span>
@@ -74,9 +87,28 @@
                         <strong style="display: block; font-size: 20px; font-weight: 700; color: #18181b;">{{ number_format($user->followers_count ?? 0) }}</strong>
                         <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Followers</span>
                     </div>
+                    @if ($user->monetization_enabled)
+                        <div style="width: 1px; height: 28px; background: #e4e4e7;"></div>
+                        <div style="text-align: center;">
+                            <strong style="display: block; font-size: 20px; font-weight: 700; color: #b45309;">☕ {{ number_format($user->supporters_count ?? 0) }}</strong>
+                            <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Supporters</span>
+                        </div>
+                    @endif
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    @if ($user->monetization_enabled && (!auth()->check() || auth()->id() !== $user->id))
+                        <button type="button" @click="$dispatch('open-tip-modal', {
+                            creatorId: '{{ $user->id }}',
+                            creatorName: '{{ addslashes($user->name) }}',
+                            creatorHandle: '{{ addslashes($user->handle) }}',
+                            tipGoal: '{{ addslashes($user->tip_goal ?? '') }}',
+                            tipLink: '{{ addslashes($user->tip_link ?? '') }}'
+                        })" class="outline-button" style="min-height: 36px; padding: 0 16px; font-weight: 600; color: #b45309; border-color: #fde68a; background: #fffbeb; cursor: pointer;">
+                            ☕ Tip creator
+                        </button>
+                    @endif
+
                     @auth
                         @if (auth()->id() === $user->id)
                             <a href="{{ route('dashboard.profile.edit') }}" class="primary-button" style="text-decoration: none;">

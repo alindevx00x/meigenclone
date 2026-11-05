@@ -16,6 +16,7 @@ class CreatorController extends Controller
             'following',
             'collections',
             'promptPacks' => fn ($q) => $q->where('status', 'active'),
+            'receivedTips as supporters_count' => fn ($q) => $q->where('status', 'completed'),
         ]);
 
         $totalLikes = (int) $user->prompts()->where('status', 'approved')->sum('likes_count');

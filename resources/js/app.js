@@ -16,9 +16,17 @@ Alpine.data('globalAppModal', () => ({
     tipOpen: false,
     tipCreatorId: null,
     tipCreatorName: '',
+    tipCreatorHandle: '',
     tipPromptId: null,
+    tipGoal: '',
+    tipLink: '',
     tipAmount: 5,
+    tipCustomAmount: '',
     tipNote: '',
+    tipSubmitting: false,
+    tipSuccess: false,
+    tipSuccessMessage: '',
+    tipTransactionRef: '',
 
     openSearch() {
         this.searchOpen = true;
@@ -100,25 +108,49 @@ Alpine.data('globalAppModal', () => ({
     openTip(detail) {
         this.tipCreatorId = detail.creatorId;
         this.tipCreatorName = detail.creatorName;
+        this.tipCreatorHandle = detail.creatorHandle || '';
         this.tipPromptId = detail.promptId || null;
+        this.tipGoal = detail.tipGoal || '';
+        this.tipLink = detail.tipLink || '';
+        this.tipAmount = 5;
+        this.tipCustomAmount = '';
+        this.tipNote = '';
+        this.tipSuccess = false;
         this.tipOpen = true;
     },
 
     async submitTip() {
+        const amount = this.tipCustomAmount ? parseFloat(this.tipCustomAmount) : parseFloat(this.tipAmount);
+        if (!amount || amount < 1) {
+            alert('Please select or enter an amount of at least $1.');
+            return;
+        }
+        this.tipSubmitting = true;
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         try {
             const res = await fetch('/creators/' + this.tipCreatorId + '/tip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify({ amount: this.tipAmount, message: this.tipNote, prompt_id: this.tipPromptId })
+                body: JSON.stringify({
+                    amount: amount,
+                    message: this.tipNote,
+                    prompt_id: this.tipPromptId,
+                    payment_gateway: 'platform'
+                })
             });
             const data = await res.json();
             if (data.success) {
-                this.tipOpen = false;
-                alert(data.message);
+                this.tipSuccess = true;
+                this.tipSuccessMessage = data.message;
+                this.tipTransactionRef = data.tip?.reference || '';
+            } else {
+                alert(data.message || 'Could not complete tip.');
             }
         } catch (e) {
             console.error(e);
+            alert('Network error while processing tip.');
+        } finally {
+            this.tipSubmitting = false;
         }
     }
 }));
@@ -349,6 +381,16 @@ document.addEventListener('click', async (event) => {
 
     const copyButton = event.target.closest('[data-copy]');
     if (copyButton) {
+        const promptCard = copyButton.closest('.prompt-card') || copyButton.closest('[data-prompt-id]');
+        const promptId = copyButton.getAttribute('data-prompt-id') || promptCard?.getAttribute('data-prompt-id');
+        if (promptId) {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            fetch('/api/prompts/' + promptId + '/track-copy', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+            }).catch(() => {});
+        }
+
         const value = copyButton.getAttribute('data-copy') || '';
         try {
             await navigator.clipboard.writeText(value);

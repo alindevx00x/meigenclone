@@ -17,11 +17,11 @@
                     <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 11px; font-weight: 700;">✓</span>
                 @endif
             </div>
-            <p>Customize your public creator persona, bio, avatar, and studio configuration.</p>
+            <p>Customize your public creator persona, handle, avatar, monetization, and studio keys.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <a href="{{ route('creators.show', auth()->user()) }}" target="_blank" class="outline-button" style="text-decoration: none; color: #6366f1; border-color: #c7d2fe; font-weight: 600;">
-                View public profile <span>↗</span>
+                View public profile ({{ auth()->user()->handle }}) <span>↗</span>
             </a>
         </div>
     </div>
@@ -30,7 +30,7 @@
     <div style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #4338ca; margin-bottom: 24px;">
         <span style="font-size: 20px;">💡</span>
         <div style="font-size: 13px; line-height: 1.5;">
-            <strong>Quick update:</strong> You do <em>not</em> need to enter your current password to save your profile details, avatar, or bio. Simply update the fields below and click <strong>Save profile</strong>.
+            <strong>Quick update:</strong> You do <em>not</em> need to enter your current password to save your profile details, handle, or bio. Simply update the fields below and click <strong>Save profile</strong>.
         </div>
     </div>
 
@@ -42,7 +42,7 @@
         <!-- Section 1: Public Identity & Avatar -->
         <div style="margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid #eeeef2;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 16px; display: flex; align-items: center; gap: 8px;">
-                <span>👤</span> Public Creator Identity
+                <span>👤</span> Public Creator Identity &amp; Handle
             </h3>
 
             <!-- Avatar Block -->
@@ -80,12 +80,22 @@
                 </label>
 
                 <label>
+                    Creator Handle / Username <span class="required-star">*</span>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <span style="position: absolute; left: 12px; color: #7c3aed; font-weight: 700; font-size: 14px;">@</span>
+                        <input type="text" name="username" required maxlength="30" value="{{ old('username', auth()->user()->username) }}" style="padding-left: 30px; font-weight: 600; color: #3730a3;" placeholder="username">
+                    </div>
+                    <small style="color: #71717a; font-size: 11.5px;">Public URL: <span style="font-family: monospace; color: #6d52d9;">{{ url('/creators/@') }}{{ old('username', auth()->user()->username) }}</span></small>
+                    @error('username') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+
+                <label>
                     Email address <span class="required-star">*</span>
                     <input type="email" name="email" required maxlength="255" value="{{ old('email', auth()->user()->email) }}">
                     @error('email') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
-                <label class="wide-field">
+                <label>
                     Website or Social Profile <span class="optional-label">Optional</span>
                     <input type="url" name="website" maxlength="255" value="{{ old('website', auth()->user()->website) }}" placeholder="https://x.com/username or your portfolio URL">
                     <small style="color: #71717a; font-size: 11.5px;">Shown on your public creator card so fans can explore your work.</small>
@@ -101,9 +111,45 @@
             </div>
         </div>
 
-        <!-- Section 2: AI Studio Custom API Keys (Optional BYOK) -->
+        <!-- Section 2: Creator Monetization & Tipping -->
         <div style="margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid #eeeef2;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span>☕</span> Creator Tipping &amp; Monetization
+                </h3>
+                <span style="font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; padding: 3px 12px; border-radius: 99px; font-weight: 700;">
+                    Tips Earned: ${{ number_format((float) auth()->user()->tips_earned_total, 2) }}
+                </span>
+            </div>
+            <p style="font-size: 12.5px; color: #64646e; margin: 0 0 16px; line-height: 1.5;">
+                Receive tips from community members who love your prompts. You can accept direct platform tips, or link your external Buy Me a Coffee / Ko-fi / Stripe Payment Link.
+            </p>
+
+            <div class="form-grid">
+                <label class="wide-field" style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #1e1e24;">
+                    <input type="checkbox" name="monetization_enabled" value="1" @checked(old('monetization_enabled', auth()->user()->monetization_enabled)) style="width: 17px; height: 17px; accent-color: #7c3aed;">
+                    <span>Enable "Tip Creator" button on your public profile and prompt cards</span>
+                </label>
+
+                <label>
+                    External Tip / Payment Link <span class="optional-label">Optional</span>
+                    <input type="url" name="tip_link" value="{{ old('tip_link', auth()->user()->tip_link) }}" placeholder="https://buymeacoffee.com/username or Stripe Payment Link">
+                    <small style="color: #71717a; font-size: 11.5px;">Buy Me A Coffee, Ko-fi, Stripe Payment link, or PayPal.me URL.</small>
+                    @error('tip_link') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+
+                <label>
+                    Creator Tip Goal or Note <span class="optional-label">Optional</span>
+                    <input type="text" name="tip_goal" maxlength="255" value="{{ old('tip_goal', auth()->user()->tip_goal) }}" placeholder="e.g. Funding Midjourney v7 compute & custom FLUX LoRAs">
+                    <small style="color: #71717a; font-size: 11.5px;">Shown to supporters in your tipping modal to motivate contributions.</small>
+                    @error('tip_goal') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+            </div>
+        </div>
+
+        <!-- Section 3: AI Studio Custom API Keys (Optional BYOK) -->
+        <div style="margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid #eeeef2;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                 <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0; display: flex; align-items: center; gap: 8px;">
                     <span>⚡</span> Remix Studio API Keys <span class="optional-label" style="font-size: 11px;">Optional</span>
                 </h3>
@@ -130,7 +176,7 @@
             </div>
         </div>
 
-        <!-- Section 3: Password Update (Optional) -->
+        <!-- Section 4: Password Update (Optional) -->
         <div style="margin-bottom: 12px;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
                 <span>🔒</span> Security &amp; Password <span class="optional-label" style="font-size: 11px;">Leave empty to keep unchanged</span>

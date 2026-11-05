@@ -69,6 +69,34 @@ class PromptController extends Controller
     {
         abort_unless($prompt->status === 'approved', 404);
 
+        // Deduplicated view tracking per session
+        $sessionKey = 'viewed_prompt_' . $prompt->id;
+        if (! session()->has($sessionKey)) {
+            session()->put($sessionKey, true);
+            $prompt->increment('views_count');
+
+            if ($prompt->user_id) {
+                $today = now()->toDateString();
+                \Illuminate\Support\Facades\DB::table('prompt_analytics_daily')->upsert(
+                    [
+                        'prompt_id' => $prompt->id,
+                        'user_id' => $prompt->user_id,
+                        'metric_date' => $today,
+                        'views' => 1,
+                        'copies' => 0,
+                        'favorites' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    ['prompt_id', 'metric_date'],
+                    [
+                        'views' => \Illuminate\Support\Facades\DB::raw('prompt_analytics_daily.views + 1'),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+
         $prompt->load(['user', 'category']);
         $prompt->loadExists(['favoritedBy as is_favorited' => fn ($favorites) => $favorites->where('users.id', auth()->id() ?? 0)]);
         $related = Prompt::with(['user', 'category'])
@@ -76,6 +104,37 @@ class PromptController extends Controller
             ->where('id', '!=', $prompt->id)->latest('approved_at')->limit(3)->get();
 
         return view('prompts.show', compact('prompt', 'related'));
+    }
+
+    public function trackCopy(Prompt $prompt): \Illuminate\Http\JsonResponse
+    {
+        $prompt->increment('copies_count');
+
+        if ($prompt->user_id) {
+            $today = now()->toDateString();
+            \Illuminate\Support\Facades\DB::table('prompt_analytics_daily')->upsert(
+                [
+                    'prompt_id' => $prompt->id,
+                    'user_id' => $prompt->user_id,
+                    'metric_date' => $today,
+                    'views' => 0,
+                    'copies' => 1,
+                    'favorites' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                ['prompt_id', 'metric_date'],
+                [
+                    'copies' => \Illuminate\Support\Facades\DB::raw('prompt_analytics_daily.copies + 1'),
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'copies_count' => (int) $prompt->fresh()->copies_count,
+        ]);
     }
 
     public function toggleFavorite(Prompt $prompt)
@@ -90,6 +149,27 @@ class PromptController extends Controller
         } else {
             $user->favorites()->attach($prompt->id);
             $prompt->increment('likes_count');
+
+            if ($prompt->user_id) {
+                $today = now()->toDateString();
+                \Illuminate\Support\Facades\DB::table('prompt_analytics_daily')->upsert(
+                    [
+                        'prompt_id' => $prompt->id,
+                        'user_id' => $prompt->user_id,
+                        'metric_date' => $today,
+                        'views' => 0,
+                        'copies' => 0,
+                        'favorites' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    ['prompt_id', 'metric_date'],
+                    [
+                        'favorites' => \Illuminate\Support\Facades\DB::raw('prompt_analytics_daily.favorites + 1'),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
         }
 
         $freshLikes = (int) $prompt->fresh()->likes_count;

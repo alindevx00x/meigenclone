@@ -17,6 +17,7 @@ class DashboardController extends Controller
         $user = $request->user();
         $prompts = $user->prompts()->with('category')->latest()->get();
         $favorites = $user->favorites()->with(['user', 'category'])->latest('favorites.created_at')->get();
+
         $counts = [
             'total' => $prompts->count(),
             'approved' => $prompts->where('status', 'approved')->count(),
@@ -24,7 +25,81 @@ class DashboardController extends Controller
             'favorites' => $favorites->count(),
         ];
 
-        return view('dashboard.index', compact('prompts', 'favorites', 'counts'));
+        // Creator Prompt Analytics
+        $totalViews = (int) $prompts->sum('views_count');
+        $totalCopies = (int) $prompts->sum('copies_count');
+        $totalLikes = (int) $prompts->sum('likes_count');
+        $copyRate = $totalViews > 0 ? round(($totalCopies / $totalViews) * 100, 1) : 0;
+
+        // Monetization & Tipping
+        $totalTips = (float) $user->receivedTips()->where('status', 'completed')->sum('amount');
+        $tipsCount = (int) $user->receivedTips()->where('status', 'completed')->count();
+        $recentTips = $user->receivedTips()->with('prompt')->where('status', 'completed')->latest()->take(5)->get();
+
+        // 60-Day Activity Heatmap Data
+        $startDate = \Illuminate\Support\Carbon::today()->subDays(59);
+        $endDate = \Illuminate\Support\Carbon::today();
+
+        $rawDaily = \App\Models\PromptAnalytic::where('user_id', $user->id)
+            ->where('metric_date', '>=', $startDate->toDateString())
+            ->selectRaw('metric_date, sum(views) as views, sum(copies) as copies, sum(favorites) as favorites')
+            ->groupBy('metric_date')
+            ->get()
+            ->keyBy(fn ($item) => $item->metric_date->toDateString());
+
+        $heatmapDays = [];
+        for ($d = $startDate->copy(); $d->lte($endDate); $d->addDay()) {
+            $dateStr = $d->toDateString();
+            $record = $rawDaily->get($dateStr);
+            $views = $record ? (int) $record->views : 0;
+            $copies = $record ? (int) $record->copies : 0;
+            $favs = $record ? (int) $record->favorites : 0;
+            $score = $views + ($copies * 2) + ($favs * 3);
+
+            // Level 0 (none), 1 (light), 2 (moderate), 3 (active), 4 (intense)
+            $level = 0;
+            if ($score > 40) {
+                $level = 4;
+            } elseif ($score > 20) {
+                $level = 3;
+            } elseif ($score > 8) {
+                $level = 2;
+            } elseif ($score > 0) {
+                $level = 1;
+            }
+
+            $heatmapDays[] = [
+                'date' => $dateStr,
+                'day_name' => $d->format('D'),
+                'day_num' => $d->format('j'),
+                'label' => $d->format('M j, Y'),
+                'views' => $views,
+                'copies' => $copies,
+                'favorites' => $favs,
+                'score' => $score,
+                'level' => $level,
+            ];
+        }
+
+        // 14-Day Trajectory Trend Data for Chart
+        $trendSlice = array_slice($heatmapDays, -14);
+        $maxTrendValue = max(10, ...array_map(fn ($item) => max($item['views'], $item['copies']), $trendSlice));
+
+        $analytics = [
+            'total_views' => $totalViews,
+            'total_copies' => $totalCopies,
+            'total_likes' => $totalLikes,
+            'copy_rate' => $copyRate,
+            'total_tips' => $totalTips,
+            'tips_count' => $tipsCount,
+            'recent_tips' => $recentTips,
+            'heatmap_days' => $heatmapDays,
+            'trend_slice' => $trendSlice,
+            'max_trend_value' => $maxTrendValue,
+            'top_prompts' => $prompts->where('status', 'approved')->sortByDesc('views_count')->take(5),
+        ];
+
+        return view('dashboard.index', compact('prompts', 'favorites', 'counts', 'analytics'));
     }
 
     public function create()

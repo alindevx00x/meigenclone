@@ -22,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'role',
@@ -31,6 +32,10 @@ class User extends Authenticatable
         'avatar_url',
         'credits',
         'is_verified',
+        'tip_link',
+        'tip_goal',
+        'monetization_enabled',
+        'tips_earned_total',
         'openai_api_key',
         'replicate_api_token',
     ];
@@ -59,7 +64,34 @@ class User extends Authenticatable
             'password' => 'hashed',
             'credits' => 'integer',
             'is_verified' => 'boolean',
+            'monetization_enabled' => 'boolean',
+            'tips_earned_total' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Custom route key for URLs like /creators/@username or /creators/username
+     */
+    public function getRouteKey()
+    {
+        return $this->username ? '@' . $this->username : (string) $this->id;
+    }
+
+    /**
+     * Resolve route binding for @username, username, or id
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $clean = ltrim((string) $value, '@');
+
+        return $this->where('username', $clean)
+            ->orWhere('id', is_numeric($clean) ? (int) $clean : 0)
+            ->first() ?? abort(404, 'Creator not found.');
+    }
+
+    public function getHandleAttribute(): string
+    {
+        return '@' . ($this->username ?: 'user_' . $this->id);
     }
 
     public function prompts(): HasMany
@@ -90,6 +122,11 @@ class User extends Authenticatable
     public function receivedTips(): HasMany
     {
         return $this->hasMany(Tip::class, 'creator_id');
+    }
+
+    public function promptAnalytics(): HasMany
+    {
+        return $this->hasMany(PromptAnalytic::class);
     }
 
     public function followers(): BelongsToMany

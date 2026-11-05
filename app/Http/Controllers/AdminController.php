@@ -361,9 +361,16 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $uniqueEmail = Rule::unique('users', 'email')->ignore($user->id);
+        $uniqueUsername = Rule::unique('users', 'username')->ignore($user->id);
+
+        $cleanUsername = ltrim(trim($request->input('username', '')), '@');
+        if ($cleanUsername !== '') {
+            $request->merge(['username' => $cleanUsername]);
+        }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
+            'username' => ['nullable', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_]+$/', $uniqueUsername],
             'email' => ['required', 'email', 'max:255', $uniqueEmail],
             'role' => ['required', 'in:user,admin'],
             'status' => ['required', 'in:active,suspended'],
@@ -372,6 +379,9 @@ class AdminController extends Controller
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'bio' => ['nullable', 'string', 'max:500'],
             'website' => ['nullable', 'url', 'max:255'],
+            'tip_link' => ['nullable', 'url', 'max:500'],
+            'tip_goal' => ['nullable', 'string', 'max:255'],
+            'monetization_enabled' => ['nullable', 'boolean'],
             'credits' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'openai_api_key' => ['nullable', 'string', 'max:255'],
             'replicate_api_token' => ['nullable', 'string', 'max:255'],
@@ -395,8 +405,15 @@ class AdminController extends Controller
             'is_verified' => $request->boolean('is_verified'),
             'bio' => $data['bio'] ?? null,
             'website' => $data['website'] ?? null,
+            'tip_link' => $data['tip_link'] ?? null,
+            'tip_goal' => $data['tip_goal'] ?? null,
+            'monetization_enabled' => $request->boolean('monetization_enabled', true),
             'avatar_url' => $data['avatar_url'] ?? null,
         ];
+
+        if (! empty($data['username'])) {
+            $updateData['username'] = strtolower($data['username']);
+        }
 
         if ($request->hasFile('avatar')) {
             $avatarPath = WebpImageStorage::storeUpload($request->file('avatar'), 'avatars');

@@ -16,6 +16,8 @@ class Tip extends Model
         'message',
         'status',
         'transaction_reference',
+        'payment_gateway',
+        'tipper_name',
     ];
 
     protected function casts(): array

@@ -184,31 +184,96 @@
         <!-- 3. Tip Creator Modal -->
         <div x-show="tipOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div @click.away="tipOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+                <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white">Tip <span class="text-violet-400" x-text="tipCreatorName"></span></h3>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-bold text-white">Tip <span class="text-violet-400" x-text="tipCreatorName"></span></h3>
+                            <span class="text-xs font-mono text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded" x-text="tipCreatorHandle"></span>
+                        </div>
                         <p class="text-[11px] text-zinc-400 mt-0.5">Show appreciation and support creator prompts.</p>
                     </div>
-                    <button type="button" @click="tipOpen = false" class="text-zinc-500 hover:text-white">&times;</button>
+                    <button type="button" @click="tipOpen = false" class="text-zinc-500 hover:text-white text-lg">&times;</button>
                 </div>
 
-                <!-- Preset Amounts -->
-                <div class="grid grid-cols-4 gap-2">
-                    <button type="button" @click="tipAmount = 2" :class="tipAmount === 2 ? 'bg-violet-600 text-white font-bold' : 'bg-zinc-950 text-zinc-300 border border-zinc-800'" class="py-2 rounded-xl text-xs transition">$2</button>
-                    <button type="button" @click="tipAmount = 5" :class="tipAmount === 5 ? 'bg-violet-600 text-white font-bold' : 'bg-zinc-950 text-zinc-300 border border-zinc-800'" class="py-2 rounded-xl text-xs transition">$5</button>
-                    <button type="button" @click="tipAmount = 10" :class="tipAmount === 10 ? 'bg-violet-600 text-white font-bold' : 'bg-zinc-950 text-zinc-300 border border-zinc-800'" class="py-2 rounded-xl text-xs transition">$10</button>
-                    <button type="button" @click="tipAmount = 25" :class="tipAmount === 25 ? 'bg-violet-600 text-white font-bold' : 'bg-zinc-950 text-zinc-300 border border-zinc-800'" class="py-2 rounded-xl text-xs transition">$25</button>
-                </div>
+                <!-- Success Screen -->
+                <template x-if="tipSuccess">
+                    <div class="py-4 text-center space-y-3">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl font-bold">
+                            ✓
+                        </div>
+                        <h4 class="text-base font-bold text-white">Tip Sent Successfully!</h4>
+                        <p class="text-xs text-zinc-300" x-text="tipSuccessMessage"></p>
+                        <div class="text-[11px] font-mono text-zinc-500 bg-zinc-950 p-2 rounded-xl border border-zinc-800" x-text="'Ref: ' + tipTransactionRef"></div>
+                        <button type="button" @click="tipOpen = false" class="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold transition">
+                            Close
+                        </button>
+                    </div>
+                </template>
 
-                <!-- Custom Note -->
-                <div>
-                    <label class="block text-[11px] text-zinc-400 mb-1">Optional Note</label>
-                    <input type="text" x-model="tipNote" placeholder="Thanks for this amazing prompt!" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                </div>
+                <!-- Tip Form -->
+                <template x-if="!tipSuccess">
+                    <div class="space-y-4">
+                        <!-- Creator Goal if set -->
+                        <template x-if="tipGoal">
+                            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex items-center gap-2">
+                                <span class="text-sm">🎯</span>
+                                <div>
+                                    <strong class="block text-[11px] text-amber-400">Creator Goal</strong>
+                                    <span x-text="tipGoal"></span>
+                                </div>
+                            </div>
+                        </template>
 
-                <button type="button" @click="submitTip()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-bold transition shadow-lg shadow-violet-600/20">
-                    Send $<span x-text="tipAmount"></span> Tip
-                </button>
+                        <!-- Preset Amounts -->
+                        <div>
+                            <label class="block text-[11px] text-zinc-400 mb-1.5 font-medium">Select Amount</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button type="button" @click="tipAmount = 2; tipCustomAmount = ''" :class="tipAmount === 2 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
+                                    <span>$2</span>
+                                    <span class="text-[10px] text-zinc-400 font-normal">☕ Coffee</span>
+                                </button>
+                                <button type="button" @click="tipAmount = 5; tipCustomAmount = ''" :class="tipAmount === 5 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
+                                    <span>$5</span>
+                                    <span class="text-[10px] text-zinc-400 font-normal">⚡ Spark</span>
+                                </button>
+                                <button type="button" @click="tipAmount = 10; tipCustomAmount = ''" :class="tipAmount === 10 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
+                                    <span>$10</span>
+                                    <span class="text-[10px] text-zinc-400 font-normal">🎨 Patron</span>
+                                </button>
+                                <button type="button" @click="tipAmount = 25; tipCustomAmount = ''" :class="tipAmount === 25 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
+                                    <span>$25</span>
+                                    <span class="text-[10px] text-zinc-400 font-normal">🚀 Super</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Custom Amount Input -->
+                        <div>
+                            <label class="block text-[11px] text-zinc-400 mb-1 font-medium">Or Custom Amount ($ USD)</label>
+                            <input type="number" min="1" max="500" step="1" x-model="tipCustomAmount" placeholder="e.g. 15" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        </div>
+
+                        <!-- Custom Note -->
+                        <div>
+                            <label class="block text-[11px] text-zinc-400 mb-1 font-medium">Note to creator (Optional)</label>
+                            <input type="text" x-model="tipNote" maxlength="300" placeholder="Thanks for this amazing prompt!" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                        </div>
+
+                        <!-- External Tip Link option if creator configured BuyMeACoffee/Stripe -->
+                        <template x-if="tipLink">
+                            <a :href="tipLink" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition">
+                                ☕ Tip via Creator's Link (BuyMeACoffee / Stripe) <span>↗</span>
+                            </a>
+                        </template>
+
+                        <!-- Submit Button -->
+                        <button type="button" @click="submitTip()" :disabled="tipSubmitting" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 disabled:opacity-50 text-white text-xs font-bold transition shadow-lg shadow-violet-600/20">
+                            <span x-show="!tipSubmitting">Send $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> Direct Tip</span>
+                            <span x-show="tipSubmitting">Processing tip...</span>
+                        </button>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
