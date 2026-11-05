@@ -43,15 +43,24 @@
 
                 <!-- Creator & Actions -->
                 <div class="pt-4 border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
+                    <a href="{{ route('creators.show', $pack->user) }}" class="flex items-center gap-3 hover:opacity-90 transition" style="text-decoration: none;">
                         <div class="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center text-white text-sm font-bold border border-zinc-700">
-                            {{ substr($pack->user->name, 0, 1) }}
+                            @if ($pack->user->avatar_url)
+                                <img src="{{ $pack->user->avatar_url }}" alt="{{ $pack->user->name }}" class="w-full h-full object-cover">
+                            @else
+                                {{ substr($pack->user->name, 0, 1) }}
+                            @endif
                         </div>
                         <div>
                             <div class="text-xs text-zinc-400">Created by</div>
-                            <div class="text-sm font-semibold text-white">{{ $pack->user->name }}</div>
+                            <div class="text-sm font-semibold text-white flex items-center gap-1">
+                                <span>{{ $pack->user->name }}</span>
+                                @if($pack->user->is_verified)
+                                    <span title="Verified Creator" class="text-violet-400 text-xs font-bold">✓</span>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    </a>
 
                     <div class="flex items-center gap-3">
                         <!-- Instant Download JSON Button -->

@@ -26,8 +26,8 @@
             @if($collection->description)
             <p class="text-sm text-zinc-300 max-w-2xl leading-relaxed">{{ $collection->description }}</p>
             @endif
-            <div class="text-xs text-zinc-500 pt-1">
-                Curated by <strong class="text-zinc-300">{{ $collection->user->name }}</strong>
+            <div class="text-xs text-zinc-400 pt-1">
+                Curated by <a href="{{ route('creators.show', $collection->user) }}" class="text-violet-400 hover:text-violet-300 font-semibold underline decoration-zinc-700">{{ $collection->user->name }}</a>
             </div>
         </div>
 

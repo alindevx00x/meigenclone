@@ -9,14 +9,26 @@
     </a>
     <div class="prompt-card-body">
         <div class="prompt-card-author">
-            <span class="avatar avatar-tiny">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span>
-            <span class="author-name">
-                {{ $prompt->user?->name ?? 'MeiGen Community' }}
-                @if($prompt->user?->is_verified)
-                    <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
-                @endif
-            </span>
-            <span class="author-handle">{{ $prompt->user ? '@'.str($prompt->user->name)->slug('_') : 'Community pick' }}</span>
+            @if ($prompt->user)
+                <a href="{{ route('creators.show', $prompt->user) }}" class="author-profile-link" style="display: flex; align-items: center; gap: 6px; text-decoration: none; min-width: 0; flex: 1 1 auto; color: inherit;">
+                    @if ($prompt->user->avatar_url)
+                        <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->name }}" class="avatar avatar-tiny" style="object-fit: cover;">
+                    @else
+                        <span class="avatar avatar-tiny">{{ str($prompt->user->name)->substr(0, 1)->upper() }}</span>
+                    @endif
+                    <span class="author-name">
+                        {{ $prompt->user->name }}
+                        @if($prompt->user->is_verified)
+                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                        @endif
+                    </span>
+                    <span class="author-handle">{{ '@'.str($prompt->user->name)->slug('_') }}</span>
+                </a>
+            @else
+                <span class="avatar avatar-tiny">M</span>
+                <span class="author-name">MeiGen Community</span>
+                <span class="author-handle">Community pick</span>
+            @endif
             <form method="POST" action="{{ auth()->check() ? route('prompts.favorite', $prompt->slug) : route('login') }}" class="favorite-form">
                 @csrf
                 @if (auth()->check())

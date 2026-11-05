@@ -13,6 +13,8 @@
             <a class="side-link {{ request()->routeIs('collections.*') ? 'is-active' : '' }}" href="{{ route('collections.index') }}"><span class="side-icon">📌</span><span>Moodboards</span></a>
             <a class="side-link" href="{{ auth()->check() ? route('dashboard.index').'#favorites' : route('login') }}"><span class="side-icon">♡</span><span>Favorites</span></a>
             @auth
+                <a class="side-link {{ request()->routeIs('dashboard.profile.*') ? 'is-active' : '' }}" href="{{ route('dashboard.profile.edit') }}"><span class="side-icon">⚙</span><span>Profile settings</span></a>
+                <a class="side-link {{ request()->routeIs('creators.show') && request()->route('user')?->id === auth()->id() ? 'is-active' : '' }}" href="{{ route('creators.show', auth()->user()) }}"><span class="side-icon">👤</span><span>My profile</span></a>
                 @if (auth()->user()->isAdmin())
                     <a class="side-link {{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}" href="{{ route('admin.dashboard') }}"><span class="side-icon">✧</span><span>Admin studio</span></a>
                 @endif

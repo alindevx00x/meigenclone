@@ -46,6 +46,7 @@
                 'category_icon' => $p->category->icon,
                 'model' => $p->model,
                 'author' => $p->user?->name ?? 'MeiGen Community',
+                'author_url' => $p->user ? route('creators.show', $p->user) : null,
                 'author_verified' => (bool) ($p->user?->is_verified ?? false),
                 'author_avatar' => strtoupper(substr($p->user?->name ?? 'M', 0, 1)),
                 'likes' => number_format($p->likes_count),
@@ -90,13 +91,13 @@
                                         <span x-text="slide.category"></span>
                                     </span>
                                     <span class="carousel-pill" x-text="slide.model"></span>
-                                    <div class="carousel-author">
+                                    <a :href="slide.author_url || '#'" class="carousel-author" style="text-decoration: none; color: inherit;">
                                         <span class="avatar avatar-tiny" x-text="slide.author_avatar"></span>
                                         <span x-text="slide.author"></span>
                                         <template x-if="slide.author_verified">
                                             <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-size:8px;font-weight:700;">✓</span>
                                         </template>
-                                    </div>
+                                    </a>
                                 </div>
 
                                 <h2 class="carousel-title">

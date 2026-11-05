@@ -3,9 +3,11 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\CreatorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\InstantSearchController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PromptController;
 use App\Http\Controllers\PromptPackController;
 use App\Http\Controllers\RemixStudioController;
@@ -44,6 +46,7 @@ Route::get('/packs/create', [PromptPackController::class, 'create'])->middleware
 Route::post('/packs', [PromptPackController::class, 'store'])->middleware('auth')->name('packs.store');
 Route::get('/packs/{slug}', [PromptPackController::class, 'show'])->name('packs.show');
 Route::get('/packs/{pack}/download', [PromptPackController::class, 'download'])->name('packs.download');
+Route::get('/creators/{user}', [CreatorController::class, 'show'])->name('creators.show');
 Route::post('/creators/{user}/tip', [TipController::class, 'store'])->name('creators.tip');
 Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
     $follower = request()->user();
@@ -99,6 +102,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // User Dashboard
 Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('index');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/prompts/create', [DashboardController::class, 'create'])->name('prompts.create');
     Route::post('/prompts', [DashboardController::class, 'store'])->middleware('throttle:15,1')->name('prompts.store');
     Route::get('/prompts/{prompt}/edit', [DashboardController::class, 'edit'])->name('prompts.edit');

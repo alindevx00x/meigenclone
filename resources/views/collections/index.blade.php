@@ -68,7 +68,7 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f0f2; padding-top: 12px;">
                     <div style="font-size: 11px; color: #888;">
-                        By <strong style="color: #222228;">{{ $col->user->name }}</strong>
+                        By <a href="{{ route('creators.show', $col->user) }}" style="color: #222228; font-weight: 600; text-decoration: none;">{{ $col->user->name }}</a>
                     </div>
 
                     <a href="{{ route('collections.show', $col->slug) }}" class="outline-button" style="min-height: 30px; padding: 0 10px; font-size: 11px;">

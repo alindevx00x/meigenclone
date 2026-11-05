@@ -33,16 +33,30 @@
             <div class="detail-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }} <i>·</i> {{ $prompt->model }}</div>
             <h1>{{ $prompt->title }}</h1>
             <div class="detail-author">
-                <span class="avatar">{{ str($prompt->user?->name ?? 'MeiGen Community')->substr(0, 1)->upper() }}</span>
-                <span>
-                    <strong>
-                        {{ $prompt->user?->name ?? 'MeiGen Community' }}
-                        @if($prompt->user?->is_verified)
-                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9.5px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                @if ($prompt->user)
+                    <a href="{{ route('creators.show', $prompt->user) }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
+                        @if ($prompt->user->avatar_url)
+                            <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->name }}" class="avatar" style="object-fit: cover;">
+                        @else
+                            <span class="avatar">{{ str($prompt->user->name)->substr(0, 1)->upper() }}</span>
                         @endif
-                    </strong>
-                    <small>Shared with the community</small>
-                </span>
+                        <span>
+                            <strong style="color: #18181b;">
+                                {{ $prompt->user->name }}
+                                @if($prompt->user->is_verified)
+                                    <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9.5px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                                @endif
+                            </strong>
+                            <small style="color: #64646e;">{{ '@'.str($prompt->user->name)->slug('_') }} &bull; View profile &rarr;</small>
+                        </span>
+                    </a>
+                @else
+                    <span class="avatar">M</span>
+                    <span>
+                        <strong style="color: #18181b;">MeiGen Community</strong>
+                        <small style="color: #64646e;">Shared with the community</small>
+                    </span>
+                @endif
                 @if($prompt->user && auth()->check() && auth()->id() !== $prompt->user_id)
                     <form method="POST" action="{{ route('creators.follow', $prompt->user_id) }}" style="margin-left: 8px;">
                         @csrf

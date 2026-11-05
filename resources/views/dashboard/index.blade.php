@@ -4,7 +4,20 @@
 @section('toolbar-title', 'My studio')
 @section('content')
 <div class="workspace-page">
-    <div class="page-heading dashboard-heading"><div><span class="section-kicker">CREATOR DASHBOARD</span><h1>Good ideas live here.</h1><p>Keep track of your prompts and the inspiration you’ve saved.</p></div>@if ($directorySettings['allow_submissions'] === '1')<a class="primary-button" href="{{ route('dashboard.prompts.create') }}"><span>＋</span> Submit a prompt</a>@endif</div>
+    <div class="page-heading dashboard-heading">
+        <div>
+            <span class="section-kicker">CREATOR DASHBOARD</span>
+            <h1>Good ideas live here.</h1>
+            <p>Keep track of your prompts, profile settings, and the inspiration you’ve saved.</p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a class="outline-button" href="{{ route('dashboard.profile.edit') }}" style="text-decoration: none; font-weight: 600;"><span>⚙</span> Profile settings</a>
+            <a class="outline-button" href="{{ route('creators.show', auth()->user()) }}" style="text-decoration: none; font-weight: 600; color: #6366f1; border-color: #c7d2fe;">View public profile <span>↗</span></a>
+            @if ($directorySettings['allow_submissions'] === '1')
+                <a class="primary-button" href="{{ route('dashboard.prompts.create') }}"><span>＋</span> Submit a prompt</a>
+            @endif
+        </div>
+    </div>
     <div class="stats-row user-stats">
         <div class="stat-card"><span class="stat-icon stat-violet">✦</span><span class="stat-label">Total submissions</span><strong>{{ $counts['total'] }}</strong><small>All your shared ideas</small></div>
         <div class="stat-card"><span class="stat-icon stat-green">✓</span><span class="stat-label">Published prompts</span><strong>{{ $counts['approved'] }}</strong><small>Visible in the gallery</small></div>

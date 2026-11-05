@@ -102,10 +102,26 @@
                     <tr>
                         <td>
                             <div class="member-table-cell">
-                                <span class="avatar">{{ str($member->name)->substr(0, 1)->upper() }}</span>
+                                <a href="{{ route('creators.show', $member) }}" style="text-decoration: none; flex-shrink: 0;">
+                                    @if ($member->avatar_url)
+                                        <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="avatar" style="object-fit: cover;">
+                                    @else
+                                        <span class="avatar">{{ str($member->name)->substr(0, 1)->upper() }}</span>
+                                    @endif
+                                </a>
                                 <div>
-                                    <strong>{{ $member->name }} @if ($member->is(auth()->user())) <span style="font-size: 10px; color: #795fda; font-weight: 500;">(You)</span> @endif</strong>
-                                    <small>{{ $member->email }}</small>
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <a href="{{ route('creators.show', $member) }}" style="font-weight: 600; color: #17171b; text-decoration: none;">
+                                            {{ $member->name }}
+                                        </a>
+                                        @if($member->is_verified)
+                                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 8.5px; font-weight: 700;">✓</span>
+                                        @endif
+                                        @if ($member->is(auth()->user()))
+                                            <span style="font-size: 10px; color: #795fda; font-weight: 500;">(You)</span>
+                                        @endif
+                                    </div>
+                                    <small style="color: #64646e;">{{ $member->email }}</small>
                                     @if ($member->website)
                                         <small><a href="{{ $member->website }}" target="_blank" rel="noopener" style="color: #795fda;">{{ Str::limit($member->website, 30) }} ↗</a></small>
                                     @endif
@@ -121,19 +137,22 @@
                         </td>
                         <td>
                             <span class="role-pill {{ $member->isAdmin() ? 'role-admin' : '' }}">
-                                {{ $member->isAdmin() ? 'Administrator' : 'Creator' }}
+                                {{ $member->isAdmin() ? 'Administrator' : ($member->is_verified ? 'Verified Creator' : 'Creator') }}
                             </span>
                         </td>
                         <td>
-                            <strong>{{ number_format($member->prompts_count) }}</strong>
-                            <small style="color: #999;">prompts</small>
+                            <strong style="color: #18181b;">{{ number_format($member->prompts_count) }}</strong>
+                            <small style="color: #71717a;">prompts</small>
                         </td>
                         <td>
-                            <span style="font-size: 12.5px; color: #666;">{{ $member->created_at->format('M j, Y') }}</span>
-                            <small style="display: block; color: #aaa; font-size: 10px;">{{ $member->created_at->diffForHumans() }}</small>
+                            <span style="font-size: 12.5px; color: #4b5563;">{{ $member->created_at->format('M j, Y') }}</span>
+                            <small style="display: block; color: #71717a; font-size: 11px;">{{ $member->created_at->diffForHumans() }}</small>
                         </td>
                         <td>
                             <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                <a href="{{ route('creators.show', $member) }}" target="_blank" class="outline-button" title="View Public Profile" style="min-height: 32px; padding: 0 8px; font-size: 11px; color: #6366f1; border-color: #c7d2fe; text-decoration: none;">
+                                    Profile ↗
+                                </a>
                                 <!-- Edit User Button (Opens in dedicated page) -->
                                 <a href="{{ route('admin.users.edit', $member) }}" class="outline-button" style="min-height: 32px; padding: 0 10px; font-size: 11px; display: inline-flex; align-items: center; text-decoration: none;">
                                     Edit settings ⚙

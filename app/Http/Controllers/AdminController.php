@@ -352,7 +352,7 @@ class AdminController extends Controller
 
     public function editUser(User $user)
     {
-        $user->loadCount(['prompts', 'favorites', 'collections', 'promptPacks', 'generations']);
+        $user->loadCount(['prompts', 'favorites', 'collections', 'promptPacks', 'generations', 'followers', 'following']);
         $recentPrompts = $user->prompts()->with('category')->latest()->take(8)->get();
 
         return view('admin.users.edit', compact('user', 'recentPrompts'));
@@ -367,9 +367,14 @@ class AdminController extends Controller
             'email' => ['required', 'email', 'max:255', $uniqueEmail],
             'role' => ['required', 'in:user,admin'],
             'status' => ['required', 'in:active,suspended'],
+            'is_verified' => ['nullable', 'boolean'],
+            'avatar_url' => ['nullable', 'string', 'max:500'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'bio' => ['nullable', 'string', 'max:500'],
             'website' => ['nullable', 'url', 'max:255'],
             'credits' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'openai_api_key' => ['nullable', 'string', 'max:255'],
+            'replicate_api_token' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 
@@ -387,12 +392,27 @@ class AdminController extends Controller
             'email' => $data['email'],
             'role' => $data['role'],
             'status' => $data['status'],
+            'is_verified' => $request->boolean('is_verified'),
             'bio' => $data['bio'] ?? null,
             'website' => $data['website'] ?? null,
+            'avatar_url' => $data['avatar_url'] ?? null,
         ];
+
+        if ($request->hasFile('avatar')) {
+            $avatarPath = WebpImageStorage::storeUpload($request->file('avatar'), 'avatars');
+            $updateData['avatar_url'] = '/storage/' . $avatarPath;
+        }
 
         if (array_key_exists('credits', $data)) {
             $updateData['credits'] = (int) $data['credits'];
+        }
+
+        if ($request->has('openai_api_key')) {
+            $updateData['openai_api_key'] = $data['openai_api_key'] ?: null;
+        }
+
+        if ($request->has('replicate_api_token')) {
+            $updateData['replicate_api_token'] = $data['replicate_api_token'] ?: null;
         }
 
         if (! empty($data['password'])) {
