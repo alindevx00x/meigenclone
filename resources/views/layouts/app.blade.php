@@ -62,7 +62,7 @@
     <style>[x-cloak] { display: none !important; }</style>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-tip-modal.window="openTip($event.detail)">
     @include('partials.sidebar')
 
     <main class="app-main">
@@ -96,151 +96,148 @@
     <div class="sidebar-scrim" data-sidebar-toggle></div>
     <div class="toast" id="copy-toast" role="status">Prompt copied to clipboard</div>
 
-    <!-- Global Modals & Alpine App State -->
-    <div x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-tip-modal.window="openTip($event.detail)">
-        <!-- 1. Instant Typo-Tolerant Search Modal (CMD+K) -->
-        <div x-show="searchOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/80 backdrop-blur-md">
-            <div @click.away="searchOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-                <!-- Search Input Bar -->
-                <div class="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-950/60">
-                    <svg class="w-5 h-5 text-violet-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <input type="text" x-ref="searchInput" x-model="searchQuery" @input.debounce.200ms="executeSearch()" placeholder="Instant search 1,800+ prompts, styles, keywords..." class="w-full bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none">
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">ESC</span>
-                </div>
+    <!-- 1. Instant Typo-Tolerant Search Modal (CMD+K) -->
+    <div x-show="searchOpen" x-cloak style="display: none;" class="app-modal-overlay">
+        <div @click.away="searchOpen = false" class="app-modal-search-card">
+            <!-- Search Input Bar -->
+            <div style="padding: 14px 16px; border-bottom: 1px solid #27272e; display: flex; align-items: center; gap: 10px; background: rgba(14, 14, 18, 0.7);">
+                <svg style="width: 18px; height: 18px; color: #a78bfa; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" x-ref="searchInput" x-model="searchQuery" @input.debounce.200ms="executeSearch()" placeholder="Instant search prompts, styles, keywords…" style="width: 100%; background: transparent; border: 0; outline: none; font-size: 13.5px; color: #ffffff;">
+                <span style="font-size: 10px; font-family: monospace; padding: 2px 6px; border-radius: 4px; background: #27272e; color: #a1a1aa;">ESC</span>
+            </div>
 
-                <!-- Facet Filter Chips -->
-                <div class="px-4 py-2.5 border-b border-zinc-800/80 bg-zinc-900/90 flex flex-wrap items-center gap-1.5 text-xs">
-                    <span class="text-[11px] text-zinc-500 mr-1">Vibe:</span>
-                    <button type="button" @click="toggleVibe('')" :class="searchVibe === '' ? 'bg-violet-600 text-white font-semibold' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="px-2.5 py-0.5 rounded-lg text-[11px] transition">All</button>
-                    <button type="button" @click="toggleVibe('dark')" :class="searchVibe === 'dark' ? 'bg-violet-600 text-white font-semibold' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="px-2.5 py-0.5 rounded-lg text-[11px] transition">Dark/Moody</button>
-                    <button type="button" @click="toggleVibe('vibrant')" :class="searchVibe === 'vibrant' ? 'bg-violet-600 text-white font-semibold' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="px-2.5 py-0.5 rounded-lg text-[11px] transition">Vibrant Neon</button>
-                    <button type="button" @click="toggleVibe('warm')" :class="searchVibe === 'warm' ? 'bg-violet-600 text-white font-semibold' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="px-2.5 py-0.5 rounded-lg text-[11px] transition">Warm 35mm</button>
-                    <button type="button" @click="toggleVibe('pastel')" :class="searchVibe === 'pastel' ? 'bg-violet-600 text-white font-semibold' : 'bg-zinc-800 text-zinc-400 hover:text-white'" class="px-2.5 py-0.5 rounded-lg text-[11px] transition">Pastel Ghibli</button>
-                </div>
+            <!-- Facet Filter Chips -->
+            <div style="padding: 9px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: #14141a; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11.5px;">
+                <span style="color: #71717a; margin-right: 4px;">Vibe:</span>
+                <button type="button" @click="toggleVibe('')" :style="searchVibe === '' ? 'background: #7c3aed; color: #fff; font-weight: 600;' : 'background: #27272e; color: #a1a1aa;'" style="padding: 3px 9px; border-radius: 6px; border: 0; cursor: pointer;">All</button>
+                <button type="button" @click="toggleVibe('dark')" :style="searchVibe === 'dark' ? 'background: #7c3aed; color: #fff; font-weight: 600;' : 'background: #27272e; color: #a1a1aa;'" style="padding: 3px 9px; border-radius: 6px; border: 0; cursor: pointer;">Dark/Moody</button>
+                <button type="button" @click="toggleVibe('vibrant')" :style="searchVibe === 'vibrant' ? 'background: #7c3aed; color: #fff; font-weight: 600;' : 'background: #27272e; color: #a1a1aa;'" style="padding: 3px 9px; border-radius: 6px; border: 0; cursor: pointer;">Vibrant Neon</button>
+                <button type="button" @click="toggleVibe('warm')" :style="searchVibe === 'warm' ? 'background: #7c3aed; color: #fff; font-weight: 600;' : 'background: #27272e; color: #a1a1aa;'" style="padding: 3px 9px; border-radius: 6px; border: 0; cursor: pointer;">Warm 35mm</button>
+                <button type="button" @click="toggleVibe('pastel')" :style="searchVibe === 'pastel' ? 'background: #7c3aed; color: #fff; font-weight: 600;' : 'background: #27272e; color: #a1a1aa;'" style="padding: 3px 9px; border-radius: 6px; border: 0; cursor: pointer;">Pastel Ghibli</button>
+            </div>
 
-                <!-- Live Results List -->
-                <div class="p-3 overflow-y-auto flex-1 space-y-1">
-                    <template x-if="searchLoading">
-                        <div class="py-12 text-center text-xs text-zinc-500">Searching prompts...</div>
-                    </template>
+            <!-- Live Results List -->
+            <div style="padding: 12px; overflow-y: auto; flex: 1;">
+                <template x-if="searchLoading">
+                    <div style="padding: 40px 0; text-align: center; font-size: 12px; color: #71717a;">Searching prompts…</div>
+                </template>
 
-                    <template x-if="!searchLoading && searchResults.length === 0 && searchQuery">
-                        <div class="py-12 text-center text-xs text-zinc-500">No prompt matches found for "<span x-text="searchQuery"></span>".</div>
-                    </template>
+                <template x-if="!searchLoading && searchResults.length === 0 && searchQuery">
+                    <div style="padding: 40px 0; text-align: center; font-size: 12px; color: #71717a;">No prompt matches found for "<span x-text="searchQuery"></span>".</div>
+                </template>
 
-                    <template x-for="item in searchResults" :key="item.id">
-                        <a :href="item.url" class="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-zinc-800/80 transition group">
-                            <div class="w-12 h-12 rounded-xl bg-zinc-950 overflow-hidden flex-shrink-0 border border-zinc-800">
-                                <img :src="item.cover_url" class="w-full h-full object-cover">
+                <template x-for="item in searchResults" :key="item.id">
+                    <a :href="item.url" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; text-decoration: none; color: inherit; transition: background 0.15s;" onmouseover="this.style.background='#23232c'" onmouseout="this.style.background='transparent'">
+                        <div style="width: 48px; height: 48px; border-radius: 10px; overflow: hidden; background: #0e0e12; flex-shrink: 0; border: 1px solid #27272e;">
+                            <img :src="item.cover_url" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 13px; font-weight: 600; color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" x-text="item.title"></span>
+                                <span style="padding: 1px 6px; border-radius: 99px; background: rgba(124, 58, 237, 0.18); color: #c4b5fd; font-size: 10px; font-weight: 600;" x-text="item.category"></span>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-white group-hover:text-violet-400 transition truncate" x-text="item.title"></span>
-                                    <span class="px-2 py-0.2 rounded-full bg-violet-500/10 text-violet-400 text-[10px] font-semibold" x-text="item.category"></span>
-                                </div>
-                                <p class="text-[11px] text-zinc-400 line-clamp-1 mt-0.5" x-text="item.snippet"></p>
-                            </div>
-                            <span class="text-zinc-600 text-xs flex-shrink-0 font-mono" x-text="'❤️ ' + item.likes_count"></span>
-                        </a>
-                    </template>
-                </div>
+                            <p style="font-size: 11.5px; color: #a1a1aa; margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" x-text="item.snippet"></p>
+                        </div>
+                        <span style="font-size: 11.5px; color: #71717a; flex-shrink: 0;" x-text="'♥ ' + item.likes_count"></span>
+                    </a>
+                </template>
             </div>
         </div>
+    </div>
 
-        <!-- 3. Tip Creator Modal -->
-        <div x-show="tipOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div @click.away="tipOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-                <!-- Header -->
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-base font-bold text-white">Tip <span class="text-violet-400" x-text="tipCreatorName"></span></h3>
-                            <span class="text-xs font-mono text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded" x-text="tipCreatorHandle"></span>
-                        </div>
-                        <p class="text-[11px] text-zinc-400 mt-0.5">Show appreciation and support creator prompts.</p>
+    <!-- 2. Tip Creator Modal -->
+    <div x-show="tipOpen" x-cloak style="display: none;" class="app-modal-overlay">
+        <div @click.away="tipOpen = false" class="app-modal-card">
+            <!-- Header -->
+            <div class="app-modal-header">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0;">Tip <span style="color: #a78bfa;" x-text="tipCreatorName"></span></h3>
+                        <span style="font-size: 11px; font-family: monospace; color: #a1a1aa; background: #27272e; padding: 2px 6px; border-radius: 6px;" x-text="tipCreatorHandle"></span>
                     </div>
-                    <button type="button" @click="tipOpen = false" class="text-zinc-500 hover:text-white text-lg">&times;</button>
+                    <p style="font-size: 11.5px; color: #a1a1aa; margin: 4px 0 0;">Show appreciation and support creator prompts.</p>
                 </div>
-
-                <!-- Success Screen -->
-                <template x-if="tipSuccess">
-                    <div class="py-4 text-center space-y-3">
-                        <div class="w-14 h-14 mx-auto rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl font-bold">
-                            ✓
-                        </div>
-                        <h4 class="text-base font-bold text-white">Tip Sent Successfully!</h4>
-                        <p class="text-xs text-zinc-300" x-text="tipSuccessMessage"></p>
-                        <div class="text-[11px] font-mono text-zinc-500 bg-zinc-950 p-2 rounded-xl border border-zinc-800" x-text="'Ref: ' + tipTransactionRef"></div>
-                        <button type="button" @click="tipOpen = false" class="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold transition">
-                            Close
-                        </button>
-                    </div>
-                </template>
-
-                <!-- Tip Form -->
-                <template x-if="!tipSuccess">
-                    <div class="space-y-4">
-                        <!-- Creator Goal if set -->
-                        <template x-if="tipGoal">
-                            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex items-center gap-2">
-                                <span class="text-sm">🎯</span>
-                                <div>
-                                    <strong class="block text-[11px] text-amber-400">Creator Goal</strong>
-                                    <span x-text="tipGoal"></span>
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Preset Amounts -->
-                        <div>
-                            <label class="block text-[11px] text-zinc-400 mb-1.5 font-medium">Select Amount</label>
-                            <div class="grid grid-cols-4 gap-2">
-                                <button type="button" @click="tipAmount = 2; tipCustomAmount = ''" :class="tipAmount === 2 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
-                                    <span>$2</span>
-                                    <span class="text-[10px] text-zinc-400 font-normal">☕ Coffee</span>
-                                </button>
-                                <button type="button" @click="tipAmount = 5; tipCustomAmount = ''" :class="tipAmount === 5 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
-                                    <span>$5</span>
-                                    <span class="text-[10px] text-zinc-400 font-normal">⚡ Spark</span>
-                                </button>
-                                <button type="button" @click="tipAmount = 10; tipCustomAmount = ''" :class="tipAmount === 10 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
-                                    <span>$10</span>
-                                    <span class="text-[10px] text-zinc-400 font-normal">🎨 Patron</span>
-                                </button>
-                                <button type="button" @click="tipAmount = 25; tipCustomAmount = ''" :class="tipAmount === 25 && !tipCustomAmount ? 'bg-violet-600 text-white font-bold ring-2 ring-violet-400/30' : 'bg-zinc-950 text-zinc-300 border border-zinc-800 hover:border-zinc-700'" class="py-2 rounded-xl text-xs transition flex flex-col items-center">
-                                    <span>$25</span>
-                                    <span class="text-[10px] text-zinc-400 font-normal">🚀 Super</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Custom Amount Input -->
-                        <div>
-                            <label class="block text-[11px] text-zinc-400 mb-1 font-medium">Or Custom Amount ($ USD)</label>
-                            <input type="number" min="1" max="500" step="1" x-model="tipCustomAmount" placeholder="e.g. 15" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                        </div>
-
-                        <!-- Custom Note -->
-                        <div>
-                            <label class="block text-[11px] text-zinc-400 mb-1 font-medium">Note to creator (Optional)</label>
-                            <input type="text" x-model="tipNote" maxlength="300" placeholder="Thanks for this amazing prompt!" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                        </div>
-
-                        <!-- External Tip Link option if creator configured BuyMeACoffee/Stripe -->
-                        <template x-if="tipLink">
-                            <a :href="tipLink" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition">
-                                ☕ Tip via Creator's Link (BuyMeACoffee / Stripe) <span>↗</span>
-                            </a>
-                        </template>
-
-                        <!-- Submit Button -->
-                        <button type="button" @click="submitTip()" :disabled="tipSubmitting" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 disabled:opacity-50 text-white text-xs font-bold transition shadow-lg shadow-violet-600/20">
-                            <span x-show="!tipSubmitting">Send $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> Direct Tip</span>
-                            <span x-show="tipSubmitting">Processing tip...</span>
-                        </button>
-                    </div>
-                </template>
+                <button type="button" @click="tipOpen = false" class="app-modal-close" aria-label="Close modal">&times;</button>
             </div>
+
+            <!-- Success Screen -->
+            <template x-if="tipSuccess">
+                <div style="padding: 16px 0; text-align: center;">
+                    <div style="width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
+                        ✓
+                    </div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0 0 6px;">Tip Sent Successfully!</h4>
+                    <p style="font-size: 12.5px; color: #d4d4d8; margin: 0 0 12px;" x-text="tipSuccessMessage"></p>
+                    <div style="font-size: 11px; font-family: monospace; color: #71717a; background: #0e0e12; padding: 8px; border-radius: 8px; border: 1px solid #27272e; margin-bottom: 16px;" x-text="'Ref: ' + tipTransactionRef"></div>
+                    <button type="button" @click="tipOpen = false" class="tip-submit-btn" style="background: #27272e; box-shadow: none;">
+                        Close
+                    </button>
+                </div>
+            </template>
+
+            <!-- Tip Form -->
+            <template x-if="!tipSuccess">
+                <div>
+                    <!-- Creator Goal if set -->
+                    <template x-if="tipGoal">
+                        <div style="padding: 10px 12px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde68a; font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                            <span style="font-size: 16px;">🎯</span>
+                            <div>
+                                <strong style="display: block; font-size: 11px; color: #fbbf24;">Creator Goal</strong>
+                                <span x-text="tipGoal"></span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Preset Amounts -->
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 11.5px; font-weight: 600; color: #a1a1aa; margin-bottom: 6px;">Select Amount</label>
+                        <div class="tip-amount-grid">
+                            <button type="button" @click="tipAmount = 2; tipCustomAmount = ''" :class="tipAmount === 2 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
+                                <span class="tip-amount-val">$2</span>
+                                <span class="tip-amount-sub">☕ Coffee</span>
+                            </button>
+                            <button type="button" @click="tipAmount = 5; tipCustomAmount = ''" :class="tipAmount === 5 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
+                                <span class="tip-amount-val">$5</span>
+                                <span class="tip-amount-sub">⚡ Spark</span>
+                            </button>
+                            <button type="button" @click="tipAmount = 10; tipCustomAmount = ''" :class="tipAmount === 10 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
+                                <span class="tip-amount-val">$10</span>
+                                <span class="tip-amount-sub">🎨 Patron</span>
+                            </button>
+                            <button type="button" @click="tipAmount = 25; tipCustomAmount = ''" :class="tipAmount === 25 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
+                                <span class="tip-amount-val">$25</span>
+                                <span class="tip-amount-sub">🚀 Super</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Amount Input -->
+                    <div class="tip-field">
+                        <label>Or Custom Amount ($ USD)</label>
+                        <input type="number" min="1" max="500" step="1" x-model="tipCustomAmount" placeholder="e.g. 15">
+                    </div>
+
+                    <!-- Custom Note -->
+                    <div class="tip-field">
+                        <label>Note to creator (Optional)</label>
+                        <input type="text" x-model="tipNote" maxlength="300" placeholder="Thanks for this amazing prompt!">
+                    </div>
+
+                    <!-- External Tip Link option if creator configured BuyMeACoffee/Stripe -->
+                    <template x-if="tipLink">
+                        <a :href="tipLink" target="_blank" rel="noopener noreferrer" class="tip-external-btn">
+                            ☕ Tip via Creator's Link (BuyMeACoffee / Stripe) <span>↗</span>
+                        </a>
+                    </template>
+
+                    <!-- Submit Button -->
+                    <button type="button" @click="submitTip()" :disabled="tipSubmitting" class="tip-submit-btn">
+                        <span x-show="!tipSubmitting">Send $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> Direct Tip</span>
+                        <span x-show="tipSubmitting">Processing tip…</span>
+                    </button>
+                </div>
+            </template>
         </div>
     </div>
 </body>

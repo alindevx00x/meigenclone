@@ -10,7 +10,7 @@
         <form method="POST" action="{{ route('login.store') }}" class="form-stack">@csrf
             <label>Email address<input type="email" name="email" value="{{ old('email') }}" required autocomplete="email" placeholder="you@example.com"></label>
             <label>Password<input type="password" name="password" required autocomplete="current-password" placeholder="Your password"></label>
-            <label class="check-label"><input type="checkbox" name="remember"> Keep me signed in</label>
+            <label class="check-label"><input type="checkbox" name="remember" value="1"> <span>Keep me signed in</span></label>
             <button class="primary-button full-button" type="submit">Log in <span>→</span></button>
         </form>
         @if ($directorySettings['allow_registrations'] === '1')<p class="auth-switch">New to {{ $directorySettings['site_name'] }}? <a href="{{ route('register') }}">Create an account</a></p>@endif

@@ -55,8 +55,20 @@ class AdminController extends Controller
             'seo_canonical_base' => ['nullable', 'url', 'max:2048'],
             'seo_robots' => ['required', Rule::in(['index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow'])],
             'seo_og_image' => ['nullable', 'url', 'max:2048'],
-            'favicon' => ['nullable', 'image', 'mimes:ico,png,svg,webp,jpg,jpeg', 'max:2048'],
-            'logo' => ['nullable', 'image', 'mimes:ico,png,svg,webp,jpg,jpeg', 'max:4096'],
+            'favicon' => ['nullable', 'file', 'max:2048', function ($attribute, $value, $fail) {
+                if (!$value instanceof \Illuminate\Http\UploadedFile) return;
+                $ext = strtolower($value->getClientOriginalExtension());
+                if (!in_array($ext, ['ico', 'png', 'svg', 'webp', 'jpg', 'jpeg'], true)) {
+                    $fail('The favicon must be an ICO, PNG, SVG, or WebP file.');
+                }
+            }],
+            'logo' => ['nullable', 'file', 'max:4096', function ($attribute, $value, $fail) {
+                if (!$value instanceof \Illuminate\Http\UploadedFile) return;
+                $ext = strtolower($value->getClientOriginalExtension());
+                if (!in_array($ext, ['svg', 'png', 'webp', 'jpg', 'jpeg', 'ico'], true)) {
+                    $fail('The logo must be an SVG, PNG, WebP, JPG, or ICO image.');
+                }
+            }],
         ]);
 
         if ($request->hasFile('favicon')) {

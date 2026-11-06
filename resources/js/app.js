@@ -300,6 +300,9 @@ Alpine.data('generationStudio', (config = {}) => ({
 }));
 
 window.Alpine = Alpine;
+window.openTipModal = function (detail) {
+    window.dispatchEvent(new CustomEvent('open-tip-modal', { detail: detail || {} }));
+};
 Alpine.start();
 
 const toast = document.getElementById('copy-toast');

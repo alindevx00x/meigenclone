@@ -98,7 +98,7 @@
 
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     @if ($user->monetization_enabled && (!auth()->check() || auth()->id() !== $user->id))
-                        <button type="button" @click="$dispatch('open-tip-modal', {
+                        <button type="button" onclick="window.openTipModal({
                             creatorId: '{{ $user->id }}',
                             creatorName: '{{ addslashes($user->name) }}',
                             creatorHandle: '{{ addslashes($user->handle) }}',
@@ -174,16 +174,18 @@
 
     <!-- Prompts Masonry / Grid -->
     @if ($prompts->isEmpty())
-        <div class="empty-panel panel-card" style="padding: 48px 24px; text-align: center; border-radius: 16px; background: #ffffff; border: 1px solid #ebebf0;">
-            <span style="display: grid; width: 48px; height: 48px; margin: 0 auto 14px; place-items: center; border-radius: 50%; background: #f4f1ff; color: #7958ee; font-size: 24px;">✦</span>
-            <strong style="font-size: 17px; color: #18181b;">No prompts found.</strong>
-            <p style="margin: 6px 0 0; font-size: 13.5px; color: #64646e;">
-                @if (request('category'))
-                    No prompts found in this category for {{ $user->name }}. <a href="{{ route('creators.show', $user) }}" style="color: #7958ee; font-weight: 600;">Clear filter</a>
-                @else
-                    This creator has not published any public prompts yet. Check back soon!
-                @endif
-            </p>
+        <div class="empty-panel panel-card" style="padding: 28px 24px; display: flex; align-items: center; justify-content: center; gap: 12px; border-radius: 14px; background: #ffffff; border: 1px solid #ebebf0; flex-wrap: wrap;">
+            <span style="display: inline-flex; width: 34px; height: 34px; place-items: center; justify-content: center; align-items: center; border-radius: 50%; background: #f4f1ff; color: #7958ee; font-size: 16px; flex-shrink: 0;">✦</span>
+            <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13.5px; color: #52525b;">
+                <strong style="color: #18181b; font-weight: 600;">No prompts found.</strong>
+                <span>
+                    @if (request('category'))
+                        No prompts found in this category for {{ $user->name }}. <a href="{{ route('creators.show', $user) }}" style="color: #7958ee; font-weight: 600;">Clear filter</a>
+                    @else
+                        This creator has not published any public prompts yet. Check back soon!
+                    @endif
+                </span>
+            </div>
         </div>
     @else
         <div class="prompt-grid" style="margin-bottom: 24px;">
