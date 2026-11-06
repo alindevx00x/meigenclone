@@ -97,7 +97,7 @@
     <div class="toast" id="copy-toast" role="status">Prompt copied to clipboard</div>
 
     <!-- Global Modals & Alpine App State -->
-    <div x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-save-collection.window="openMoodboard($event.detail)" @open-tip-modal.window="openTip($event.detail)">
+    <div x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-tip-modal.window="openTip($event.detail)">
         <!-- 1. Instant Typo-Tolerant Search Modal (CMD+K) -->
         <div x-show="searchOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/80 backdrop-blur-md">
             <div @click.away="searchOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
@@ -143,40 +143,6 @@
                             <span class="text-zinc-600 text-xs flex-shrink-0 font-mono" x-text="'❤️ ' + item.likes_count"></span>
                         </a>
                     </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. Save to Moodboard Modal -->
-        <div x-show="moodboardOpen" x-cloak style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div @click.away="moodboardOpen = false" class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <span>📌</span> Save to Moodboard
-                    </h3>
-                    <button type="button" @click="moodboardOpen = false" class="text-zinc-500 hover:text-white">&times;</button>
-                </div>
-
-                <!-- Existing Collections List -->
-                <div class="space-y-1.5 max-h-56 overflow-y-auto">
-                    <template x-if="userMoodboards.length === 0">
-                        <p class="text-xs text-zinc-500 py-3 text-center">No moodboards created yet.</p>
-                    </template>
-                    <template x-for="board in userMoodboards" :key="board.id">
-                        <button type="button" @click="toggleSaveToBoard(board)" class="w-full flex items-center justify-between p-2.5 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950 text-left transition text-xs">
-                            <span class="font-medium text-white truncate" x-text="board.name"></span>
-                            <span class="text-violet-400 font-bold" x-text="board.contains_prompt ? '✓ Saved' : '+ Save'"></span>
-                        </button>
-                    </template>
-                </div>
-
-                <!-- Quick Create Collection -->
-                <div class="pt-2 border-t border-zinc-800">
-                    <div class="text-[11px] text-zinc-400 mb-1.5 font-medium">Create New Moodboard</div>
-                    <div class="flex gap-2">
-                        <input type="text" x-model="newBoardName" placeholder="New board name..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500">
-                        <button type="button" @click="createAndSaveBoard()" class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold">Create</button>
-                    </div>
                 </div>
             </div>
         </div>

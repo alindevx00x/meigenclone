@@ -28,6 +28,26 @@
                         <small>A brief line describing your community.</small>
                     </label>
                     <div class="settings-field">
+                        <label>Sidebar Brand Logo Icon (.svg, .png, .webp, .jpg)</label>
+                        <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px; flex-wrap: wrap;">
+                            @if (!empty($settings['logo_url']))
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: #f4f4f6; border-radius: 8px; border: 1px solid #e4e4e7;">
+                                    <img src="{{ $settings['logo_url'] }}" alt="Current Brand Logo" style="width: 26px; height: 26px; object-fit: contain;">
+                                    <label style="font-size: 11px; color: #dc2626; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                        <input type="checkbox" name="remove_logo" value="1"> Remove
+                                    </label>
+                                </div>
+                            @else
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #f4f4f6; border-radius: 8px; border: 1px solid #e4e4e7; font-size: 11px; color: #71717a;">
+                                    <span class="brand-mark" style="width: 20px; height: 20px; display: inline-grid; place-items: center;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg></span>
+                                    <span>Default SVG Icon</span>
+                                </div>
+                            @endif
+                            <input type="file" name="logo" accept=".svg,.png,.webp,.jpg,.jpeg,.ico" style="font-size: 12px; border: 1px dashed #d4d4d8; padding: 6px 10px; border-radius: 8px; background: #fafafa; cursor: pointer;">
+                        </div>
+                        <small>Replaces the default geometric SVG mark at the top of the sidebar and footer.</small>
+                    </div>
+                    <div class="settings-field">
                         <label>Platform Favicon (.ico, .png, .svg)</label>
                         <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px;">
                             @if (!empty($settings['favicon_url']))
@@ -80,6 +100,19 @@
                             @endforeach
                         </select>
                         <small>Controls the gallery page size and pagination.</small>
+                    </label>
+                    <label class="settings-field" style="grid-column: 1 / -1;">Prompt of the Day / Featured Carousel
+                        <select name="featured_prompt_id">
+                            <option value="" @selected(empty($settings['featured_prompt_id']))>Automatic (Highest rated &amp; featured prompts)</option>
+                            @if(isset($approvedPrompts))
+                                @foreach ($approvedPrompts as $ap)
+                                    <option value="{{ $ap->id }}" @selected(($settings['featured_prompt_id'] ?? '') == (string) $ap->id)>
+                                        #{{ $ap->id }} — {{ Str::limit($ap->title, 55) }} ({{ $ap->model }} &bull; {{ $ap->likes_count }} likes)
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <small>Choose a specific approved prompt to lock as the primary slide in the Prompt of the Day carousel.</small>
                     </label>
                 </div>
             </section>

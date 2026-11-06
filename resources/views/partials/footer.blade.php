@@ -3,21 +3,26 @@
         <!-- Brand & Mission Column -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="brand-mark" style="width: 22px; height: 22px; color: #17171b;">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width: 22px; height: 22px;"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg>
-                </span>
+                @if (!empty($directorySettings['logo_url']))
+                    <span class="brand-mark" style="width: 24px; height: 24px; display: inline-grid; place-items: center;">
+                        <img src="{{ $directorySettings['logo_url'] }}" alt="{{ $directorySettings['site_name'] }}" style="width: 24px; height: 24px; object-fit: contain; border-radius: 4px;">
+                    </span>
+                @else
+                    <span class="brand-mark" style="width: 22px; height: 22px; color: #17171b;">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style="width: 22px; height: 22px;"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg>
+                    </span>
+                @endif
                 <span style="font-size: 19px; font-weight: 700; color: #17171b; letter-spacing: -0.5px;">{{ $directorySettings['site_name'] }}</span>
-                <span style="font-family: Georgia, serif; font-style: italic; color: #888; font-size: 13.5px;">Studio</span>
             </div>
             <p style="font-size: 13px; line-height: 1.6; color: #6b7280; max-width: 380px; margin: 0;">
-                The open creative prompt library and remixing platform for Midjourney, Flux.1, Seedance, and modern AI visual models. Curated daily by the world's best prompt engineers.
+                The open creative prompt library for Midjourney, Flux.1, Seedance, and modern AI visual models. Curated daily by the world's best prompt engineers.
             </p>
             <div style="display: flex; gap: 10px; margin-top: 4px;">
                 <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: #f3f4f6; color: #4b5563; font-size: 11px; font-weight: 500;">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span> 1,800+ Verified Prompts
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span> Verified Prompts
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: #f5f3ff; color: #6d28d9; font-size: 11px; font-weight: 500;">
-                    <span>🪄</span> Fast Remix Studio
+                    <span>⚡</span> 1-Click Copy Ready
                 </span>
             </div>
             <form action="{{ route('newsletter.subscribe') }}" method="POST" style="margin-top: 10px; display: flex; gap: 6px; max-width: 380px;">
@@ -28,15 +33,14 @@
             <div style="font-size: 11px; color: #9ca3af;">Weekly digest powered by SMTP. No spam, unsubscribe anytime.</div>
         </div>
 
-        <!-- Studio & Explore Column -->
+        <!-- Explore Prompts Column -->
         <div>
-            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1f2937; margin-bottom: 16px;">Explore Studio</div>
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #1f2937; margin-bottom: 16px;">Explore Prompts</div>
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
                 <li><a href="{{ route('prompts.index') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Featured Prompts</a></li>
-                <li><a href="{{ route('studio.remix') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Remix Studio</a></li>
-                <li><a href="{{ route('srefs.index') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">SREF Style Codes</a></li>
-                <li><a href="{{ route('packs.index') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Prompt Packs</a></li>
-                <li><a href="{{ route('collections.index') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Moodboard Collections</a></li>
+                <li><a href="{{ route('prompts.index', ['sort' => 'newest']) }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Newest Prompts</a></li>
+                <li><a href="{{ route('prompts.index', ['sort' => 'popular']) }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Most Popular</a></li>
+                <li><a href="{{ route('prompts.index') }}#sidebar" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Categories</a></li>
             </ul>
         </div>
 

@@ -12,42 +12,44 @@
             @if ($prompt->user)
                 <a href="{{ route('creators.show', $prompt->user) }}" class="author-profile-link" style="display: flex; align-items: center; gap: 6px; text-decoration: none; min-width: 0; flex: 1 1 auto; color: inherit;">
                     @if ($prompt->user->avatar_url)
-                        <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->name }}" class="avatar avatar-tiny" style="object-fit: cover;">
+                        <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->handle }}" class="avatar avatar-tiny" style="object-fit: cover; flex-shrink: 0;">
                     @else
-                        <span class="avatar avatar-tiny">{{ str($prompt->user->name)->substr(0, 1)->upper() }}</span>
+                        <span class="avatar avatar-tiny" style="flex-shrink: 0;">{{ strtoupper(substr(ltrim($prompt->user->handle, '@'), 0, 1)) }}</span>
                     @endif
-                    <span class="author-name">
-                        {{ $prompt->user->name }}
+                    <span class="author-handle" style="font-weight: 600; font-size: 12px; color: #18181b; display: inline-flex; align-items: center; gap: 3px; min-width: 0;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $prompt->user->handle }}</span>
                         @if($prompt->user->is_verified)
-                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 9px; font-weight: 700; vertical-align: middle; margin-left: 2px;">✓</span>
+                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 8px; font-weight: 700; flex-shrink: 0;">✓</span>
                         @endif
                     </span>
-                    <span class="author-handle">{{ $prompt->user->handle }}</span>
                 </a>
             @else
                 <span class="avatar avatar-tiny">M</span>
-                <span class="author-name">MeiGen Community</span>
-                <span class="author-handle">Community pick</span>
+                <span class="author-handle" style="font-weight: 600; font-size: 12px; color: #18181b;">@meigen_community</span>
             @endif
-            <form method="POST" action="{{ auth()->check() ? route('prompts.favorite', $prompt->slug) : route('login') }}" class="favorite-form">
+            <form method="POST" action="{{ auth()->check() ? route('prompts.favorite', $prompt->slug) : route('login') }}" class="favorite-form" style="margin: 0; flex-shrink: 0;">
                 @csrf
-                @if (auth()->check())
-                    <button type="submit" class="favorite-button {{ $prompt->is_favorited ? 'is-favorite' : '' }}" aria-label="Save prompt">{{ $prompt->is_favorited ? '♥' : '♡' }}</button>
-                @else
-                    <a class="favorite-button" href="{{ route('login') }}" aria-label="Log in to save">♡</a>
-                @endif
+                <button type="submit" class="favorite-button {{ $prompt->is_favorited ? 'is-favorite' : '' }}" aria-label="{{ $prompt->is_favorited ? 'Remove from favorites' : 'Add to favorites' }}" title="{{ $prompt->is_favorited ? 'Saved to favorites' : 'Save to favorites' }}">
+                    <svg class="heart-svg" viewBox="0 0 24 24" width="15" height="15" fill="{{ $prompt->is_favorited ? '#ef4444' : 'none' }}" stroke="{{ $prompt->is_favorited ? '#ef4444' : '#71717a' }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
             </form>
         </div>
         <a class="prompt-title" href="{{ route('prompts.show', $prompt->slug) }}">{{ $prompt->title }}</a>
         <p class="prompt-excerpt">{{ \Illuminate\Support\Str::limit($prompt->prompt_text, 112) }}</p>
         <div class="prompt-card-footer">
-            <span class="prompt-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }}</span>
-            <span class="card-model-label">{{ $prompt->model }}</span>
-            <span class="prompt-likes">♥ {{ number_format($prompt->likes_count) }}</span>
-            <button class="copy-button" type="button" data-prompt-id="{{ $prompt->id }}" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
-            <button class="copy-button" type="button" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" title="Copy Midjourney Discord command (/imagine prompt: ...)" style="padding: 4px 7px; margin-left: 2px; font-weight: 600; color: #5865f2; background: #f0f2ff; border-color: #dce1fc;">/mj</button>
-            <button class="copy-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })" title="Save to Moodboard" style="padding: 4px 8px; margin-left: 2px;">📌</button>
-            <a href="{{ route('studio.remix', ['from' => $prompt->slug]) }}" title="Remix Prompt" class="copy-button" style="text-decoration: none; padding: 4px 8px; margin-left: 2px;">🪄</a>
+            <div class="card-meta-tags">
+                <span class="prompt-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }}</span>
+                <span class="card-model-label">{{ $prompt->model }}</span>
+                <span class="prompt-likes">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="#e11d48" stroke="#e11d48" stroke-width="1.5" style="display: inline-block; vertical-align: middle; margin-right: 2px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>{{ number_format($prompt->likes_count) }}
+                </span>
+            </div>
+            <div class="card-action-group">
+                <button class="copy-button" type="button" data-prompt-id="{{ $prompt->id }}" data-copy="{{ $prompt->prompt_text }}" aria-label="Copy prompt">Copy <span>⧉</span></button>
+                <button class="copy-button discord-button" type="button" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" title="Copy Midjourney Discord command (/imagine prompt: ...)">/mj</button>
+            </div>
         </div>
     </div>
 </article>

@@ -20,8 +20,12 @@ class AdminController extends Controller
     public function settings()
     {
         $settings = SiteSetting::current();
+        $approvedPrompts = Prompt::where('status', 'approved')
+            ->latest()
+            ->take(120)
+            ->get(['id', 'title', 'model', 'views_count', 'likes_count']);
 
-        return view('admin.settings', compact('settings'));
+        return view('admin.settings', compact('settings', 'approvedPrompts'));
     }
 
     public function updateSettings(Request $request)
@@ -33,6 +37,7 @@ class AdminController extends Controller
             'site_tagline' => ['required', 'string', 'max:160'],
             'prompts_per_page' => ['required', 'integer', 'min:6', 'max:250'],
             'default_sort' => ['required', 'in:featured,newest,popular'],
+            'featured_prompt_id' => ['nullable', 'string', 'max:30'],
             'mail_mailer' => ['required', 'in:smtp,log,array'],
             'mail_host' => [$mailSettingsEnabled && $mailer === 'smtp' ? 'required' : 'nullable', 'string', 'max:255'],
             'mail_port' => [$mailSettingsEnabled && $mailer === 'smtp' ? 'required' : 'nullable', 'integer', 'between:1,65535'],
@@ -51,6 +56,7 @@ class AdminController extends Controller
             'seo_robots' => ['required', Rule::in(['index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow'])],
             'seo_og_image' => ['nullable', 'url', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:ico,png,svg,webp,jpg,jpeg', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:ico,png,svg,webp,jpg,jpeg', 'max:4096'],
         ]);
 
         if ($request->hasFile('favicon')) {
@@ -59,6 +65,15 @@ class AdminController extends Controller
         } elseif ($request->boolean('remove_favicon')) {
             $data['favicon_url'] = '';
         }
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $data['logo_url'] = '/storage/' . $path;
+        } elseif ($request->boolean('remove_logo')) {
+            $data['logo_url'] = '';
+        }
+
+        $data['featured_prompt_id'] = $request->input('featured_prompt_id') ?: '';
 
         foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled'] as $toggle) {
             $data[$toggle] = $request->boolean($toggle) ? '1' : '0';

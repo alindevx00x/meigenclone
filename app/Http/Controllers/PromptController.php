@@ -54,13 +54,30 @@ class PromptController extends Controller
             $modelIcons = ['GPT Image' => '✦', 'Seedance' => '◉', 'Nanobanana' => '◍', 'Midjourney' => '✧'];
         }
 
-        $featuredPrompts = Prompt::with(['user', 'category'])
+        $selectedFeaturedId = (int) SiteSetting::value('featured_prompt_id', 0);
+        $featuredPrompt = null;
+        if ($selectedFeaturedId > 0) {
+            $featuredPrompt = Prompt::with(['user', 'category'])
+                ->where('status', 'approved')
+                ->where('id', $selectedFeaturedId)
+                ->where(fn($q) => $q->whereNotNull('image_url')->orWhereNotNull('image_path'))
+                ->first();
+        }
+
+        $featuredQuery = Prompt::with(['user', 'category'])
             ->where('status', 'approved')
-            ->where(fn($q) => $q->whereNotNull('image_url')->orWhereNotNull('image_path'))
-            ->orderByDesc('is_featured')
+            ->where(fn($q) => $q->whereNotNull('image_url')->orWhereNotNull('image_path'));
+
+        if ($featuredPrompt) {
+            $featuredQuery->where('id', '!=', $featuredPrompt->id);
+        }
+
+        $otherFeatured = $featuredQuery->orderByDesc('is_featured')
             ->orderByDesc('likes_count')
-            ->take(5)
+            ->take($featuredPrompt ? 4 : 5)
             ->get();
+
+        $featuredPrompts = $featuredPrompt ? collect([$featuredPrompt])->concat($otherFeatured) : $otherFeatured;
 
         return view('prompts.index', compact('categories', 'prompts', 'models', 'modelIcons', 'featuredPrompts') + ['activeSort' => $sort]);
     }

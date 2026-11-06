@@ -23,29 +23,17 @@ Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap'
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware('auth')->name('prompts.favorite');
 
-// 1. AI Generation (Disabled for now as requested)
-Route::redirect('/generate', '/remix')->name('generations.index');
-// Route::post('/api/generate', [GenerationController::class, 'store'])->middleware('throttle:30,1')->name('generations.store');
-// Route::post('/generations/{generation}/publish', [GenerationController::class, 'publish'])->middleware('auth')->name('generations.publish');
+// Redirect removed legacy sections to Home
+Route::redirect('/generate', '/')->name('generations.index');
+Route::redirect('/remix', '/')->name('studio.remix');
+Route::redirect('/sref', '/')->name('srefs.index');
+Route::redirect('/packs', '/')->name('packs.index');
+Route::redirect('/collections', '/')->name('collections.index');
 
-// 2. Interactive Prompt Remixing Studio
-Route::get('/remix', [RemixStudioController::class, 'index'])->name('studio.remix');
-
-// 3. Midjourney Style Reference (SREF) & Seed Catalog
-Route::get('/sref', [SrefController::class, 'index'])->name('srefs.index');
-Route::get('/sref/{code}', [SrefController::class, 'show'])->name('srefs.show');
-Route::post('/api/sref/{sref}/copy', [SrefController::class, 'copy'])->name('srefs.copy');
-Route::post('/api/sref/{sref}/like', [SrefController::class, 'like'])->name('srefs.like');
-
-// 4. Instant Typo-Tolerant Search API
+// 1. Instant Typo-Tolerant Search API
 Route::get('/api/prompts/instant-search', [InstantSearchController::class, 'search'])->name('prompts.instant_search');
 
-// 5. Creator Monetization & Prompt Packs
-Route::get('/packs', [PromptPackController::class, 'index'])->name('packs.index');
-Route::get('/packs/create', [PromptPackController::class, 'create'])->middleware('auth')->name('packs.create');
-Route::post('/packs', [PromptPackController::class, 'store'])->middleware('auth')->name('packs.store');
-Route::get('/packs/{slug}', [PromptPackController::class, 'show'])->name('packs.show');
-Route::get('/packs/{pack}/download', [PromptPackController::class, 'download'])->name('packs.download');
+// 2. Creator Profiles & Monetization
 Route::get('/creators/{user}', [CreatorController::class, 'show'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.show');
 Route::post('/creators/{user}/tip', [TipController::class, 'store'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.tip');
 Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
@@ -64,7 +52,7 @@ Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
     return back()->with('success', $msg);
 })->where('user', '@?[a-zA-Z0-9_\-]+')->middleware('auth')->name('creators.follow');
 
-// 6. Real-time Prompt Analytics & Webhooks
+// 3. Real-time Prompt Analytics & Webhooks
 Route::post('/api/prompts/{prompt}/track-copy', [PromptController::class, 'trackCopy'])->name('prompts.track_copy');
 Route::post('/api/webhooks/tips', [TipController::class, 'webhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->name('tips.webhook');
 
@@ -79,14 +67,6 @@ Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request
     );
     return back()->with('success', 'Thanks for subscribing! You will receive the weekly Top 10 Prompts digest.');
 })->name('newsletter.subscribe');
-
-// 6. User Moodboards & Collections
-Route::get('/collections', [CollectionController::class, 'index'])->name('collections.index');
-Route::get('/collections/{slug}', [CollectionController::class, 'show'])->name('collections.show');
-Route::post('/collections', [CollectionController::class, 'store'])->middleware('auth')->name('collections.store');
-Route::post('/collections/{collection}/toggle', [CollectionController::class, 'togglePrompt'])->middleware('auth')->name('collections.toggle');
-Route::get('/api/my-collections', [CollectionController::class, 'userCollections'])->name('collections.user_collections');
-Route::delete('/collections/{collection}', [CollectionController::class, 'destroy'])->middleware('auth')->name('collections.destroy');
 
 // Legal & GDPR Compliance Pages
 Route::view('/privacy', 'legal.privacy')->name('legal.privacy');

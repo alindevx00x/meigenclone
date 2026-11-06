@@ -70,8 +70,6 @@
             <div class="detail-actions" style="flex-wrap: wrap; gap: 8px;">
                 <button class="primary-button" type="button" data-prompt-id="{{ $prompt->id }}" data-copy="{{ $prompt->prompt_text }}">Copy prompt <span>⧉</span></button>
                 <button class="outline-button" type="button" data-prompt-id="{{ $prompt->id }}" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" style="color: #5865f2; border-color: #dce1fc; background: #f8f9ff;">Copy Discord /mj <span>🎮</span></button>
-                <a class="outline-button" style="text-decoration: none;" href="{{ route('studio.remix', ['from' => $prompt->slug]) }}">Remix <span>🪄</span></a>
-                <button class="outline-button" type="button" @click="$dispatch('open-save-collection', { promptId: {{ $prompt->id }} })">Board <span>📌</span></button>
                 @if($prompt->user && $prompt->user->monetization_enabled)
                 <button class="outline-button" type="button" @click="$dispatch('open-tip-modal', {
                     creatorId: '{{ $prompt->user_id }}',

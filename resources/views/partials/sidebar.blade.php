@@ -1,16 +1,16 @@
 <aside class="sidebar" id="sidebar">
-    <a class="brand" href="{{ route('prompts.index') }}" aria-label="MeiGen home">
-        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg></span>
-        <span class="brand-name">{{ $directorySettings['site_name'] }}</span><span class="brand-sub">Gallery</span>
+    <a class="brand" href="{{ route('prompts.index') }}" aria-label="{{ $directorySettings['site_name'] }} home">
+        @if (!empty($directorySettings['logo_url']))
+            <span class="brand-mark"><img src="{{ $directorySettings['logo_url'] }}" alt="{{ $directorySettings['site_name'] }}" style="width: 24px; height: 24px; object-fit: contain; border-radius: 5px;"></span>
+        @else
+            <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg></span>
+        @endif
+        <span class="brand-name">{{ $directorySettings['site_name'] }}</span>
     </a>
 
     <nav class="side-scroll" aria-label="Main navigation">
         <div class="side-group">
             <a class="side-link {{ request()->routeIs('prompts.index', 'prompts.show') && !request('category') ? 'is-active' : '' }}" href="{{ route('prompts.index') }}"><span class="side-icon">⌂</span><span>Home</span></a>
-            <a class="side-link {{ request()->routeIs('studio.remix') ? 'is-active' : '' }}" href="{{ route('studio.remix') }}"><span class="side-icon">🪄</span><span>Remix Studio</span></a>
-            <a class="side-link {{ request()->routeIs('srefs.*') ? 'is-active' : '' }}" href="{{ route('srefs.index') }}"><span class="side-icon">🧬</span><span>SREF Catalog</span></a>
-            <a class="side-link {{ request()->routeIs('packs.*') ? 'is-active' : '' }}" href="{{ route('packs.index') }}"><span class="side-icon">📦</span><span>Prompt Packs</span></a>
-            <a class="side-link {{ request()->routeIs('collections.*') ? 'is-active' : '' }}" href="{{ route('collections.index') }}"><span class="side-icon">📌</span><span>Moodboards</span></a>
             <a class="side-link" href="{{ auth()->check() ? route('dashboard.index').'#favorites' : route('login') }}"><span class="side-icon">♡</span><span>Favorites</span></a>
             @auth
                 <a class="side-link {{ request()->routeIs('dashboard.profile.*') ? 'is-active' : '' }}" href="{{ route('dashboard.profile.edit') }}"><span class="side-icon">⚙</span><span>Profile settings</span></a>

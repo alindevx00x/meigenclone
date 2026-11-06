@@ -39,8 +39,8 @@
 
                     <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 13px; color: #52525c; flex-wrap: wrap;">
                         <span style="font-weight: 600; color: #6d52d9; background: #f2efff; padding: 2px 8px; border-radius: 6px;">{{ $user->handle }}</span>
-                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('creators.show', $user) }}'); alert('Creator profile link copied to clipboard!');" style="background: transparent; border: 0; color: #71717a; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;" title="Copy profile URL">
-                            <span>⧉</span> Copy link
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('creators.show', $user) }}'); const el = this.querySelector('.copy-label'); if(el) { el.textContent = 'Copied!'; setTimeout(() => el.textContent = 'Copy link', 2000); }" style="background: transparent; border: 0; color: #71717a; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;" title="Copy profile URL">
+                            <span>⧉</span> <span class="copy-label">Copy link</span>
                         </button>
                         <span>&bull;</span>
                         <span>Member since {{ $user->created_at->format('M Y') }}</span>

@@ -17,8 +17,9 @@ class ScrapeMeigenPrompts extends Command
 {
     protected $signature = 'prompts:scrape-meigen
         {--count=5000 : Target number of prompts to import}
+        {--latest-posts= : Directly inspect the latest N posts from meigen.ai, skip duplicates, and import new ones}
         {--batch=100 : API batch limit}
-        {--concurrency=25 : Parallel image download concurrency}
+        {--concurrency=30 : Parallel image download concurrency}
         {--localize-existing : Also download and localize images for existing prompts}';
 
     protected $description = 'Scrapes prompts from meigen.ai, downloads images locally to storage, and imports categories, creators, and AI models';
@@ -30,9 +31,14 @@ class ScrapeMeigenPrompts extends Command
             $this->localizeExistingPrompts();
         }
 
-        $targetCount = (int) $this->option('count');
         $batchSize = min(100, max(20, (int) $this->option('batch')));
-        $concurrency = min(40, max(5, (int) $this->option('concurrency')));
+        $concurrency = min(50, max(5, (int) $this->option('concurrency')));
+
+        if ($this->option('latest-posts')) {
+            return $this->scrapeLatestPosts((int) $this->option('latest-posts'), $batchSize, $concurrency);
+        }
+
+        $targetCount = (int) $this->option('count');
 
         $this->info("Fetching up to {$targetCount} new prompts with local image storage...");
 
@@ -245,6 +251,185 @@ class ScrapeMeigenPrompts extends Command
     }
 
     /**
+     * Scrape and inspect the latest N posts from meigen.ai, skipping duplicates and importing new ones.
+     */
+    private function scrapeLatestPosts(int $postsToScan, int $batchSize, int $concurrency): int
+    {
+        $this->info("Scanning the latest {$postsToScan} posts from meigen.ai (with local storage & deduplication)...");
+
+        $existingImageUrls = Prompt::whereNotNull('image_url')->pluck('image_url')->toArray();
+        $existingImagePaths = Prompt::whereNotNull('image_path')->pluck('image_path')->toArray();
+        $existingTextHashes = Prompt::select('prompt_text')->get()->mapWithKeys(fn ($p) => [
+            md5(preg_replace('/\s+/', ' ', mb_strtolower(trim($p->prompt_text)))) => true
+        ])->toArray();
+
+        $storageDir = storage_path('app/public/prompt-covers');
+        if (! File::isDirectory($storageDir)) {
+            File::makeDirectory($storageDir, 0755, true);
+        }
+
+        $scanned = 0;
+        $imported = 0;
+        $skipped = 0;
+        $offset = 0;
+        $seenIds = [];
+
+        $bar = $this->output->createProgressBar($postsToScan);
+        $bar->start();
+
+        while ($scanned < $postsToScan) {
+            $limit = min($batchSize, $postsToScan - $scanned);
+            $url = 'https://www.meigen.ai/api/search';
+            $params = [
+                'q' => '',
+                'type' => 'posts',
+                'limit' => $limit,
+                'offset' => $offset,
+                'media' => 'matched-v1',
+            ];
+
+            try {
+                $response = Http::withHeaders([
+                    'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept' => 'application/json',
+                ])->timeout(20)->get($url, $params);
+
+                if (! $response->successful()) {
+                    $this->warn("\nAPI returned status {$response->status()} at offset {$offset}. Stopping scan.");
+                    break;
+                }
+
+                $data = $response->json();
+                $items = $data['data'] ?? [];
+
+                if (empty($items)) {
+                    $this->info("\nNo more posts returned by API at offset {$offset}.");
+                    break;
+                }
+
+                $pendingItems = [];
+                foreach ($items as $item) {
+                    $scanned++;
+                    $bar->advance();
+
+                    $id = $item['id'] ?? null;
+                    if (! $id || isset($seenIds[$id])) {
+                        $skipped++;
+                        continue;
+                    }
+                    $seenIds[$id] = true;
+
+                    $text = trim($item['text'] ?? '');
+                    if (mb_strlen($text) < 15) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    $imageUrl = $item['thumbnail_url'] ?? ($item['media_urls'][0] ?? null);
+                    if (! $imageUrl) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    $textHash = md5(preg_replace('/\s+/', ' ', mb_strtolower(trim($text))));
+                    if (isset($existingTextHashes[$textHash])) {
+                        $skipped++;
+                        continue;
+                    }
+                    $existingTextHashes[$textHash] = true;
+
+                    if (in_array($imageUrl, $existingImageUrls, true)) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    $pendingItems[] = [
+                        'item' => $item,
+                        'text' => $text,
+                        'imageUrl' => $imageUrl,
+                    ];
+                }
+
+                if (! empty($pendingItems)) {
+                    $downloadChunks = array_chunk($pendingItems, $concurrency);
+                    foreach ($downloadChunks as $chunk) {
+                        $urlsToDownload = array_column($chunk, 'imageUrl');
+                        $downloadedPaths = $this->downloadImagesConcurrently($urlsToDownload, $storageDir);
+
+                        foreach ($chunk as $candidate) {
+                            $rawUrl = $candidate['imageUrl'];
+                            $localPath = $downloadedPaths[$rawUrl] ?? null;
+
+                            if (! $localPath) {
+                                $skipped++;
+                                continue;
+                            }
+
+                            $item = $candidate['item'];
+                            $text = $candidate['text'];
+
+                            $user = $this->resolveUser($item);
+                            $modelName = $this->resolveModel($item['model'] ?? null);
+                            $category = $this->resolveCategory($text, $modelName);
+                            $title = $this->extractTitle($text, $category->name);
+
+                            $slug = Str::slug($title);
+                            if (empty($slug)) {
+                                $slug = 'prompt';
+                            }
+                            $uniqueSlug = $slug . '-' . Str::lower(Str::random(6));
+
+                            $likes = (int) ($item['likes'] ?? 0);
+                            $favorites = (int) ($item['favorites_count'] ?? 0);
+                            $totalLikes = max($likes, $favorites, rand(5, 120));
+                            $isFeatured = $totalLikes > 85 || ($item['rank'] ?? 0) > 0.02;
+
+                            $createdAt = ! empty($item['created_at'])
+                                ? rescue(fn () => \Carbon\Carbon::parse($item['created_at']), now(), false)
+                                : now()->subDays(rand(0, 45));
+
+                            Prompt::create([
+                                'user_id' => $user->id,
+                                'category_id' => $category->id,
+                                'title' => mb_strimwidth($title, 0, 120, '', 'UTF-8'),
+                                'slug' => $uniqueSlug,
+                                'prompt_text' => $text,
+                                'image_url' => null,
+                                'image_path' => $localPath,
+                                'model' => $modelName,
+                                'status' => 'approved',
+                                'is_featured' => $isFeatured,
+                                'likes_count' => $totalLikes,
+                                'approved_at' => $createdAt,
+                                'created_at' => $createdAt,
+                                'updated_at' => $createdAt,
+                            ]);
+
+                            $existingImageUrls[] = $rawUrl;
+                            $imported++;
+                        }
+                    }
+                }
+
+                $offset += count($items);
+                usleep(40000);
+            } catch (\Throwable $e) {
+                $this->warn("\nError at offset {$offset}: {$e->getMessage()}");
+                $offset += $batchSize;
+            }
+        }
+
+        $bar->finish();
+        $this->newLine(2);
+        $this->info("Completed scanning latest {$scanned} posts from meigen.ai:");
+        $this->info("- New prompts imported: {$imported}");
+        $this->info("- Duplicates / skipped: {$skipped}");
+        $this->info("- Total approved prompts in database: " . Prompt::where('status', 'approved')->count());
+
+        return Command::SUCCESS;
+    }
+
+    /**
      * Download multiple image URLs in parallel using curl_multi and save them to disk.
      * Returns an associative map: [ originalUrl => 'prompt-covers/filename.ext' ]
      */
@@ -364,16 +549,34 @@ class ScrapeMeigenPrompts extends Command
             $username = Str::slug($displayName, '_');
         }
 
+        $baseUsername = Str::slug($username, '_') ?: 'creator_' . Str::lower(Str::random(6));
+        $candidateUsername = $baseUsername;
+        $suffix = 1;
+        while (User::where('username', $candidateUsername)->exists()) {
+            $existing = User::where('username', $candidateUsername)->first();
+            // If already matches this email/handle, reuse
+            if ($existing && $existing->email === (Str::slug($baseUsername, '') . '@community.meigen.ai')) {
+                return $existing;
+            }
+            $candidateUsername = $baseUsername . '_' . $suffix;
+            $suffix++;
+        }
+
         $emailHandle = Str::slug($username, '') ?: Str::lower(Str::random(8));
         $email = $emailHandle . '@community.meigen.ai';
 
         $user = User::firstWhere('email', $email);
         if ($user) {
+            if (empty($user->username)) {
+                $user->username = $candidateUsername;
+                $user->save();
+            }
             return $user;
         }
 
         return User::create([
             'name' => Str::limit($displayName, 80, ''),
+            'username' => $candidateUsername,
             'email' => $email,
             'role' => 'user',
             'status' => 'active',

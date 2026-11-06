@@ -46,6 +46,8 @@ class SiteSetting extends Model
             'seo_robots' => 'index,follow',
             'seo_og_image' => '',
             'favicon_url' => '',
+            'logo_url' => '',
+            'featured_prompt_id' => '',
         ];
     }
 
