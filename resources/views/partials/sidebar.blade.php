@@ -29,18 +29,20 @@
                     <a class="side-link {{ request()->routeIs('admin.categories.*') ? 'is-active' : '' }}" href="{{ route('admin.categories.index') }}"><span class="side-icon">▦</span><span>Categories</span></a>
                     <a class="side-link {{ request()->routeIs('admin.models.*') ? 'is-active' : '' }}" href="{{ route('admin.models.index') }}"><span class="side-icon">◈</span><span>AI Models</span></a>
                     <a class="side-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}" href="{{ route('admin.users.index') }}"><span class="side-icon">◎</span><span>Members</span></a>
+                    <a class="side-link {{ request()->routeIs('admin.contacts.*') ? 'is-active' : '' }}" href="{{ route('admin.contacts.index') }}"><span class="side-icon">✉</span><span>Contacts</span></a>
+                    <a class="side-link {{ request()->routeIs('admin.newsletters.*') ? 'is-active' : '' }}" href="{{ route('admin.newsletters.index') }}"><span class="side-icon">📬</span><span>Newsletters</span></a>
                     <a class="side-link {{ request()->routeIs('admin.settings*') ? 'is-active' : '' }}" href="{{ route('admin.settings') }}"><span class="side-icon">⚙</span><span>Settings</span></a>
                 </div>
             @endif
         @endauth
 
         <div class="side-section">
-            <div class="side-heading">Categories <span class="side-more">•••</span></div>
+            <div class="side-heading">Categories <span class="side-more">• • •</span></div>
             <div class="category-list">
-                <a class="side-link side-category {{ !request('category') ? 'is-selected' : '' }}" href="{{ route('prompts.index') }}"><span class="category-dot dot-all">✦</span><span>All</span><span class="category-count">{{ $sidebarCategories->sum('prompts_count') }}</span></a>
+                <a class="side-link side-category {{ !request('category') ? 'is-selected' : '' }}" href="{{ route('prompts.index') }}"><span class="category-dot dot-all">✦</span><span>All</span></a>
                 @foreach ($sidebarCategories as $category)
                     <a class="side-link side-category {{ request('category') === $category->slug ? 'is-selected' : '' }}" href="{{ route('prompts.index', ['category' => $category->slug]) }}">
-                        <span class="category-dot">{{ $category->icon }}</span><span>{{ $category->name }}</span><span class="category-count">{{ $category->prompts_count }}</span>
+                        <span class="category-dot">{{ $category->icon }}</span><span>{{ $category->name }}</span>
                     </a>
                 @endforeach
             </div>

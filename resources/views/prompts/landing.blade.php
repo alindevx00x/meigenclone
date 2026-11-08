@@ -72,11 +72,11 @@
 
             <!-- Quick Filter & Action Chips -->
             <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-                <a href="{{ route('studio.remix') }}" class="primary-button" style="min-height: 36px;">
-                    <span>🪄</span> Open in Remix Studio
+                <a href="{{ route('prompts.index') }}" class="primary-button" style="min-height: 36px;">
+                    <span>✦</span> Browse Gallery
                 </a>
-                <a href="{{ route('srefs.index') }}" class="outline-button" style="min-height: 36px;">
-                    <span>🧬</span> Browse SREF Codes
+                <a href="{{ route('dashboard.prompts.create') }}" class="outline-button" style="min-height: 36px;">
+                    <span>+</span> Submit Prompt
                 </a>
                 @if(isset($category))
                     <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">Top models:</span>

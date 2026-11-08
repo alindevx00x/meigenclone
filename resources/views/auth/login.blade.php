@@ -14,7 +14,6 @@
             <button class="primary-button full-button" type="submit">Log in <span>→</span></button>
         </form>
         @if ($directorySettings['allow_registrations'] === '1')<p class="auth-switch">New to {{ $directorySettings['site_name'] }}? <a href="{{ route('register') }}">Create an account</a></p>@endif
-        <div class="demo-note"><strong>Preview accounts</strong><span>Admin: admin@meigen.test · password</span><span>Creator: creator@meigen.test · password</span></div>
     </div>
 </div>
 @endsection

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Prompt Remixing Studio — Interactive AI Prompt Builder')
-@section('eyebrow', 'MEIGEN STUDIO')
+@section('eyebrow', 'PROMPT STUDIO')
 @section('toolbar-title', 'Remix Studio')
 
 @section('content')

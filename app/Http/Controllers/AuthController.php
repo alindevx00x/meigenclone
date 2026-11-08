@@ -54,14 +54,24 @@ class AuthController extends Controller
             return redirect()->route('login')->withErrors(['registration' => 'New registrations are currently closed.']);
         }
 
+        if ($request->filled('username')) {
+            $rawUsername = ltrim(trim($request->input('username')), '@');
+            $request->merge(['username' => strtolower($rawUsername)]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
+            'username' => ['required', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_\.]+$/', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'username.regex' => 'The username may only contain letters, numbers, underscores, and dots.',
+            'username.unique' => 'This creator username is already taken. Please choose another.',
         ]);
 
         $user = User::create([
             'name' => $data['name'],
+            'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => 'user',
@@ -70,7 +80,17 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard.index')->with('success', 'Welcome to the community. Your prompt studio is ready.');
+        if (SiteSetting::enabled('require_email_verification')) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Email verification send failed: ' . $e->getMessage());
+            }
+
+            return redirect()->route('verification.notice')->with('success', 'Please check your inbox to verify your email address.');
+        }
+
+        return redirect()->route('dashboard.index')->with('success', 'Welcome to the community. Your profile is ready.');
     }
 
     public function logout(Request $request)

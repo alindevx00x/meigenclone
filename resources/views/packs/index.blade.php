@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Curated Prompt Packs — Pre-Packaged Bundles for Creators')
-@section('eyebrow', 'MEIGEN MARKETPLACE')
+@section('eyebrow', 'PROMPT MARKETPLACE')
 @section('toolbar-title', 'Prompt Packs')
 
 @section('content')

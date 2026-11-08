@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'AI Image Generator — One-Click Flux & DALL-E 3 Generation')
-@section('eyebrow', 'MEIGEN STUDIO')
+@section('eyebrow', 'IMAGE GENERATOR')
 @section('toolbar-title', 'AI Generator')
 
 @section('content')

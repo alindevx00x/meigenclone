@@ -15,14 +15,16 @@ use Illuminate\Support\Str;
 
 class ScrapeMeigenPrompts extends Command
 {
-    protected $signature = 'prompts:scrape-meigen
+    protected $signature = 'prompts:sync
         {--count=5000 : Target number of prompts to import}
-        {--latest-posts= : Directly inspect the latest N posts from meigen.ai, skip duplicates, and import new ones}
+        {--latest-posts= : Directly inspect the latest N posts, skip duplicates, and import new ones}
         {--batch=100 : API batch limit}
         {--concurrency=30 : Parallel image download concurrency}
         {--localize-existing : Also download and localize images for existing prompts}';
 
-    protected $description = 'Scrapes prompts from meigen.ai, downloads images locally to storage, and imports categories, creators, and AI models';
+    protected $aliases = ['prompts:scrape-meigen'];
+
+    protected $description = 'Synchronizes creative prompts, downloads covers locally to storage, and imports categories, creators, and AI models';
 
     public function handle(): int
     {
@@ -484,6 +486,11 @@ class ScrapeMeigenPrompts extends Command
 
                 if (file_put_contents($fullPath, $contents) !== false) {
                     $results[$url] = 'prompt-covers/' . $filename;
+                    try {
+                        \App\Support\WebpImageStorage::generateThumbnail('prompt-covers/' . $filename);
+                    } catch (\Throwable) {
+                        // Non-blocking thumbnail generation
+                    }
                 }
             }
         }
@@ -541,7 +548,7 @@ class ScrapeMeigenPrompts extends Command
         $username = trim($item['author_username'] ?? '');
 
         if (empty($displayName) && empty($username)) {
-            $displayName = 'MeiGen Creator';
+            $displayName = 'Community Creator';
             $username = 'creator_' . Str::lower(Str::random(6));
         } elseif (empty($displayName)) {
             $displayName = $username;
@@ -555,7 +562,7 @@ class ScrapeMeigenPrompts extends Command
         while (User::where('username', $candidateUsername)->exists()) {
             $existing = User::where('username', $candidateUsername)->first();
             // If already matches this email/handle, reuse
-            if ($existing && $existing->email === (Str::slug($baseUsername, '') . '@community.meigen.ai')) {
+            if ($existing && $existing->email === (Str::slug($baseUsername, '') . '@community.promptimage.cc')) {
                 return $existing;
             }
             $candidateUsername = $baseUsername . '_' . $suffix;
@@ -563,7 +570,7 @@ class ScrapeMeigenPrompts extends Command
         }
 
         $emailHandle = Str::slug($username, '') ?: Str::lower(Str::random(8));
-        $email = $emailHandle . '@community.meigen.ai';
+        $email = $emailHandle . '@community.promptimage.cc';
 
         $user = User::firstWhere('email', $email);
         if ($user) {

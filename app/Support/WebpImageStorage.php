@@ -62,16 +62,45 @@ class WebpImageStorage
     public static function storeContents(string $contents, string $directory): string
     {
         $webp = static::encode($contents);
-        $path = trim($directory, '/').'/'.Str::random(40).'.webp';
+        $filename = Str::random(40).'.webp';
+        $path = trim($directory, '/').'/'.$filename;
 
         if (! Storage::disk('public')->put($path, $webp)) {
             throw ValidationException::withMessages(['image' => 'The converted image could not be saved. Please try another image.']);
         }
 
+        // Automatically generate lightweight thumbnail for fast mobile grid rendering
+        try {
+            $thumbWebp = static::encode($contents, 540, 78);
+            Storage::disk('public')->put(trim($directory, '/').'/thumbs/'.$filename, $thumbWebp);
+        } catch (Throwable) {
+            // Non-blocking thumbnail failure
+        }
+
         return $path;
     }
 
-    private static function encode(string $contents): string
+    public static function generateThumbnail(string $path, int $maxWidth = 540, int $quality = 78): ?string
+    {
+        try {
+            $disk = Storage::disk('public');
+            if (! $disk->exists($path)) {
+                return null;
+            }
+            $contents = $disk->get($path);
+            $thumbWebp = static::encode($contents, $maxWidth, $quality);
+            $dir = dirname($path);
+            $filename = basename($path);
+            $thumbPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$filename;
+            $disk->put($thumbPath, $thumbWebp);
+
+            return $thumbPath;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    public static function encode(string $contents, int $maxEdge = self::MAX_EDGE, int $quality = self::QUALITY): string
     {
         if (class_exists(\Imagick::class)) {
             try {
@@ -88,12 +117,12 @@ class WebpImageStorage
                 }
 
                 $geometry = $image->getImageGeometry();
-                if (max($geometry['width'], $geometry['height']) > self::MAX_EDGE) {
-                    $image->thumbnailImage(self::MAX_EDGE, self::MAX_EDGE, true, true);
+                if (max($geometry['width'], $geometry['height']) > $maxEdge) {
+                    $image->thumbnailImage($maxEdge, $maxEdge, true, true);
                 }
 
                 $image->setImageFormat('webp');
-                $image->setImageCompressionQuality(self::QUALITY);
+                $image->setImageCompressionQuality($quality);
                 $image->stripImage();
                 $webp = $image->getImageBlob();
                 $image->clear();
@@ -115,8 +144,8 @@ class WebpImageStorage
                 $width = imagesx($image);
                 $height = imagesy($image);
                 $largestEdge = max($width, $height);
-                if ($largestEdge > self::MAX_EDGE) {
-                    $scale = self::MAX_EDGE / $largestEdge;
+                if ($largestEdge > $maxEdge) {
+                    $scale = $maxEdge / $largestEdge;
                     $resized = imagescale($image, max(1, (int) round($width * $scale)), max(1, (int) round($height * $scale)));
                     if ($resized !== false) {
                         imagedestroy($image);
@@ -126,7 +155,7 @@ class WebpImageStorage
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
                 ob_start();
-                $success = imagewebp($image, null, self::QUALITY);
+                $success = imagewebp($image, null, $quality);
                 $webp = ob_get_clean();
                 imagedestroy($image);
 

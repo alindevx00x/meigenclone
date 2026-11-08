@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Directory settings')
-@section('eyebrow', 'MEIGEN ADMIN')
+@section('eyebrow', 'ADMIN STUDIO')
 @section('toolbar-title', 'Directory settings')
 @section('content')
 <div class="workspace-page admin-page settings-page">
@@ -69,13 +69,52 @@
                 <div class="settings-card-heading"><span class="shortcut-icon">◎</span><div><h2>Community access</h2><p>Choose who can join and contribute.</p></div></div>
                 <div class="settings-toggles">
                     <label class="settings-toggle"><span><strong>Allow new registrations</strong><small>Visitors can create a creator account.</small></span><input type="checkbox" name="allow_registrations" value="1" @checked($settings['allow_registrations'] === '1')><i aria-hidden="true"></i></label>
+                    <label class="settings-toggle"><span><strong>Require email verification</strong><small>New members must verify their email address before submitting prompts or accessing features.</small></span><input type="checkbox" name="require_email_verification" value="1" @checked(($settings['require_email_verification'] ?? '0') === '1')><i aria-hidden="true"></i></label>
                     <label class="settings-toggle"><span><strong>Accept prompt submissions</strong><small>Creators can add and edit prompts.</small></span><input type="checkbox" name="allow_submissions" value="1" @checked($settings['allow_submissions'] === '1')><i aria-hidden="true"></i></label>
                     <label class="settings-toggle"><span><strong>Require admin approval</strong><small>New or edited prompts wait in the review queue.</small></span><input type="checkbox" name="require_approval" value="1" @checked($settings['require_approval'] === '1')><i aria-hidden="true"></i></label>
                 </div>
             </section>
 
             <section class="settings-card">
-                <div class="settings-card-heading"><span class="shortcut-icon">▤</span><div><h2>Gallery discovery</h2><p>Set the opening view for visitors.</p></div></div>
+                <div class="settings-card-heading"><span class="shortcut-icon">☁</span><div><h2>Image storage &amp; CDN</h2><p>Choose where prompt covers and assets are stored and served.</p></div></div>
+                <div class="settings-fields settings-fields-inline">
+                    <label class="settings-field" style="grid-column: 1 / -1;">Storage Provider / Disk
+                        <select name="storage_driver">
+                            <option value="local" @selected(($settings['storage_driver'] ?? 'local') === 'local')>Local Public Disk (storage/app/public)</option>
+                            <option value="s3" @selected(($settings['storage_driver'] ?? '') === 's3')>Amazon AWS S3</option>
+                            <option value="r2" @selected(($settings['storage_driver'] ?? '') === 'r2')>Cloudflare R2 Storage (S3 API Compatible)</option>
+                        </select>
+                        <small>Active driver for storing prompt covers, avatars, and WebP thumbnails.</small>
+                    </label>
+                    <label class="settings-field">AWS / R2 Access Key ID
+                        <input name="storage_aws_access_key_id" value="{{ old('storage_aws_access_key_id', $settings['storage_aws_access_key_id'] ?? '') }}" placeholder="AKIA... or R2 token ID">
+                        <small>API Access key from cloud storage provider.</small>
+                    </label>
+                    <label class="settings-field">AWS / R2 Secret Access Key
+                        <input type="password" name="storage_aws_secret_access_key" value="{{ old('storage_aws_secret_access_key', $settings['storage_aws_secret_access_key'] ?? '') }}" placeholder="Secret access key..." autocomplete="off">
+                        <small>Secret key paired with Access Key ID.</small>
+                    </label>
+                    <label class="settings-field">Bucket Name
+                        <input name="storage_aws_bucket" value="{{ old('storage_aws_bucket', $settings['storage_aws_bucket'] ?? '') }}" placeholder="prompt-covers-bucket">
+                        <small>Target bucket or container name.</small>
+                    </label>
+                    <label class="settings-field">Default Region
+                        <input name="storage_aws_default_region" value="{{ old('storage_aws_default_region', $settings['storage_aws_default_region'] ?? 'us-east-1') }}" placeholder="us-east-1 or auto">
+                        <small>e.g. us-east-1, eu-west-1, or 'auto' for Cloudflare R2.</small>
+                    </label>
+                    <label class="settings-field" style="grid-column: 1 / -1;">Endpoint URL (Required for Cloudflare R2)
+                        <input name="storage_aws_endpoint" value="{{ old('storage_aws_endpoint', $settings['storage_aws_endpoint'] ?? '') }}" placeholder="https://<account_id>.r2.cloudflarestorage.com">
+                        <small>Cloudflare R2 endpoint URL (or custom S3/MinIO endpoint).</small>
+                    </label>
+                    <label class="settings-field" style="grid-column: 1 / -1;">Public CDN / Asset URL
+                        <input name="storage_aws_url" value="{{ old('storage_aws_url', $settings['storage_aws_url'] ?? '') }}" placeholder="https://cdn.promptimage.cc or https://pub-<hash>.r2.dev">
+                        <small>Public CDN domain used to serve optimized WebP thumbnails and images globally.</small>
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-heading"><span class="shortcut-icon">⊞</span><div><h2>Gallery discovery</h2><p>Set the opening view for visitors.</p></div></div>
                 <div class="settings-fields settings-fields-inline">
                     <label class="settings-field">Default prompt order
                         <select name="default_sort">
@@ -164,6 +203,44 @@
                     </label>
                     <label class="settings-field">Reply-to email <span class="optional-label">Optional</span>
                         <input type="email" name="mail_reply_to" value="{{ old('mail_reply_to', $settings['mail_reply_to']) }}" placeholder="support@example.com">
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-heading"><span class="shortcut-icon">💳</span><div><h2>Payment Gateways &amp; Creator Tips</h2><p>Configure Stripe Checkout &amp; PayPal for direct on-site supporter tips.</p></div></div>
+                <label class="settings-toggle"><span><strong>Enable Stripe Checkout</strong><small>Allows supporters to tip creators directly on-site using Credit Cards, Apple Pay, and Google Pay.</small></span><input type="checkbox" name="stripe_enabled" value="1" @checked(($settings['stripe_enabled'] ?? '0') === '1')><i aria-hidden="true"></i></label>
+                <div class="settings-fields settings-fields-inline" style="margin-bottom: 20px;">
+                    <label class="settings-field">Stripe Publishable Key
+                        <input name="stripe_publishable_key" value="{{ old('stripe_publishable_key', $settings['stripe_publishable_key'] ?? '') }}" placeholder="pk_test_... or pk_live_...">
+                        <small>Public key from your Stripe account.</small>
+                    </label>
+                    <label class="settings-field">Stripe Secret Key
+                        <input type="password" name="stripe_secret_key" value="{{ old('stripe_secret_key', $settings['stripe_secret_key'] ?? '') }}" placeholder="sk_test_... or sk_live_..." autocomplete="off">
+                        <small>Secret key used for sessions and creator payout transfers.</small>
+                    </label>
+                    <label class="settings-field" style="grid-column: 1 / -1;">Stripe Webhook Secret <span class="optional-label">Optional</span>
+                        <input type="password" name="stripe_webhook_secret" value="{{ old('stripe_webhook_secret', $settings['stripe_webhook_secret'] ?? '') }}" placeholder="whsec_..." autocomplete="off">
+                        <small>Webhook endpoint: <code>{{ url('/api/webhooks/tips') }}</code></small>
+                    </label>
+                </div>
+
+                <label class="settings-toggle"><span><strong>Enable PayPal Checkout</strong><small>Allows supporters to tip creators via PayPal balances and credit cards.</small></span><input type="checkbox" name="paypal_enabled" value="1" @checked(($settings['paypal_enabled'] ?? '0') === '1')><i aria-hidden="true"></i></label>
+                <div class="settings-fields settings-fields-inline">
+                    <label class="settings-field">PayPal Environment Mode
+                        <select name="paypal_mode">
+                            <option value="sandbox" @selected(($settings['paypal_mode'] ?? 'sandbox') === 'sandbox')>Sandbox (Test Environment)</option>
+                            <option value="live" @selected(($settings['paypal_mode'] ?? '') === 'live')>Live (Production Payments)</option>
+                        </select>
+                        <small>Test tipping freely in Sandbox before going Live.</small>
+                    </label>
+                    <label class="settings-field">PayPal Client ID
+                        <input name="paypal_client_id" value="{{ old('paypal_client_id', $settings['paypal_client_id'] ?? '') }}" placeholder="PayPal REST App Client ID">
+                        <small>Client ID from PayPal Developer Portal.</small>
+                    </label>
+                    <label class="settings-field" style="grid-column: 1 / -1;">PayPal Secret Key
+                        <input type="password" name="paypal_secret" value="{{ old('paypal_secret', $settings['paypal_secret'] ?? '') }}" placeholder="PayPal Secret..." autocomplete="off">
+                        <small>Secret used to capture orders and credit creator balances.</small>
                     </label>
                 </div>
             </section>

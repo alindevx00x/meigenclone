@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AiModel;
 use App\Models\Category;
+use App\Models\ContactMessage;
+use App\Models\NewsletterSubscriber;
 use App\Models\Prompt;
 use App\Models\SiteSetting;
 use App\Models\User;
@@ -19,7 +21,7 @@ class AdminController extends Controller
 {
     public function settings()
     {
-        $settings = SiteSetting::current();
+        $settings = SiteSetting::current(forAdmin: true);
         $approvedPrompts = Prompt::where('status', 'approved')
             ->latest()
             ->take(120)
@@ -55,6 +57,22 @@ class AdminController extends Controller
             'seo_canonical_base' => ['nullable', 'url', 'max:2048'],
             'seo_robots' => ['required', Rule::in(['index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow'])],
             'seo_og_image' => ['nullable', 'url', 'max:2048'],
+            'require_email_verification' => ['nullable'],
+            'storage_driver' => ['nullable', 'in:local,s3,r2'],
+            'storage_aws_access_key_id' => ['nullable', 'string', 'max:255'],
+            'storage_aws_secret_access_key' => ['nullable', 'string', 'max:255'],
+            'storage_aws_default_region' => ['nullable', 'string', 'max:100'],
+            'storage_aws_bucket' => ['nullable', 'string', 'max:255'],
+            'storage_aws_url' => ['nullable', 'string', 'max:255'],
+            'storage_aws_endpoint' => ['nullable', 'string', 'max:255'],
+            'stripe_enabled' => ['nullable'],
+            'stripe_publishable_key' => ['nullable', 'string', 'max:255'],
+            'stripe_secret_key' => ['nullable', 'string', 'max:255'],
+            'stripe_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'paypal_enabled' => ['nullable'],
+            'paypal_client_id' => ['nullable', 'string', 'max:255'],
+            'paypal_secret' => ['nullable', 'string', 'max:255'],
+            'paypal_mode' => ['nullable', 'in:sandbox,live'],
             'favicon' => ['nullable', 'file', 'max:2048', function ($attribute, $value, $fail) {
                 if (!$value instanceof \Illuminate\Http\UploadedFile) return;
                 $ext = strtolower($value->getClientOriginalExtension());
@@ -87,8 +105,19 @@ class AdminController extends Controller
 
         $data['featured_prompt_id'] = $request->input('featured_prompt_id') ?: '';
 
-        foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled'] as $toggle) {
+        foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled', 'require_email_verification', 'stripe_enabled', 'paypal_enabled'] as $toggle) {
             $data[$toggle] = $request->boolean($toggle) ? '1' : '0';
+        }
+
+        foreach ([
+            'storage_driver', 'storage_aws_access_key_id', 'storage_aws_secret_access_key',
+            'storage_aws_default_region', 'storage_aws_bucket', 'storage_aws_url', 'storage_aws_endpoint',
+            'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
+            'paypal_client_id', 'paypal_secret', 'paypal_mode'
+        ] as $settingKey) {
+            if ($request->has($settingKey)) {
+                $data[$settingKey] = (string) $request->input($settingKey, '');
+            }
         }
         $data['prompts_per_page'] = (string) $data['prompts_per_page'];
 
@@ -115,10 +144,14 @@ class AdminController extends Controller
             'members' => User::where('role', 'user')->count(),
             'categories' => Category::count(),
             'models' => AiModel::count(),
+            'contacts_unread' => ContactMessage::where('is_read', false)->count(),
+            'contacts_total' => ContactMessage::count(),
+            'newsletters_count' => NewsletterSubscriber::count(),
         ];
         $pendingPrompts = Prompt::with(['user', 'category'])->where('status', 'pending')->latest()->limit(6)->get();
+        $recentContacts = ContactMessage::latest()->limit(5)->get();
 
-        return view('admin.index', compact('stats', 'pendingPrompts'));
+        return view('admin.index', compact('stats', 'pendingPrompts', 'recentContacts'));
     }
 
     public function prompts(Request $request)
@@ -402,12 +435,15 @@ class AdminController extends Controller
             'role' => ['required', 'in:user,admin'],
             'status' => ['required', 'in:active,suspended'],
             'is_verified' => ['nullable', 'boolean'],
+            'email_verified' => ['nullable', 'boolean'],
             'avatar_url' => ['nullable', 'string', 'max:500'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'bio' => ['nullable', 'string', 'max:500'],
             'website' => ['nullable', 'url', 'max:255'],
             'tip_link' => ['nullable', 'url', 'max:500'],
             'tip_goal' => ['nullable', 'string', 'max:255'],
+            'stripe_account_id' => ['nullable', 'string', 'max:120'],
+            'paypal_email' => ['nullable', 'email', 'max:190'],
             'monetization_enabled' => ['nullable', 'boolean'],
             'credits' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'openai_api_key' => ['nullable', 'string', 'max:255'],
@@ -434,9 +470,19 @@ class AdminController extends Controller
             'website' => $data['website'] ?? null,
             'tip_link' => $data['tip_link'] ?? null,
             'tip_goal' => $data['tip_goal'] ?? null,
+            'stripe_account_id' => $data['stripe_account_id'] ?? null,
+            'paypal_email' => $data['paypal_email'] ?? null,
             'monetization_enabled' => $request->boolean('monetization_enabled', true),
             'avatar_url' => $data['avatar_url'] ?? null,
         ];
+
+        if ($request->has('email_verified')) {
+            $isEmailVerified = $request->boolean('email_verified');
+            $updateData['email_verified_at'] = $isEmailVerified ? ($user->email_verified_at ?: now()) : null;
+            if ($isEmailVerified) {
+                $updateData['is_verified'] = true;
+            }
+        }
 
         if (! empty($data['username'])) {
             $updateData['username'] = strtolower($data['username']);
@@ -483,6 +529,18 @@ class AdminController extends Controller
 
         $label = $newStatus === 'active' ? 'activated' : 'suspended';
         return back()->with('success', "Account for '{$user->name}' is now {$label}.");
+    }
+
+    public function toggleEmailVerification(Request $request, User $user)
+    {
+        $wasVerified = (bool) $user->email_verified_at;
+        $user->update([
+            'email_verified_at' => $wasVerified ? null : now(),
+            'is_verified' => ! $wasVerified,
+        ]);
+
+        $label = ! $wasVerified ? 'verified' : 'marked unverified';
+        return back()->with('success', "Member '{$user->name}' has been {$label}.");
     }
 
     public function destroyUser(Request $request, User $user)
@@ -533,5 +591,114 @@ class AdminController extends Controller
         $data['color'] = $category?->color ?? 'violet';
 
         return $data;
+    }
+
+    public function contacts(Request $request)
+    {
+        $query = ContactMessage::query();
+
+        if ($request->filled('q')) {
+            $s = trim($request->string('q')->toString());
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('email', 'like', "%{$s}%")
+                    ->orWhere('subject', 'like', "%{$s}%")
+                    ->orWhere('message', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'unread') {
+                $query->where('is_read', false);
+            } elseif ($request->status === 'read') {
+                $query->where('is_read', true);
+            }
+        }
+
+        $contacts = $query->latest()->paginate(20)->withQueryString();
+
+        $stats = [
+            'total' => ContactMessage::count(),
+            'unread' => ContactMessage::where('is_read', false)->count(),
+            'read' => ContactMessage::where('is_read', true)->count(),
+        ];
+
+        return view('admin.contacts', compact('contacts', 'stats'));
+    }
+
+    public function toggleContactRead(ContactMessage $contact)
+    {
+        $contact->update(['is_read' => ! $contact->is_read]);
+        $status = $contact->is_read ? 'marked as read' : 'marked as unread';
+        return back()->with('success', "Message from '{$contact->name}' {$status}.");
+    }
+
+    public function destroyContact(ContactMessage $contact)
+    {
+        $contact->delete();
+        return back()->with('success', 'Contact submission removed successfully.');
+    }
+
+    public function newsletters(Request $request)
+    {
+        $query = NewsletterSubscriber::with('user');
+
+        if ($request->filled('q')) {
+            $s = trim($request->string('q')->toString());
+            $query->where('email', 'like', "%{$s}%");
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        $subscribers = $query->latest()->paginate(25)->withQueryString();
+
+        $stats = [
+            'total' => NewsletterSubscriber::count(),
+            'active' => NewsletterSubscriber::where('is_active', true)->count(),
+            'inactive' => NewsletterSubscriber::where('is_active', false)->count(),
+        ];
+
+        return view('admin.newsletters', compact('subscribers', 'stats'));
+    }
+
+    public function toggleNewsletterActive(NewsletterSubscriber $subscriber)
+    {
+        $subscriber->update(['is_active' => ! $subscriber->is_active]);
+        $status = $subscriber->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Subscriber '{$subscriber->email}' {$status}.");
+    }
+
+    public function destroyNewsletter(NewsletterSubscriber $subscriber)
+    {
+        $subscriber->delete();
+        return back()->with('success', 'Newsletter subscriber removed.');
+    }
+
+    public function exportNewsletters()
+    {
+        $subscribers = NewsletterSubscriber::where('is_active', true)->orderBy('created_at', 'desc')->get();
+        $filename = 'subscribers_' . now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($subscribers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Email', 'Subscribed At', 'Is Active']);
+            foreach ($subscribers as $row) {
+                fputcsv($handle, [$row->email, $row->created_at->toIso8601String(), $row->is_active ? 'yes' : 'no']);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

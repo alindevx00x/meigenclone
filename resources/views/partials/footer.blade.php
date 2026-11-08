@@ -65,6 +65,7 @@
             <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
                 <li><a href="{{ route('legal.privacy') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Privacy Policy</a></li>
                 <li><a href="{{ route('legal.terms') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Terms of Service</a></li>
+                <li><a href="{{ route('contact.index') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Contact Us</a></li>
                 <li><a href="{{ route('legal.gdpr') }}" style="display: inline-flex; align-items: center; gap: 5px; color: #4f46e5; font-weight: 600; text-decoration: none;"><span>🇪🇺</span> GDPR Statement</a></li>
                 <li><a href="{{ route('legal.cookies') }}" style="color: #6b7280; text-decoration: none; transition: color 0.15s;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#6b7280'">Cookie Policy</a></li>
             </ul>

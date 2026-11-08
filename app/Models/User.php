@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -34,10 +34,13 @@ class User extends Authenticatable
         'is_verified',
         'tip_link',
         'tip_goal',
+        'stripe_account_id',
+        'paypal_email',
         'monetization_enabled',
         'tips_earned_total',
         'openai_api_key',
         'replicate_api_token',
+        'email_verified_at',
     ];
 
     /**
@@ -83,6 +86,13 @@ class User extends Authenticatable
     public function resolveRouteBinding($value, $field = null)
     {
         $clean = ltrim((string) $value, '@');
+
+        if (preg_match('/^user[_-](\d+)$/i', $clean, $matches)) {
+            $user = $this->where('username', $clean)->orWhere('id', (int) $matches[1])->first();
+            if ($user) {
+                return $user;
+            }
+        }
 
         return $this->where('username', $clean)
             ->orWhere('id', is_numeric($clean) ? (int) $clean : 0)

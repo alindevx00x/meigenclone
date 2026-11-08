@@ -72,7 +72,7 @@
                 @yield('toolbar')
                 @include('partials.header-account')
             @else
-                <div class="topbar-title">@yield('eyebrow', 'MEIGEN COMMUNITY') <span>·</span> @yield('toolbar-title', 'Prompt studio')</div>
+                <div class="topbar-title">@yield('eyebrow', strtoupper($directorySettings['site_name'] ?? 'PROMPT') . ' COMMUNITY') <span>·</span> @yield('toolbar-title', 'Prompt studio')</div>
                 <form class="top-search" action="{{ route('prompts.index') }}" method="GET">
                     <span class="search-icon">⌕</span>
                     <input type="search" name="q" placeholder="Search prompts, categories, creators…" value="{{ request('q') }}" aria-label="Search prompts, categories, and creators">
@@ -224,17 +224,30 @@
                         <input type="text" x-model="tipNote" maxlength="300" placeholder="Thanks for this amazing prompt!">
                     </div>
 
+                    <!-- Payment Method Selection -->
+                    <div class="tip-field" style="margin-bottom: 14px;">
+                        <label>Payment Method</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <button type="button" @click="tipGateway = 'stripe'" :style="tipGateway === 'stripe' ? 'border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #fff;' : 'border-color: #27272e; background: #14141a; color: #a1a1aa;'" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; border-width: 1.5px; border-style: solid; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+                                <span>💳</span> Card (Stripe)
+                            </button>
+                            <button type="button" @click="tipGateway = 'paypal'" :style="tipGateway === 'paypal' ? 'border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); color: #fff;' : 'border-color: #27272e; background: #14141a; color: #a1a1aa;'" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; border-width: 1.5px; border-style: solid; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
+                                <span>🅿️</span> PayPal
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- External Tip Link option if creator configured BuyMeACoffee/Stripe -->
                     <template x-if="tipLink">
                         <a :href="tipLink" target="_blank" rel="noopener noreferrer" class="tip-external-btn">
-                            ☕ Tip via Creator's Link (BuyMeACoffee / Stripe) <span>↗</span>
+                            ☕ Creator's External Tip Link (BuyMeACoffee / Stripe) <span>↗</span>
                         </a>
                     </template>
 
                     <!-- Submit Button -->
                     <button type="button" @click="submitTip()" :disabled="tipSubmitting" class="tip-submit-btn">
-                        <span x-show="!tipSubmitting">Send $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> Direct Tip</span>
-                        <span x-show="tipSubmitting">Processing tip…</span>
+                        <span x-show="!tipSubmitting">Tip $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> with <span x-text="tipGateway === 'paypal' ? 'PayPal' : 'Stripe'"></span> <span>→</span></span>
+                        <span x-show="tipSubmitting">Connecting to secure checkout…</span>
                     </button>
                 </div>
             </template>

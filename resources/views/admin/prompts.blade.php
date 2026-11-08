@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Manage prompts')
-@section('eyebrow', 'MEIGEN ADMIN')
+@section('eyebrow', 'ADMIN STUDIO')
 @section('toolbar-title', 'Prompt management')
 @section('content')
 <div class="workspace-page admin-page">
@@ -103,7 +103,7 @@
                         <td>
                             <div class="table-prompt" style="align-items: center;">
                                 @if ($prompt->cover_url)
-                                    <img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex: 0 0 44px; border: 1px solid #ebebf0;" loading="lazy">
+                                    <img src="{{ $prompt->thumbnail_url ?? $prompt->cover_url }}" alt="{{ $prompt->title }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex: 0 0 44px; border: 1px solid #ebebf0;" loading="lazy">
                                 @else
                                     <span class="table-thumb" style="width: 44px; height: 44px; border-radius: 8px;">{{ $prompt->category->icon }}</span>
                                 @endif
@@ -141,36 +141,51 @@
                             </span>
                         </td>
                         <td>
-                            <div class="row-actions admin-actions" style="justify-content: flex-end;">
-                                <a href="{{ route('admin.prompts.edit', $prompt) }}">Edit</a>
+                            <div class="admin-actions-group" style="display: inline-flex; align-items: center; gap: 5px; justify-content: flex-end;">
+                                <a href="{{ route('admin.prompts.edit', $prompt) }}" class="admin-btn-action admin-btn-edit" title="Edit prompt details">
+                                    <svg viewBox="0 0 20 20" fill="currentColor" style="width: 13px; height: 13px;"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                                    <span>Edit</span>
+                                </a>
                                 
-                                <form method="POST" action="{{ route('admin.prompts.feature', $prompt) }}">
+                                <form method="POST" action="{{ route('admin.prompts.feature', $prompt) }}" style="display: inline-flex; margin: 0;">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit">{{ $prompt->is_featured ? 'Unfeature' : 'Feature' }}</button>
+                                    <button type="submit" class="admin-btn-action {{ $prompt->is_featured ? 'admin-btn-unfeature' : 'admin-btn-feature' }}" title="{{ $prompt->is_featured ? 'Remove from featured' : 'Feature prompt' }}">
+                                        <svg viewBox="0 0 20 20" fill="currentColor" style="width: 13px; height: 13px;"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        <span>{{ $prompt->is_featured ? 'Unfeature' : 'Feature' }}</span>
+                                    </button>
                                 </form>
 
                                 @if ($prompt->status !== 'approved')
-                                    <form method="POST" action="{{ route('admin.prompts.approve', $prompt) }}">
+                                    <form method="POST" action="{{ route('admin.prompts.approve', $prompt) }}" style="display: inline-flex; margin: 0;">
                                         @csrf
                                         @method('PATCH')
-                                        <button class="approve-action" type="submit">Approve</button>
+                                        <button class="admin-btn-action admin-btn-approve" type="submit" title="Approve prompt">
+                                            <svg viewBox="0 0 20 20" fill="currentColor" style="width: 13px; height: 13px;"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            <span>Approve</span>
+                                        </button>
                                     </form>
                                 @endif
 
                                 @if ($prompt->status !== 'rejected')
-                                    <form method="POST" action="{{ route('admin.prompts.reject', $prompt) }}">
+                                    <form method="POST" action="{{ route('admin.prompts.reject', $prompt) }}" style="display: inline-flex; margin: 0;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="admin_note" value="Please refine this prompt and resubmit.">
-                                        <button type="submit">Decline</button>
+                                        <button type="submit" class="admin-btn-action admin-btn-decline" title="Decline prompt">
+                                            <svg viewBox="0 0 20 20" fill="currentColor" style="width: 13px; height: 13px;"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                            <span>Decline</span>
+                                        </button>
                                     </form>
                                 @endif
 
-                                <form method="POST" action="{{ route('admin.prompts.destroy', $prompt) }}" onsubmit="return confirm('Permanently delete this prompt?')">
+                                <form method="POST" action="{{ route('admin.prompts.destroy', $prompt) }}" style="display: inline-flex; margin: 0;" onsubmit="return confirm('Permanently delete this prompt?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="delete-action" type="submit">Delete</button>
+                                    <button class="admin-btn-action admin-btn-delete" type="submit" title="Permanently delete prompt">
+                                        <svg viewBox="0 0 20 20" fill="currentColor" style="width: 13px; height: 13px;"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                        <span>Delete</span>
+                                    </button>
                                 </form>
                             </div>
                         </td>

@@ -58,7 +58,7 @@
             <p>To submit a formal Data Subject Access Request (DSAR) or request account erasure, contact our designated privacy officer:</p>
             <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 20px; margin-top: 14px;">
                 <div style="font-weight: 600; color: #111827;">Data Protection Officer (DPO)</div>
-                <div style="color: #6b7280; font-size: 13px; margin-top: 4px;">Email: <a href="mailto:{{ $directorySettings['contact_email'] ?? 'privacy@meigen.ai' }}" style="color: #4f46e5; text-decoration: underline;">{{ $directorySettings['contact_email'] ?? 'privacy@meigen.ai' }}</a></div>
+                <div style="color: #6b7280; font-size: 13px; margin-top: 4px;">Email: <a href="mailto:{{ $directorySettings['contact_email'] ?: 'privacy@promptimage.cc' }}" style="color: #4f46e5; text-decoration: underline;">{{ $directorySettings['contact_email'] ?: 'privacy@promptimage.cc' }}</a></div>
                 <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">Standard response SLA: Within 30 calendar days (free of charge).</div>
             </div>
         </div>

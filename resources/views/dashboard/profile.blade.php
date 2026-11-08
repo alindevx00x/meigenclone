@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Profile Settings — MeiGen')
+@section('title', 'Profile Settings — ' . ($directorySettings['site_name'] ?? 'PromptImage'))
 @section('eyebrow', 'YOUR CREATOR SPACE')
 @section('toolbar-title', 'Profile settings')
 
@@ -121,6 +121,20 @@
                 <label class="wide-field check-label" style="display: inline-flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important; cursor: pointer; font-size: 13.5px; font-weight: 600; color: #1e1e24;">
                     <input type="checkbox" name="monetization_enabled" value="1" @checked(old('monetization_enabled', auth()->user()->monetization_enabled)) style="width: 17px !important; height: 17px !important; min-height: 17px !important; max-height: 17px !important; margin: 0 !important; accent-color: #7c3aed; flex-shrink: 0;">
                     <span>Enable "Tip Creator" button on your public profile and prompt cards</span>
+                </label>
+
+                <label>
+                    <span>Stripe Connect Account ID <span class="optional-label">Optional</span></span>
+                    <input type="text" name="stripe_account_id" value="{{ old('stripe_account_id', auth()->user()->stripe_account_id) }}" placeholder="acct_1234567890">
+                    <small style="color: #71717a; font-size: 11.5px;">Connect your Stripe Express/Standard account for automatic direct tip payouts.</small>
+                    @error('stripe_account_id') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+
+                <label>
+                    <span>PayPal Payout Email <span class="optional-label">Optional</span></span>
+                    <input type="email" name="paypal_email" value="{{ old('paypal_email', auth()->user()->paypal_email) }}" placeholder="payouts@yourdomain.com">
+                    <small style="color: #71717a; font-size: 11.5px;">Your PayPal email address for receiving supporter tips.</small>
+                    @error('paypal_email') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <label>

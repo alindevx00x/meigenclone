@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Member: ' . $user->name)
-@section('eyebrow', 'MEIGEN ADMIN')
+@section('eyebrow', 'ADMIN STUDIO')
 @section('toolbar-title', 'Member management')
 
 @section('content')
@@ -23,6 +23,19 @@
             <a href="{{ route('creators.show', $user) }}" target="_blank" class="outline-button" style="color: #6366f1; border-color: #c7d2fe; text-decoration: none;">
                 View public profile <span>↗</span>
             </a>
+            <form method="POST" action="{{ route('admin.users.verify', $user) }}" style="display: inline;">
+                @csrf
+                @method('PATCH')
+                @if ($user->email_verified_at)
+                    <button type="submit" class="outline-button" style="color: #047857; border-color: #a7f3d0; background: #ecfdf5;" title="Click to mark unverified">
+                        <span style="color: #059669; font-weight: 700;">✓</span> Verified Member
+                    </button>
+                @else
+                    <button type="submit" class="outline-button" style="color: #4338ca; border-color: #c7d2fe; background: #eef2ff;" title="Click to verify this member">
+                        <span>✦</span> Verify Member
+                    </button>
+                @endif
+            </form>
             @if (! $user->is(auth()->user()))
                 <form method="POST" action="{{ route('admin.users.status', $user) }}" style="display: inline;">
                     @csrf
@@ -91,13 +104,13 @@
 
             <div class="form-grid">
                 <label>
-                    Full name <span class="required-star">*</span>
+                    <span class="field-label">Full name <span class="required-star">*</span></span>
                     <input type="text" name="name" required maxlength="80" value="{{ old('name', $user->name) }}">
                     @error('name') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <label>
-                    Creator Handle / Username <span class="required-star">*</span>
+                    <span class="field-label">Creator Handle / Username <span class="required-star">*</span></span>
                     <div style="position: relative; display: flex; align-items: center;">
                         <span style="position: absolute; left: 12px; color: #7c3aed; font-weight: 700; font-size: 14px;">@</span>
                         <input type="text" name="username" required maxlength="30" value="{{ old('username', $user->username) }}" style="padding-left: 30px; font-weight: 600; color: #3730a3;" placeholder="username">
@@ -107,12 +120,30 @@
                 </label>
 
                 <label>
-                    Email address <span class="required-star">*</span>
+                    <span class="field-label">Email address <span class="required-star">*</span></span>
                     <input type="email" name="email" required maxlength="255" value="{{ old('email', $user->email) }}">
                     @error('email') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
-                <div></div>
+                <!-- Member Verification Status -->
+                <div style="padding: 10px 14px; background: {{ $user->email_verified_at ? '#f0fdf4' : '#fffbeb' }}; border: 1px solid {{ $user->email_verified_at ? '#bbf7d0' : '#fef3c7' }}; border-radius: 10px; display: flex; flex-direction: column; justify-content: center;">
+                    <label class="check-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: {{ $user->email_verified_at ? '#166534' : '#92400e' }};">
+                        <input type="checkbox" name="email_verified" value="1" @checked(old('email_verified', (bool) $user->email_verified_at)) style="width: 17px; height: 17px; accent-color: #16a34a;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;">
+                            Email Verified Member
+                            @if ($user->email_verified_at)
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #16a34a; color: #fff; font-size: 10px; font-weight: 700;">✓</span>
+                            @endif
+                        </span>
+                    </label>
+                    <small style="color: {{ $user->email_verified_at ? '#15803d' : '#b45309' }}; display: block; margin-top: 3px; margin-left: 25px; font-size: 11px;">
+                        @if ($user->email_verified_at)
+                            Verified on {{ $user->email_verified_at->format('M j, Y') }} ({{ $user->email_verified_at->diffForHumans() }}). Uncheck to revoke.
+                        @else
+                            Member is currently unverified. Check box or click "Verify Member" above to grant clearance.
+                        @endif
+                    </small>
+                </div>
 
                 <div class="wide-field" style="display: flex; align-items: center; gap: 14px; padding: 12px; background: #faf9fd; border: 1px solid #eae6f8; border-radius: 10px;">
                     <div style="flex-shrink: 0;">
@@ -141,13 +172,13 @@
                 </div>
 
                 <label class="wide-field">
-                    Website or Social URL <span class="optional-label">Optional</span>
+                    <span>Website or Social URL <span class="optional-label">Optional</span></span>
                     <input type="url" name="website" maxlength="255" value="{{ old('website', $user->website) }}" placeholder="https://x.com/username or portfolio URL">
                     @error('website') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <label class="wide-field">
-                    Bio / Creator Headline <span class="optional-label">Optional</span>
+                    <span>Bio / Creator Headline <span class="optional-label">Optional</span></span>
                     <textarea name="bio" rows="3" maxlength="500" placeholder="Brief creator introduction, visual style specialization, tools used&hellip;">{{ old('bio', $user->bio) }}</textarea>
                     @error('bio') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
@@ -175,14 +206,28 @@
                 </div>
 
                 <label>
-                    External Tip / Payment Link <span class="optional-label">Optional</span>
+                    <span>Stripe Connect Account ID <span class="optional-label">Optional</span></span>
+                    <input type="text" name="stripe_account_id" value="{{ old('stripe_account_id', $user->stripe_account_id) }}" placeholder="acct_1234567890">
+                    <small>Stripe Connect Express/Custom account ID for automated direct payout transfers.</small>
+                    @error('stripe_account_id') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+
+                <label>
+                    <span>PayPal Payout Email <span class="optional-label">Optional</span></span>
+                    <input type="email" name="paypal_email" value="{{ old('paypal_email', $user->paypal_email) }}" placeholder="payouts@creator.com">
+                    <small>PayPal account email address for receiving creator payouts.</small>
+                    @error('paypal_email') <small style="color: #c62828;">{{ $message }}</small> @enderror
+                </label>
+
+                <label>
+                    <span>External Tip / Payment Link <span class="optional-label">Optional</span></span>
                     <input type="url" name="tip_link" value="{{ old('tip_link', $user->tip_link) }}" placeholder="https://buymeacoffee.com/... or Stripe link">
                     <small>Buy Me a Coffee, Ko-fi, Stripe Payment link, or PayPal URL.</small>
                     @error('tip_link') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <label>
-                    Creator Tip Goal <span class="optional-label">Optional</span>
+                    <span>Creator Tip Goal <span class="optional-label">Optional</span></span>
                     <input type="text" name="tip_goal" maxlength="255" value="{{ old('tip_goal', $user->tip_goal) }}" placeholder="e.g. Funding Midjourney v7 compute">
                     <small>Goal motivation message displayed in tipping modal.</small>
                     @error('tip_goal') <small style="color: #c62828;">{{ $message }}</small> @enderror
@@ -193,34 +238,34 @@
         <!-- Section 3: Studio & AI Credits -->
         <div style="margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #eeeef2;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
-                <span>⚡</span> Studio Generation &amp; Custom API Keys
+                <span>⚡</span> Member Credits &amp; Custom API Keys
             </h3>
 
             <div class="form-grid">
                 <label>
-                    AI Generation Credits <span class="required-star">*</span>
+                    <span class="field-label">AI Generation Credits <span class="required-star">*</span></span>
                     <input type="number" min="0" max="100000" name="credits" value="{{ old('credits', $user->credits) }}" placeholder="25">
-                    <small>Balance used for Flux and DALL-E image generation in Remix Studio.</small>
+                    <small>Balance allocation for community generation and prompt testing.</small>
                     @error('credits') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <div></div>
 
                 <label>
-                    OpenAI API Key <span class="optional-label">Optional (Custom BYOK)</span>
+                    <span>OpenAI API Key <span class="optional-label">Optional (Custom BYOK)</span></span>
                     <input type="password" name="openai_api_key" value="{{ old('openai_api_key', $user->openai_api_key) }}" placeholder="sk-..." autocomplete="off">
                     <small>User's custom OpenAI key for GPT image prompts.</small>
                 </label>
 
                 <label>
-                    Replicate API Token <span class="optional-label">Optional (Custom BYOK)</span>
+                    <span>Replicate API Token <span class="optional-label">Optional (Custom BYOK)</span></span>
                     <input type="password" name="replicate_api_token" value="{{ old('replicate_api_token', $user->replicate_api_token) }}" placeholder="r8_..." autocomplete="off">
                     <small>User's custom Replicate token for Flux generations.</small>
                 </label>
             </div>
         </div>
 
-        <!-- Section 3: Access & Security -->
+        <!-- Section 4: Access & Security -->
         <div style="margin-bottom: 10px;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
                 <span>🔒</span> Account Security &amp; Clearance
@@ -228,7 +273,7 @@
 
             <div class="form-grid">
                 <label>
-                    System Role <span class="required-star">*</span>
+                    <span class="field-label">System Role <span class="required-star">*</span></span>
                     <select name="role" required @disabled($user->is(auth()->user()))>
                         <option value="user" @selected(old('role', $user->role) === 'user')>Creator (Standard Member)</option>
                         <option value="admin" @selected(old('role', $user->role) === 'admin')>Administrator (Full Studio Access)</option>
@@ -243,7 +288,7 @@
                 </label>
 
                 <label>
-                    Account Status <span class="required-star">*</span>
+                    <span class="field-label">Account Status <span class="required-star">*</span></span>
                     <select name="status" required @disabled($user->is(auth()->user()))>
                         <option value="active" @selected(old('status', $user->status) === 'active')>Active (Can log in &amp; publish)</option>
                         <option value="suspended" @selected(old('status', $user->status) === 'suspended')>Suspended (Blocked)</option>
@@ -258,7 +303,7 @@
                 </label>
 
                 <label class="wide-field">
-                    Set New Password <span class="optional-label">Leave blank to keep current password unchanged</span>
+                    <span>Set New Password <span class="optional-label">Leave blank to keep current password unchanged</span></span>
                     <input type="password" name="password" minlength="8" placeholder="Enter new password (min. 8 characters) &mdash; leave empty to keep unchanged" autocomplete="new-password">
                     <small style="color: #6b7280;">No current password is required. Only fill this if you want to reset this user's password.</small>
                     @error('password') <small style="color: #c62828;">{{ $message }}</small> @enderror

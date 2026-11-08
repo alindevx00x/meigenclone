@@ -199,7 +199,7 @@ class ImageGenerationService
         $tagColor = imagecolorallocate($image, 168, 85, 247); // violet-500
         $gray = imagecolorallocate($image, 203, 213, 225);
 
-        imagestring($image, 5, 40, 40, "MEIGEN AI GENERATION", $tagColor);
+        imagestring($image, 5, 40, 40, "PROMPT STUDIO GENERATION", $tagColor);
         imagestring($image, 3, 40, 65, "Aspect: {$aspectRatio} | Flux Schnell Engine", $gray);
 
         // Wrap prompt snippet across lines

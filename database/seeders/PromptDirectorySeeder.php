@@ -12,16 +12,16 @@ class PromptDirectorySeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::updateOrCreate(['email' => 'admin@meigen.test'], [
-            'name' => 'MeiGen Admin', 'password' => Hash::make('password'), 'role' => 'admin',
+        $admin = User::updateOrCreate(['email' => 'admin@promptimage.cc'], [
+            'name' => 'Prompt Admin', 'password' => Hash::make('password'), 'role' => 'admin',
         ]);
-        $creator = User::updateOrCreate(['email' => 'creator@meigen.test'], [
+        $creator = User::updateOrCreate(['email' => 'creator@promptimage.cc'], [
             'name' => 'Alex Morgan', 'password' => Hash::make('password'), 'role' => 'user',
         ]);
-        $mika = User::updateOrCreate(['email' => 'mika@meigen.test'], [
+        $mika = User::updateOrCreate(['email' => 'mika@promptimage.cc'], [
             'name' => 'Mika Sato', 'password' => Hash::make('password'), 'role' => 'user',
         ]);
-        $sam = User::updateOrCreate(['email' => 'sam@meigen.test'], [
+        $sam = User::updateOrCreate(['email' => 'sam@promptimage.cc'], [
             'name' => 'Sam Rivera', 'password' => Hash::make('password'), 'role' => 'user',
         ]);
 

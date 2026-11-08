@@ -115,6 +115,7 @@ Alpine.data('globalAppModal', () => ({
         this.tipAmount = 5;
         this.tipCustomAmount = '';
         this.tipNote = '';
+        this.tipGateway = 'stripe';
         this.tipSuccess = false;
         this.tipOpen = true;
     },
@@ -135,10 +136,14 @@ Alpine.data('globalAppModal', () => ({
                     amount: amount,
                     message: this.tipNote,
                     prompt_id: this.tipPromptId,
-                    payment_gateway: 'platform'
+                    payment_gateway: this.tipGateway || 'stripe'
                 })
             });
             const data = await res.json();
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+                return;
+            }
             if (data.success) {
                 this.tipSuccess = true;
                 this.tipSuccessMessage = data.message;

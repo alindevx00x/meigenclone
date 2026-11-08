@@ -21,7 +21,7 @@ class SiteSetting extends Model
     public static function defaults(): array
     {
         return [
-            'site_name' => 'MeiGen',
+            'site_name' => 'PromptImage',
             'site_tagline' => 'A thoughtful library of prompts for your next idea.',
             'allow_registrations' => '1',
             'allow_submissions' => '1',
@@ -48,6 +48,22 @@ class SiteSetting extends Model
             'favicon_url' => '',
             'logo_url' => '',
             'featured_prompt_id' => '',
+            'require_email_verification' => '0',
+            'storage_driver' => 'local',
+            'storage_aws_access_key_id' => '',
+            'storage_aws_secret_access_key' => '',
+            'storage_aws_default_region' => 'us-east-1',
+            'storage_aws_bucket' => '',
+            'storage_aws_url' => '',
+            'storage_aws_endpoint' => '',
+            'stripe_enabled' => '0',
+            'stripe_publishable_key' => '',
+            'stripe_secret_key' => '',
+            'stripe_webhook_secret' => '',
+            'paypal_enabled' => '0',
+            'paypal_client_id' => '',
+            'paypal_secret' => '',
+            'paypal_mode' => 'sandbox',
         ];
     }
 
@@ -56,10 +72,20 @@ class SiteSetting extends Model
         return Cache::rememberForever('directory.settings', fn () => static::query()->pluck('value', 'key')->all());
     }
 
-    public static function current(): array
+    public static function current(bool $forAdmin = false): array
     {
         $values = static::allValues();
         unset($values['mail_password']);
+
+        if (! $forAdmin) {
+            unset(
+                $values['storage_aws_secret_access_key'],
+                $values['stripe_secret_key'],
+                $values['stripe_webhook_secret'],
+                $values['paypal_secret'],
+                $values['storage_aws_access_key_id']
+            );
+        }
 
         return array_replace(static::defaults(), $values, [
             'mail_password_configured' => static::secretValue('mail_password') !== null,

@@ -30,7 +30,7 @@
             <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
                 <div style="padding: 14px 18px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f9fafb;">
                     <div style="font-weight: 600; color: #111827; display: flex; align-items: center; justify-content: space-between;">
-                        <span>meigen-prompt-directory-session</span>
+                        <span>prompt-directory-session</span>
                         <span style="font-size: 11px; font-weight: 600; color: #059669; background: #ecfdf5; padding: 2px 8px; border-radius: 6px;">Strictly Necessary</span>
                     </div>
                     <p style="font-size: 12.5px; color: #6b7280; margin: 6px 0 0;">Maintains your authenticated session state across requests. Encrypted with AES-256 and set with HTTP-only flags.</p>

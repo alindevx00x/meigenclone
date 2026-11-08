@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Manage members')
-@section('eyebrow', 'MEIGEN ADMIN')
+@section('eyebrow', 'ADMIN STUDIO')
 @section('toolbar-title', 'Member management')
 @section('content')
 <div class="workspace-page admin-page">

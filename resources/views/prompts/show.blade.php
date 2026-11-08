@@ -12,7 +12,7 @@
     "dateModified": "{{ $prompt->updated_at->toIso8601String() }}",
     "author": {
         "@type": "Person",
-        "name": "{{ addslashes($prompt->user?->name ?? 'MeiGen Community') }}"
+        "name": "{{ addslashes($prompt->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community')) }}"
     },
     @if ($prompt->cover_url)
     "image": "{{ $prompt->cover_url }}",
@@ -51,9 +51,9 @@
                         </span>
                     </a>
                 @else
-                    <span class="avatar">M</span>
+                    <span class="avatar">✦</span>
                     <span>
-                        <strong style="color: #18181b;">MeiGen Community</strong>
+                        <strong style="color: #18181b;">{{ ($directorySettings['site_name'] ?? 'Prompt') . ' Community' }}</strong>
                         <small style="color: #64646e;">Shared with the community</small>
                     </span>
                 @endif

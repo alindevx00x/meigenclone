@@ -3,14 +3,13 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CreatorController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\InstantSearchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PromptController;
 use App\Http\Controllers\PromptPackController;
-use App\Http\Controllers\RemixStudioController;
 use App\Http\Controllers\SrefController;
 use App\Http\Controllers\TipController;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +20,7 @@ Route::get('/prompts/category/{category:slug}', [PromptController::class, 'categ
 Route::get('/prompts/style/{vibe}', [PromptController::class, 'styleLanding'])->name('prompts.style_landing');
 Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
-Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware('auth')->name('prompts.favorite');
+Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware(['auth', 'throttle:30,1'])->name('prompts.favorite');
 
 // Redirect removed legacy sections to Home
 Route::redirect('/generate', '/')->name('generations.index');
@@ -30,12 +29,14 @@ Route::redirect('/sref', '/')->name('srefs.index');
 Route::redirect('/packs', '/')->name('packs.index');
 Route::redirect('/collections', '/')->name('collections.index');
 
-// 1. Instant Typo-Tolerant Search API
-Route::get('/api/prompts/instant-search', [InstantSearchController::class, 'search'])->name('prompts.instant_search');
+// 1. Instant Typo-Tolerant Search API (Rate-limited)
+Route::get('/api/prompts/instant-search', [InstantSearchController::class, 'search'])->middleware('throttle:60,1')->name('prompts.instant_search');
 
 // 2. Creator Profiles & Monetization
 Route::get('/creators/{user}', [CreatorController::class, 'show'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.show');
-Route::post('/creators/{user}/tip', [TipController::class, 'store'])->where('user', '@?[a-zA-Z0-9_\-]+')->name('creators.tip');
+Route::post('/creators/{user}/tip', [TipController::class, 'store'])->where('user', '@?[a-zA-Z0-9_\-]+')->middleware('throttle:20,1')->name('creators.tip');
+Route::get('/tips/stripe/success', [TipController::class, 'stripeSuccess'])->name('tips.stripe.success');
+Route::get('/tips/paypal/capture', [TipController::class, 'paypalCapture'])->name('tips.paypal.capture');
 Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
     $follower = request()->user();
     if ($follower->id === $user->id) {
@@ -50,11 +51,18 @@ Route::post('/creators/{user}/follow', function (\App\Models\User $user) {
         $msg = 'You are now following ' . $user->name;
     }
     return back()->with('success', $msg);
-})->where('user', '@?[a-zA-Z0-9_\-]+')->middleware('auth')->name('creators.follow');
+})->where('user', '@?[a-zA-Z0-9_\-]+')->middleware(['auth', 'throttle:30,1'])->name('creators.follow');
 
 // 3. Real-time Prompt Analytics & Webhooks
-Route::post('/api/prompts/{prompt}/track-copy', [PromptController::class, 'trackCopy'])->name('prompts.track_copy');
-Route::post('/api/webhooks/tips', [TipController::class, 'webhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->name('tips.webhook');
+Route::post('/api/prompts/{prompt}/track-copy', [PromptController::class, 'trackCopy'])->middleware('throttle:60,1')->name('prompts.track_copy');
+Route::post('/api/webhooks/tips', [TipController::class, 'webhook'])->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->middleware('throttle:120,1')->name('tips.webhook');
+
+// Email Verification
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [\App\Http\Controllers\Auth\VerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\VerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\VerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+});
 
 // Newsletter subscription
 Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request) {
@@ -66,7 +74,11 @@ Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request
         ['user_id' => auth()->id(), 'is_active' => true, 'updated_at' => now(), 'created_at' => now()]
     );
     return back()->with('success', 'Thanks for subscribing! You will receive the weekly Top 10 Prompts digest.');
-})->name('newsletter.subscribe');
+})->middleware('throttle:6,1')->name('newsletter.subscribe');
+
+// Contact Page
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
 
 // Legal & GDPR Compliance Pages
 Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
@@ -117,8 +129,16 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::get('/users/{user}/edit', [AdminController::class, 'editUser'])->name('users.edit');
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::patch('/users/{user}/status', [AdminController::class, 'toggleUserStatus'])->name('users.status');
+    Route::patch('/users/{user}/verify', [AdminController::class, 'toggleEmailVerification'])->name('users.verify');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::get('/contacts', [AdminController::class, 'contacts'])->name('contacts.index');
+    Route::patch('/contacts/{contact}/read', [AdminController::class, 'toggleContactRead'])->name('contacts.read');
+    Route::delete('/contacts/{contact}', [AdminController::class, 'destroyContact'])->name('contacts.destroy');
+    Route::get('/newsletters', [AdminController::class, 'newsletters'])->name('newsletters.index');
+    Route::patch('/newsletters/{subscriber}/active', [AdminController::class, 'toggleNewsletterActive'])->name('newsletters.active');
+    Route::delete('/newsletters/{subscriber}', [AdminController::class, 'destroyNewsletter'])->name('newsletters.destroy');
+    Route::get('/newsletters/export', [AdminController::class, 'exportNewsletters'])->name('newsletters.export');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });

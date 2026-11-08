@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Manage AI models')
-@section('eyebrow', 'MEIGEN ADMIN')
+@section('eyebrow', 'ADMIN STUDIO')
 @section('toolbar-title', 'AI Models')
 @section('content')
 <div class="workspace-page admin-page">

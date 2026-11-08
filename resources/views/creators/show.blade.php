@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $user->name . ' (@' . str($user->name)->slug('_') . ') — Creator Profile')
-@section('meta_description', $user->bio ?: 'Discover AI prompt engineering by ' . $user->name . ' on MeiGen.')
+@section('title', $user->name . ' (' . $user->handle . ') — Creator Profile')
+@section('meta_description', $user->bio ?: 'Discover AI prompt engineering by ' . $user->name . ' on ' . ($directorySettings['site_name'] ?? 'PromptImage') . '.')
 @section('eyebrow', 'CREATOR SPOTLIGHT')
 @section('toolbar-title', $user->name)
 

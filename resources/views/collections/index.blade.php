@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Community Moodboards & Prompt Collections')
-@section('eyebrow', 'MEIGEN CURATION')
+@section('eyebrow', 'CURATED MOODBOARDS')
 @section('toolbar-title', 'Moodboards')
 
 @section('content')

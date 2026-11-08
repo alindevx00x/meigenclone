@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Midjourney Style Reference (SREF) Catalog — Visual Aesthetic Swatches')
-@section('eyebrow', 'MEIGEN DIRECTORY')
+@section('eyebrow', 'STYLE DIRECTORY')
 @section('toolbar-title', 'SREF Catalog')
 
 @section('content')

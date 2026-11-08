@@ -1,7 +1,7 @@
 <article class="prompt-card" data-prompt-id="{{ $prompt->id }}">
     <a class="prompt-image" href="{{ route('prompts.show', $prompt->slug) }}" aria-label="View {{ $prompt->title }}">
         @if ($prompt->cover_url)
-            <img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}" loading="lazy">
+            <img src="{{ $prompt->thumbnail_url ?? $prompt->cover_url }}" alt="{{ $prompt->title }}" loading="lazy">
         @else
             <div class="image-placeholder"><span>✦</span><small>AI PROMPT</small></div>
         @endif
@@ -24,8 +24,8 @@
                     </span>
                 </a>
             @else
-                <span class="avatar avatar-tiny">M</span>
-                <span class="author-handle" style="font-weight: 600; font-size: 12px; color: #18181b;">@meigen_community</span>
+                <span class="avatar avatar-tiny">✦</span>
+                <span class="author-handle" style="font-weight: 600; font-size: 12px; color: #18181b;">@community</span>
             @endif
             <form method="POST" action="{{ auth()->check() ? route('prompts.favorite', $prompt->slug) : route('login') }}" class="favorite-form" style="margin: 0; flex-shrink: 0;">
                 @csrf
