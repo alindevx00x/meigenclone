@@ -38,7 +38,7 @@ class AdminController extends Controller
             'site_name' => ['required', 'string', 'max:60'],
             'site_tagline' => ['required', 'string', 'max:160'],
             'prompts_per_page' => ['required', 'integer', 'min:6', 'max:250'],
-            'default_sort' => ['required', 'in:featured,newest,popular'],
+            'default_sort' => ['required', 'in:random,featured,newest,popular'],
             'featured_prompt_id' => ['nullable', 'string', 'max:30'],
             'mail_mailer' => ['required', 'in:smtp,log,array'],
             'mail_host' => [$mailSettingsEnabled && $mailer === 'smtp' ? 'required' : 'nullable', 'string', 'max:255'],

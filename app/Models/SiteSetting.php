@@ -27,7 +27,7 @@ class SiteSetting extends Model
             'allow_submissions' => '1',
             'require_approval' => '1',
             'prompts_per_page' => '24',
-            'default_sort' => 'featured',
+            'default_sort' => 'random',
             'mail_settings_enabled' => '0',
             'mail_mailer' => 'smtp',
             'mail_host' => '',

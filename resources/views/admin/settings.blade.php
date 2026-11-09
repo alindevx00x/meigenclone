@@ -118,6 +118,7 @@
                 <div class="settings-fields settings-fields-inline">
                     <label class="settings-field">Default prompt order
                         <select name="default_sort">
+                            <option value="random" @selected(($settings['default_sort'] ?? 'random') === 'random')>Discover / Random (Fresh order on every visit)</option>
                             <option value="featured" @selected($settings['default_sort'] === 'featured')>Featured first</option>
                             <option value="newest" @selected($settings['default_sort'] === 'newest')>Newest first</option>
                             <option value="popular" @selected($settings['default_sort'] === 'popular')>Most popular</option>

@@ -36,12 +36,22 @@ class PromptController extends Controller
                 ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$search}%")));
         }
 
-        $sort = $request->string('sort')->toString() ?: SiteSetting::value('default_sort', 'featured');
+        // Generate fresh random seed on each visit/reload (page 1), preserving seed when paginating
+        if (! $request->filled('page') || (int) $request->input('page') <= 1) {
+            $seed = mt_rand(1, 99999999);
+            session()->put('prompt_gallery_seed', $seed);
+        } else {
+            $seed = (int) session('prompt_gallery_seed', mt_rand(1, 99999999));
+        }
+
+        $sort = $request->string('sort')->toString() ?: SiteSetting::value('default_sort', 'random');
 
         match ($sort) {
             'newest' => $query->orderByDesc('approved_at')->orderByDesc('id'),
-            'popular' => $query->orderByDesc('likes_count')->orderByDesc('approved_at'),
-            default => $query->orderByDesc('is_featured')->orderByDesc('approved_at')->orderByDesc('id'),
+            'popular' => $query->orderByDesc('likes_count')->orderByDesc('approved_at')->orderByDesc('id'),
+            'featured' => $query->orderByDesc('is_featured')->orderByDesc('approved_at')->orderByDesc('id'),
+            'random' => $query->inRandomOrder($seed),
+            default => $query->inRandomOrder($seed),
         };
 
         $perPage = min(250, max(6, (int) SiteSetting::value('prompts_per_page', 24)));
@@ -72,10 +82,16 @@ class PromptController extends Controller
             $featuredQuery->where('id', '!=', $featuredPrompt->id);
         }
 
-        $otherFeatured = $featuredQuery->orderByDesc('is_featured')
-            ->orderByDesc('likes_count')
+        $otherFeatured = $featuredQuery->where(function ($q) {
+                $q->where('is_featured', true)->orWhere('likes_count', '>=', 5);
+            })
+            ->inRandomOrder($seed)
             ->take($featuredPrompt ? 4 : 5)
             ->get();
+
+        if ($otherFeatured->count() < 4) {
+            $otherFeatured = $featuredQuery->inRandomOrder($seed)->take($featuredPrompt ? 4 : 5)->get();
+        }
 
         $featuredPrompts = $featuredPrompt ? collect([$featuredPrompt])->concat($otherFeatured) : $otherFeatured;
 

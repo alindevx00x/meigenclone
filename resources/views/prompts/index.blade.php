@@ -16,8 +16,8 @@
             <button type="submit" aria-label="Submit search">↵</button>
         </form>
         <nav class="sort-tabs" aria-label="Sort prompts">
-            @foreach (['featured' => 'Featured', 'newest' => 'Newest', 'popular' => 'Popular'] as $value => $label)
-                <a class="sort-tab {{ $activeSort === $value ? 'is-active' : '' }}" href="{{ route('prompts.index', request()->except('sort', 'page') + ['sort' => $value]) }}">{{ $label }}</a>
+            @foreach (['random' => 'Discover', 'featured' => 'Featured', 'newest' => 'Newest', 'popular' => 'Popular'] as $value => $label)
+                <a class="sort-tab {{ $activeSort === $value ? 'is-active' : '' }}" href="{{ route('prompts.index', request()->except('sort', 'page') + ($value === 'random' ? [] : ['sort' => $value])) }}">{{ $label }}</a>
             @endforeach
         </nav>
     </div>

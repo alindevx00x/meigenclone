@@ -1,146 +1,106 @@
 # CloudPanel Production Deployment Guide — promptimage.cc
 
-This guide provides step-by-step instructions for deploying this Laravel project to **CloudPanel** on server **152.53.12.170** with domain **promptimage.cc** behind **Cloudflare**.
+This comprehensive guide walks you through deploying **promptimage.cc** to **CloudPanel** on server **152.53.12.170** using **GitHub pull**, and using the automated `deploy.sh` script for all future updates.
 
 ---
 
-## 1. CloudPanel Site Creation
+## Architecture Overview
 
-1. Log into your CloudPanel admin interface at `https://152.53.12.170:8443`.
-2. Click **+ Add Site** &rarr; Select **Create a PHP Site**.
-3. Fill in the site details:
+- **Server IP**: `152.53.12.170`
+- **Domain**: `promptimage.cc` (and `www.promptimage.cc`)
+- **Control Panel**: CloudPanel (`https://152.53.12.170:8443`)
+- **Site Directory**: `/home/promptimage/htdocs/promptimage.cc`
+- **Document Root**: `/home/promptimage/htdocs/promptimage.cc/public`
+- **Repository**: `https://github.com/alindevx00x/meigenclone.git`
+- **Branch**: `main`
+- **PHP Version**: `PHP 8.4` (or `8.3`)
+
+---
+
+## Phase 1: CloudPanel Setup & Prerequisites
+
+### 1.1 Create the PHP Site in CloudPanel
+1. Open CloudPanel: `https://152.53.12.170:8443`.
+2. Click **+ Add Site** &rarr; select **Create a PHP Site**.
+3. Configure site settings:
    - **Domain Name**: `promptimage.cc`
-   - **Site User**: `promptimage` (or your preferred user)
-   - **Site User Password**: *(Set a strong password)*
-   - **PHP Version**: `PHP 8.3` or `PHP 8.4` (PHP 8.4 is recommended)
+   - **Site User**: `promptimage`
+   - **Password**: *(Create a secure password)*
+   - **PHP Version**: `PHP 8.4`
 4. Click **Create**.
 
----
-
-## 2. CloudPanel Nginx Vhost Configuration
-
-In CloudPanel, click on your site **promptimage.cc** &rarr; Go to the **Vhost** tab &rarr; Replace or verify the configuration to match Laravel's standard:
-
-```nginx
-server {
-  listen 80;
-  listen [::]:80;
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
-  server_name promptimage.cc www.promptimage.cc;
-  
-  # Point root strictly to the public directory
+### 1.2 Verify Nginx Vhost Configuration
+In CloudPanel, click **promptimage.cc** &rarr; **Vhost** tab. Ensure:
+- The document root points to `public`:
+  ```nginx
   root /home/promptimage/htdocs/promptimage.cc/public;
-  index index.php index.html;
-
-  # Cloudflare Real IP restoration
-  set_real_ip_from 173.245.48.0/20;
-  set_real_ip_from 103.21.244.0/22;
-  set_real_ip_from 103.22.200.0/22;
-  set_real_ip_from 103.31.4.0/22;
-  set_real_ip_from 141.101.64.0/18;
-  set_real_ip_from 108.162.192.0/18;
-  set_real_ip_from 190.93.240.0/20;
-  set_real_ip_from 188.114.96.0/20;
-  set_real_ip_from 197.234.240.0/22;
-  set_real_ip_from 198.41.128.0/17;
-  set_real_ip_from 162.158.0.0/15;
-  set_real_ip_from 104.16.0.0/13;
-  set_real_ip_from 104.24.0.0/14;
-  set_real_ip_from 172.64.0.0/13;
-  set_real_ip_from 131.0.72.0/22;
-  real_ip_header CF-Connecting-IP;
-
-  client_max_body_size 64M;
-
+  ```
+- FastCGI / PHP routing matches Laravel:
+  ```nginx
   location / {
     try_files $uri $uri/ /index.php?$query_string;
   }
-
-  location = /favicon.ico { access_log off; log_not_found off; }
-  location = /robots.txt  { access_log off; log_not_found off; }
-
-  # Serve media & covers with caching
+  ```
+- Static assets caching is enabled for WebP, images, CSS, and JS:
+  ```nginx
   location ~* \.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2)$ {
     expires 30d;
     add_header Cache-Control "public, no-transform";
     try_files $uri =404;
   }
+  ```
 
-  location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_intercept_errors on;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-    try_files $uri =404;
-    fastcgi_read_timeout 300;
-    fastcgi_pass 127.0.0.1:9000; # Or your site's PHP-FPM socket
-  }
-
-  location ~ /\.(?!well-known).* {
-    deny all;
-  }
-}
-```
-
----
-
-## 3. Database Creation & Content Import
-
-### Step 3.1: Create MySQL Database in CloudPanel
-1. In CloudPanel, go to the **Databases** tab.
-2. Click **+ Add Database**:
+### 1.3 Create the MySQL Database
+1. In CloudPanel, click **Databases** &rarr; **+ Add Database**.
+2. Configure database credentials:
    - **Database Name**: `promptimage_db`
    - **Database User**: `promptimage_user`
-   - **Database Password**: *(Set a strong password)*
+   - **Password**: *(Set a strong password)*
 3. Click **Create**.
 
-### Step 3.2: Import Current Data (Users, Prompts, Categories, Settings)
-A complete export of your current database has been generated in:
-`database/promptimage_export.sql.gz` (4.4 MB compressed, containing all 1,254 users, 5,026 prompts, 12 categories, 6 models, contact messages, newsletters, settings, etc.).
+---
 
-Transfer and import it to the server:
+## Phase 2: Deploying via GitHub Pull (First-Time Setup)
+
+### 2.1 Connect via SSH
+Open your local terminal and SSH into your CloudPanel server:
 ```bash
-# From your local machine:
-scp database/promptimage_export.sql.gz promptimage@152.53.12.170:/home/promptimage/
-
-# On the server (SSH into 152.53.12.170):
-zcat /home/promptimage/promptimage_export.sql.gz | mysql -u promptimage_user -p promptimage_db
+ssh promptimage@152.53.12.170
 ```
+*(Or login as `root@152.53.12.170` and switch to `su - promptimage`).*
+
+### 2.2 Clone the GitHub Repository
+In the site directory:
+```bash
+# Navigate to the htdocs folder
+cd /home/promptimage/htdocs
+
+# If CloudPanel created a default index.html in promptimage.cc, backup or remove it:
+rm -rf promptimage.cc
+
+# Clone directly from GitHub
+git clone https://github.com/alindevx00x/meigenclone.git promptimage.cc
+
+# Enter the project directory
+cd promptimage.cc
+```
+
+> **Tip for Private Repositories**: If the repository is set to private in the future:
+> 1. Run `ssh-keygen -t ed25519 -C "deploy@promptimage.cc"` on the server.
+> 2. Copy `cat ~/.ssh/id_ed25519.pub` and add it to **GitHub Repository &rarr; Settings &rarr; Deploy Keys**.
+> 3. Clone using `git clone git@github.com:alindevx00x/meigenclone.git promptimage.cc`.
 
 ---
 
-## 4. Codebase & Storage Transfer
+## Phase 3: Environment Configuration (`.env`) & Database Import
 
-### Step 4.1: Deploy Code via Git or Rsync
-Option A: Clone via Git:
+### 3.1 Create Production `.env`
+In `/home/promptimage/htdocs/promptimage.cc`:
 ```bash
-cd /home/promptimage/htdocs/promptimage.cc
-# Clone or pull your repository
-git clone <YOUR_GIT_REPO_URL> .
+cp .env.example .env
+nano .env
 ```
-
-Option B: Rsync from your local machine:
-```bash
-rsync -avz --exclude='node_modules' --exclude='.git' --exclude='storage/app/public/prompt-covers' \
-  /Users/alindevx00x/.t3/projects/meigenclone/ \
-  promptimage@152.53.12.170:/home/promptimage/htdocs/promptimage.cc/
-```
-
-### Step 4.2: Transfer the 5,000+ Prompt Covers (6.4 GB)
-Transfer the image covers directly to the server:
-```bash
-# Run from local machine:
-rsync -avzP /Users/alindevx00x/.t3/projects/meigenclone/storage/app/public/prompt-covers/ \
-  promptimage@152.53.12.170:/home/promptimage/htdocs/promptimage.cc/storage/app/public/prompt-covers/
-```
-
----
-
-## 5. Production Environment Configuration (`.env`)
-
-On the server, in `/home/promptimage/htdocs/promptimage.cc/.env`:
-
+Ensure the production values are filled:
 ```env
 APP_NAME="PromptImage"
 APP_ENV=production
@@ -148,20 +108,12 @@ APP_KEY=base64:puA2nKRkHP8UFsvnTraM1hbuv88hZskVf+P0C6SyQxY=
 APP_DEBUG=false
 APP_URL=https://promptimage.cc
 
-APP_LOCALE=en
-APP_FALLBACK_LOCALE=en
-APP_FAKER_LOCALE=en_US
-
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_LEVEL=error
-
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=promptimage_db
 DB_USERNAME=promptimage_user
-DB_PASSWORD="YOUR_DATABASE_PASSWORD"
+DB_PASSWORD="YOUR_DATABASE_PASSWORD_HERE"
 
 SESSION_DRIVER=database
 SESSION_LIFETIME=120
@@ -171,46 +123,55 @@ SESSION_SECURE_COOKIE=true
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 FILESYSTEM_DISK=public
-
-# Mail is configured directly via Admin Settings in https://promptimage.cc/admin/settings
-MAIL_MAILER=smtp
-MAIL_HOST=127.0.0.1
-MAIL_PORT=587
-MAIL_FROM_ADDRESS="support@promptimage.cc"
-MAIL_FROM_NAME="PromptImage"
 ```
+Press `Ctrl + O` to save and `Ctrl + X` to exit.
 
----
+### 3.2 Import Database Dump
+The repository includes the complete production dump `database/promptimage_export.sql.gz` containing all 1,254 users, 5,026 prompts, 12 categories, 6 AI models, contact messages, and site settings.
 
-## 6. Permissions, Symlinks, & Optimizations
-
-Run the following commands in `/home/promptimage/htdocs/promptimage.cc`:
-
+Import it directly on the server:
 ```bash
-# 1. Install production PHP dependencies
-composer install --no-dev --optimize-autoloader
+zcat /home/promptimage/htdocs/promptimage.cc/database/promptimage_export.sql.gz | mysql -u promptimage_user -p promptimage_db
+```
 
-# 2. Re-create storage symlink
-php artisan storage:link
-
-# 3. Cache routes, views, events, and configuration
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-
-# 4. Set correct file permissions
-chown -R promptimage:promptimage /home/promptimage/htdocs/promptimage.cc
-chmod -R 775 storage bootstrap/cache
+### 3.3 Transfer Local Cover Images
+Transfer the 5,000+ local image covers from your local development machine:
+```bash
+# Run this from your local Mac terminal:
+rsync -avzP /Users/alindevx00x/.t3/projects/meigenclone/storage/app/public/prompt-covers/ \
+  promptimage@152.53.12.170:/home/promptimage/htdocs/promptimage.cc/storage/app/public/prompt-covers/
 ```
 
 ---
 
-## 7. Automated Scheduler Cron in CloudPanel
+## Phase 4: Run Initial Deployment & Verification
 
-To keep the scraper running automatically every 12 hours (`prompts:scrape-meigen`) and weekly deduplication:
+On the server in `/home/promptimage/htdocs/promptimage.cc`:
+```bash
+# Make sure deploy.sh is executable
+chmod +x deploy.sh
 
-1. In CloudPanel, click on your site **promptimage.cc** &rarr; Go to **Cron Jobs**.
+# Run the deployment script
+./deploy.sh
+```
+
+The script will automatically:
+1. Enable maintenance mode.
+2. Pull the latest commits from GitHub `main`.
+3. Install optimized Composer dependencies (`--no-dev --optimize-autoloader`).
+4. Run any pending database migrations.
+5. Create the public storage symlink (`public/storage` &rarr; `storage/app/public`).
+6. Cache routes, views, configuration, and events.
+7. Set 775 permissions on `storage` and `bootstrap/cache`.
+8. Reload PHP-FPM / OPcache.
+9. Take the application out of maintenance mode.
+
+---
+
+## Phase 5: Automated Scheduler (Cron Job)
+
+To keep prompt synchronization (`prompts:sync`), queue jobs, and scheduled tasks running:
+1. In CloudPanel, click **promptimage.cc** &rarr; **Cron Jobs** tab.
 2. Click **+ Add Cron Job**:
    - **Minute**: `*`
    - **Hour**: `*`
@@ -219,17 +180,30 @@ To keep the scraper running automatically every 12 hours (`prompts:scrape-meigen
    - **Weekday**: `*`
    - **Command**:
      ```bash
-     * * * * * cd /home/promptimage/htdocs/promptimage.cc && php artisan schedule:run >> /dev/null 2>&1
+     * * * * * cd /home/promptimage/htdocs/promptimage.cc && /usr/bin/php8.4 artisan schedule:run >> /dev/null 2>&1
      ```
 3. Save the cron job.
 
 ---
 
-## 8. Cloudflare SSL & Security Settings
+## Phase 6: How to Deploy Future Updates
 
-Since `promptimage.cc` DNS is already routed through Cloudflare:
-1. In Cloudflare Dashboard &rarr; **SSL/TLS**:
-   - Set encryption mode to **Full (strict)**.
-2. In CloudPanel &rarr; Site **promptimage.cc** &rarr; **SSL/TLS**:
-   - Issue a **Let's Encrypt** certificate OR install a **Cloudflare Origin Certificate** (valid for 15 years).
-3. In Cloudflare &rarr; **Always Use HTTPS**: Enable.
+Whenever you make changes, commit, and push to GitHub:
+```bash
+# Locally:
+git add .
+git commit -m "Your update description"
+git push origin main
+```
+
+To deploy to production, run **one single command** on the server:
+```bash
+# On the server:
+cd /home/promptimage/htdocs/promptimage.cc && ./deploy.sh
+```
+
+### (Optional) One-Click Deployment via SSH from Local Machine
+You can deploy directly from your local terminal without logging in interactively:
+```bash
+ssh promptimage@152.53.12.170 "cd /home/promptimage/htdocs/promptimage.cc && ./deploy.sh"
+```
