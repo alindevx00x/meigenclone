@@ -325,4 +325,25 @@ class PromptController extends Controller
         return response()->view('seo.sitemap', compact('categories', 'prompts'))
             ->header('Content-Type', 'text/xml; charset=utf-8');
     }
+
+    public function robots(\Illuminate\Http\Request $request)
+    {
+        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        if ($canonicalBase !== '') {
+            $sitemapUrl = rtrim($canonicalBase, '/') . '/sitemap.xml';
+        } else {
+            $sitemapUrl = $request->getSchemeAndHttpHost() . '/sitemap.xml';
+        }
+
+        $content = "User-agent: *\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n"
+            . "Disallow: /login\n"
+            . "Disallow: /register\n\n"
+            . "Sitemap: {$sitemapUrl}\n";
+
+        return response($content, 200)
+            ->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
 }

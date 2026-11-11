@@ -19,6 +19,7 @@ Route::get('/', [PromptController::class, 'index'])->name('prompts.index');
 Route::get('/prompts/category/{category:slug}', [PromptController::class, 'categoryLanding'])->name('prompts.category_landing');
 Route::get('/prompts/style/{vibe}', [PromptController::class, 'styleLanding'])->name('prompts.style_landing');
 Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [PromptController::class, 'robots'])->name('robots');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware(['auth', 'throttle:30,1'])->name('prompts.favorite');
 

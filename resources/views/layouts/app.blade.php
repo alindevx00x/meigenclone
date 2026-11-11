@@ -72,7 +72,17 @@
 
     <main class="app-main">
         <header class="topbar">
-            <button class="mobile-menu" type="button" aria-label="Open menu" data-sidebar-toggle>☰</button>
+            <div class="topbar-nav-left">
+                <button class="mobile-menu" type="button" aria-label="Open menu" data-sidebar-toggle>☰</button>
+                <a class="mobile-brand" href="{{ route('prompts.index') }}" aria-label="{{ $directorySettings['site_name'] }} home">
+                    @if (!empty($directorySettings['logo_url']))
+                        <span class="brand-mark mobile-brand-mark"><img src="{{ $directorySettings['logo_url'] }}" alt="{{ $directorySettings['site_name'] }}"></span>
+                    @else
+                        <span class="brand-mark mobile-brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 18.7 8.15 6.4l3.15 6.1 2.1-3.6L22 18.7H2Z" fill="currentColor"/><path d="m7.7 14.2 2.8 1.65 2.35-4.05 3.55 6.9" stroke="#fff" stroke-width=".75" opacity=".75"/></svg></span>
+                    @endif
+                    <span class="brand-name mobile-brand-name">{{ $directorySettings['site_name'] }}</span>
+                </a>
+            </div>
             @hasSection('toolbar')
                 @yield('toolbar')
                 @include('partials.header-account')
@@ -83,6 +93,7 @@
                     <input type="search" name="q" placeholder="Search prompts, categories, creators…" value="{{ request('q') }}" aria-label="Search prompts, categories, and creators">
                     <kbd>⌘ K</kbd>
                 </form>
+                <button type="button" class="mobile-search-btn" @click="openSearch()" aria-label="Search">⌕</button>
                 @include('partials.header-account')
             @endif
         </header>
