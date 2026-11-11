@@ -21,3 +21,11 @@ Schedule::command('prompts:remove-duplicates')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Weekly Email Digest: send Top 10 curated prompts to newsletter subscribers every Monday at 09:00
+Schedule::command('newsletter:send-weekly-digest')
+    ->weeklyOn(1, '09:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/weekly-digest.log'))
+    ->runInBackground();
+
+

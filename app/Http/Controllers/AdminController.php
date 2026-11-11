@@ -10,7 +10,9 @@ use App\Models\Prompt;
 use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\WebpImageStorage;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -288,6 +290,70 @@ class AdminController extends Controller
         $prompt->delete();
 
         return back()->with('success', 'Prompt deleted.');
+    }
+
+    public function bulkPrompts(Request $request)
+    {
+        $data = $request->validate([
+            'action' => ['required', 'string', 'in:approve,reject,feature,unfeature,delete,change_category'],
+            'prompt_ids' => ['required', 'array', 'min:1'],
+            'prompt_ids.*' => ['required', 'integer', 'exists:prompts,id'],
+            'target_category_id' => ['nullable', 'required_if:action,change_category', 'exists:categories,id'],
+        ]);
+
+        $ids = $data['prompt_ids'];
+        $count = count($ids);
+
+        switch ($data['action']) {
+            case 'approve':
+                Prompt::whereIn('id', $ids)->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'admin_note' => null,
+                ]);
+                $msg = "Successfully approved {$count} prompt(s).";
+                break;
+
+            case 'reject':
+                Prompt::whereIn('id', $ids)->update([
+                    'status' => 'rejected',
+                    'approved_at' => null,
+                    'admin_note' => 'Declined via admin bulk review.',
+                ]);
+                $msg = "Successfully declined {$count} prompt(s).";
+                break;
+
+            case 'feature':
+                Prompt::whereIn('id', $ids)->update(['is_featured' => true]);
+                $msg = "Marked {$count} prompt(s) as featured.";
+                break;
+
+            case 'unfeature':
+                Prompt::whereIn('id', $ids)->update(['is_featured' => false]);
+                $msg = "Removed featured status from {$count} prompt(s).";
+                break;
+
+            case 'change_category':
+                Prompt::whereIn('id', $ids)->update(['category_id' => $data['target_category_id']]);
+                $msg = "Assigned new category to {$count} prompt(s).";
+                break;
+
+            case 'delete':
+                $prompts = Prompt::whereIn('id', $ids)->get();
+                foreach ($prompts as $p) {
+                    if ($p->image_path) {
+                        Storage::disk('public')->delete($p->image_path);
+                    }
+                    $p->delete();
+                }
+                $msg = "Successfully deleted {$count} prompt(s).";
+                break;
+
+            default:
+                return back()->withErrors(['bulk' => 'Invalid bulk action requested.']);
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function categories()
@@ -709,5 +775,70 @@ class AdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function newsletterDigest()
+    {
+        $activeSubscribersCount = NewsletterSubscriber::where('is_active', true)->count();
+        $totalSubscribersCount = NewsletterSubscriber::count();
+
+        // Top 10 prompts for the digest
+        $topPrompts = Prompt::with('category')
+            ->where('status', 'approved')
+            ->where(function ($q) {
+                $q->whereNotNull('image_path')->orWhereNotNull('image_url');
+            })
+            ->orderByDesc('is_featured')
+            ->orderByDesc('likes_count')
+            ->orderByDesc('views_count')
+            ->latest('approved_at')
+            ->take(10)
+            ->get();
+
+        $pendingJobsCount = DB::table('jobs')->count();
+
+        return view('admin.newsletter-digest', compact('activeSubscribersCount', 'totalSubscribersCount', 'topPrompts', 'pendingJobsCount'));
+    }
+
+    public function sendDigestTest(Request $request)
+    {
+        $data = $request->validate([
+            'test_email' => ['required', 'email', 'max:255'],
+        ]);
+
+        try {
+            $exitCode = Artisan::call('newsletter:send-weekly-digest', [
+                '--test' => $data['test_email'],
+            ]);
+
+            if ($exitCode === 0) {
+                return back()->with('success', "Preview test digest sent successfully to {$data['test_email']}.");
+            }
+
+            return back()->withErrors(['test_email' => 'Failed to dispatch test digest. Please check your mail settings and server logs.']);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['test_email' => "Error sending test digest: {$e->getMessage()}"]);
+        }
+    }
+
+    public function sendDigestNow()
+    {
+        try {
+            Artisan::call('newsletter:send-weekly-digest');
+            return back()->with('success', 'Weekly digest successfully queued for all active newsletter subscribers.');
+        } catch (\Throwable $e) {
+            return back()->withErrors(['digest' => "Failed to queue digest: {$e->getMessage()}"]);
+        }
+    }
+
+    public function unsubscribeNewsletter(string $email, Request $request)
+    {
+        if (! $request->hasValidSignature()) {
+            abort(403, 'Invalid or expired unsubscribe link.');
+        }
+
+        NewsletterSubscriber::where('email', strtolower(trim($email)))->update(['is_active' => false]);
+
+        return view('newsletter.unsubscribed', ['email' => $email]);
     }
 }

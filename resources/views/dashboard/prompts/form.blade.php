@@ -18,6 +18,15 @@
             <label class="wide-field"><span>Or add an image URL <span class="optional-label">Optional</span></span><input type="url" name="image_url" value="{{ old('image_url', $prompt->image_url) }}" placeholder="https://…"><small>If you upload a cover image, it will be used instead of this URL.</small></label>
         </div>
         @if ($editing && $prompt->cover_url)<div class="current-cover"><img src="{{ $prompt->cover_url }}" alt="Current cover"><span>Current cover preview</span></div>@endif
+        @if (!$editing && ($directorySettings['cloudflare_turnstile_enabled'] ?? '0') === '1' && !empty($directorySettings['cloudflare_turnstile_site_key']))
+            <div style="padding: 14px 20px; border-top: 1px solid #f1f1f4;">
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                <div class="cf-turnstile" data-sitekey="{{ $directorySettings['cloudflare_turnstile_site_key'] }}" data-theme="light"></div>
+                @error('turnstile')
+                    <span style="color: #ef4444; font-size: 12px; display: block; margin-top: 4px; font-weight: 500;">{{ $message }}</span>
+                @enderror
+            </div>
+        @endif
         <div class="form-footer"><span><i>◎</i> {{ $directorySettings['require_approval'] === '1' ? 'Submissions are reviewed before they go live' : 'Submissions go live immediately' }}</span><div><a class="outline-button" href="{{ route('dashboard.index') }}">Cancel</a><button class="primary-button" type="submit">{{ $editing ? ($directorySettings['require_approval'] === '1' ? 'Save & resubmit' : 'Save changes') : ($directorySettings['require_approval'] === '1' ? 'Submit for review' : 'Publish prompt') }} <span>→</span></button></div></div>
     </form>
 </div>

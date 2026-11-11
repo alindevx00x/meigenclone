@@ -114,6 +114,7 @@ class DashboardController extends Controller
     public function store(Request $request)
     {
         abort_unless(SiteSetting::enabled('allow_submissions', true), 403, 'Prompt submissions are currently paused.');
+        \App\Support\TurnstileVerifier::verify($request);
         $data = $this->validated($request);
         $data['user_id'] = $request->user()->id;
         $data['slug'] = Str::slug($data['title']).'-'.Str::lower(Str::random(6));

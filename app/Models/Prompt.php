@@ -79,8 +79,8 @@ class Prompt extends Model
     {
         if ($this->image_path) {
             $dir = dirname($this->image_path);
-            $filename = basename($this->image_path);
-            $thumbRelPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$filename;
+            $baseName = pathinfo($this->image_path, PATHINFO_FILENAME);
+            $thumbRelPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$baseName.'.webp';
 
             $cdnUrl = SiteSetting::value('storage_aws_url');
             if (! empty($cdnUrl)) {

@@ -55,6 +55,8 @@ class AuthController extends Controller
             return redirect()->route('login')->withErrors(['registration' => 'New registrations are currently closed.']);
         }
 
+        \App\Support\TurnstileVerifier::verify($request);
+
         if ($request->filled('username')) {
             $rawUsername = ltrim(trim($request->input('username')), '@');
             $request->merge(['username' => strtolower($rawUsername)]);

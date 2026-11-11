@@ -12,7 +12,10 @@
             <p>Manage community members and visitors who opted in to receive prompt drops and platform digests.</p>
         </div>
         <div style="display: flex; gap: 8px;">
-            <a href="{{ route('admin.newsletters.export') }}" class="primary-button" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+            <a href="{{ route('admin.newsletters.digest') }}" class="primary-button" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; background: #4f46e5;">
+                <span>⚡ Weekly Email Digest</span>
+            </a>
+            <a href="{{ route('admin.newsletters.export') }}" class="outline-button" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
                 <svg style="width: 15px; height: 15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 <span>Export CSV</span>
             </a>

@@ -14,7 +14,7 @@
         $canonicalUrl = $canonicalBase !== ''
             ? rtrim($canonicalBase, '/').'/'.ltrim(request()->getPathInfo(), '/')
             : url()->current();
-        $socialImage = trim($directorySettings['seo_og_image'] ?? '');
+        $socialImage = trim($__env->yieldContent('og_image') ?: ($directorySettings['seo_og_image'] ?? ''));
         $robotsPolicy = request()->routeIs('admin.*', 'dashboard.*', 'login', 'register')
             ? 'noindex,nofollow'
             : $directorySettings['seo_robots'];

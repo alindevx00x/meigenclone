@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', $prompt->title)
+@section('og_image', route('prompts.og_image', $prompt->slug))
 @section('structured_data')
 <script type="application/ld+json">
 {
@@ -18,6 +19,32 @@
     "image": "{{ $prompt->cover_url }}",
     @endif
     "keywords": "{{ $prompt->category->name }}, {{ $prompt->model }}, AI Image Prompt"
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ url('/') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ addslashes($prompt->category->name) }}",
+            "item": "{{ route('prompts.category_landing', $prompt->category->slug) }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ addslashes($prompt->title) }}",
+            "item": "{{ url()->current() }}"
+        }
+    ]
 }
 </script>
 @endsection

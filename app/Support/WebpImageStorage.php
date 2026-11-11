@@ -72,7 +72,8 @@ class WebpImageStorage
         // Automatically generate lightweight thumbnail for fast mobile grid rendering
         try {
             $thumbWebp = static::encode($contents, 540, 78);
-            Storage::disk('public')->put(trim($directory, '/').'/thumbs/'.$filename, $thumbWebp);
+            $baseName = pathinfo($filename, PATHINFO_FILENAME);
+            Storage::disk('public')->put(trim($directory, '/').'/thumbs/'.$baseName.'.webp', $thumbWebp);
         } catch (Throwable) {
             // Non-blocking thumbnail failure
         }
@@ -90,9 +91,19 @@ class WebpImageStorage
             $contents = $disk->get($path);
             $thumbWebp = static::encode($contents, $maxWidth, $quality);
             $dir = dirname($path);
-            $filename = basename($path);
-            $thumbPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$filename;
+            $baseName = pathinfo($path, PATHINFO_FILENAME);
+            $thumbFilename = $baseName . '.webp';
+            $thumbPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$thumbFilename;
             $disk->put($thumbPath, $thumbWebp);
+
+            // Clean up any old mismatched extension thumbnail
+            $oldExt = pathinfo($path, PATHINFO_EXTENSION);
+            if ($oldExt && strtolower($oldExt) !== 'webp') {
+                $oldMismatchedPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.basename($path);
+                if ($disk->exists($oldMismatchedPath)) {
+                    $disk->delete($oldMismatchedPath);
+                }
+            }
 
             return $thumbPath;
         } catch (Throwable) {

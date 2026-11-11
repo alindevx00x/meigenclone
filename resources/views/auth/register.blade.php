@@ -108,6 +108,16 @@
                 <input type="password" name="password_confirmation" required autocomplete="new-password" placeholder="Type it again">
             </label>
 
+            @if (($directorySettings['cloudflare_turnstile_enabled'] ?? '0') === '1' && !empty($directorySettings['cloudflare_turnstile_site_key']))
+                <div style="margin-top: 12px; margin-bottom: 6px;">
+                    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                    <div class="cf-turnstile" data-sitekey="{{ $directorySettings['cloudflare_turnstile_site_key'] }}" data-theme="light"></div>
+                    @error('turnstile')
+                        <span style="color: #ef4444; font-size: 12px; display: block; margin-top: 4px; font-weight: 500;">{{ $message }}</span>
+                    @enderror
+                </div>
+            @endif
+
             <button class="primary-button full-button" type="submit">Create account <span>→</span></button>
         </form>
         <p class="auth-switch">Already have an account? <a href="{{ route('login') }}">Log in</a></p>

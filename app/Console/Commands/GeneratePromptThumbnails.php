@@ -54,8 +54,8 @@ class GeneratePromptThumbnails extends Command
             }
 
             $dir = dirname($path);
-            $filename = basename($path);
-            $thumbRelPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$filename;
+            $baseName = pathinfo($path, PATHINFO_FILENAME);
+            $thumbRelPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$baseName.'.webp';
 
             if (! $force && $disk->exists($thumbRelPath)) {
                 $skipped++;

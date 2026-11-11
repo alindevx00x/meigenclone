@@ -139,6 +139,17 @@ class PromptController extends Controller
         return view('prompts.show', compact('prompt', 'related'));
     }
 
+    public function ogImage(Prompt $prompt)
+    {
+        abort_unless($prompt->status === 'approved', 404);
+        $path = \App\Services\OgImageGenerator::generate($prompt);
+
+        return response()->file($path, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'public, max-age=604800, immutable',
+        ]);
+    }
+
     public function trackCopy(Prompt $prompt): \Illuminate\Http\JsonResponse
     {
         $prompt->increment('copies_count');
@@ -320,10 +331,15 @@ class PromptController extends Controller
     public function sitemap()
     {
         $categories = Category::all();
-        $prompts = Prompt::where('status', 'approved')->latest('approved_at')->limit(5000)->get();
+        $creators = \App\Models\User::whereHas('prompts', fn ($q) => $q->where('status', 'approved'))->limit(200)->get();
+        $prompts = Prompt::with('category')->where('status', 'approved')->latest('approved_at')->limit(5000)->get();
 
-        return response()->view('seo.sitemap', compact('categories', 'prompts'))
-            ->header('Content-Type', 'text/xml; charset=utf-8');
+        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
+
+        return response()->view('seo.sitemap', compact('categories', 'creators', 'prompts', 'baseUrl'))
+            ->header('Content-Type', 'text/xml; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
     }
 
     public function robots(\Illuminate\Http\Request $request)

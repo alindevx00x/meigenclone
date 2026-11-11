@@ -21,36 +21,49 @@ Route::get('/prompts/style/{vibe}', [PromptController::class, 'styleLanding'])->
 Route::get('/sitemap.xml', [PromptController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PromptController::class, 'robots'])->name('robots');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
+Route::get('/prompts/{prompt:slug}/og-image.jpg', [PromptController::class, 'ogImage'])->name('prompts.og_image');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware(['auth', 'throttle:30,1'])->name('prompts.favorite');
 
 // On-demand fast WebP thumbnail delivery & auto-generation
 Route::get('/storage/prompt-covers/thumbs/{filename}', function (string $filename) {
-    $thumbRelative = 'prompt-covers/thumbs/' . $filename;
+    $baseName = pathinfo($filename, PATHINFO_FILENAME);
     $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    $webpRelPath = 'prompt-covers/thumbs/' . $baseName . '.webp';
 
-    if ($disk->exists($thumbRelative)) {
-        return response()->file(storage_path('app/public/' . $thumbRelative), [
+    // 1. Serve optimized .webp thumbnail if already on disk
+    if ($disk->exists($webpRelPath)) {
+        return response()->file(storage_path('app/public/' . $webpRelPath), [
             'Content-Type' => 'image/webp',
             'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);
     }
 
-    $originalRelative = 'prompt-covers/' . $filename;
-    if ($disk->exists($originalRelative)) {
-        try {
-            $generated = \App\Support\WebpImageStorage::generateThumbnail($originalRelative, 540, 78);
-            if ($generated && $disk->exists($generated)) {
-                return response()->file(storage_path('app/public/' . $generated), [
-                    'Content-Type' => 'image/webp',
-                    'Cache-Control' => 'public, max-age=31536000, immutable',
-                ]);
+    // 2. Discover original image across supported extensions (.webp, .jpg, .jpeg, .png)
+    $candidates = [
+        'prompt-covers/' . $baseName . '.webp',
+        'prompt-covers/' . $baseName . '.jpg',
+        'prompt-covers/' . $baseName . '.jpeg',
+        'prompt-covers/' . $baseName . '.png',
+    ];
+
+    foreach ($candidates as $candidate) {
+        if ($disk->exists($candidate)) {
+            try {
+                $generated = \App\Support\WebpImageStorage::generateThumbnail($candidate, 540, 78);
+                if ($generated && $disk->exists($generated)) {
+                    return response()->file(storage_path('app/public/' . $generated), [
+                        'Content-Type' => 'image/webp',
+                        'Cache-Control' => 'public, max-age=31536000, immutable',
+                    ]);
+                }
+            } catch (\Throwable) {
+                // Continue to next candidate
             }
-        } catch (\Throwable) {
-            // Fall through to original
+
+            return response()->file(storage_path('app/public/' . $candidate), [
+                'Cache-Control' => 'public, max-age=86400',
+            ]);
         }
-        return response()->file(storage_path('app/public/' . $originalRelative), [
-            'Cache-Control' => 'public, max-age=86400',
-        ]);
     }
 
     abort(404);
@@ -110,6 +123,8 @@ Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request
     return back()->with('success', 'Thanks for subscribing! You will receive the weekly Top 10 Prompts digest.');
 })->middleware('throttle:6,1')->name('newsletter.subscribe');
 
+Route::get('/newsletter/unsubscribe/{email}', [AdminController::class, 'unsubscribeNewsletter'])->name('newsletter.unsubscribe');
+
 // Contact Page
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
@@ -146,6 +161,7 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/prompts', [AdminController::class, 'prompts'])->name('prompts.index');
+    Route::post('/prompts/bulk', [AdminController::class, 'bulkPrompts'])->name('prompts.bulk');
     Route::get('/prompts/{prompt}/edit', [AdminController::class, 'editPrompt'])->name('prompts.edit');
     Route::put('/prompts/{prompt}', [AdminController::class, 'updatePrompt'])->name('prompts.update');
     Route::patch('/prompts/{prompt}/approve', [AdminController::class, 'approve'])->name('prompts.approve');
@@ -171,6 +187,9 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::patch('/contacts/{contact}/read', [AdminController::class, 'toggleContactRead'])->name('contacts.read');
     Route::delete('/contacts/{contact}', [AdminController::class, 'destroyContact'])->name('contacts.destroy');
     Route::get('/newsletters', [AdminController::class, 'newsletters'])->name('newsletters.index');
+    Route::get('/newsletters/digest', [AdminController::class, 'newsletterDigest'])->name('newsletters.digest');
+    Route::post('/newsletters/digest/test', [AdminController::class, 'sendDigestTest'])->name('newsletters.digest.test');
+    Route::post('/newsletters/digest/send', [AdminController::class, 'sendDigestNow'])->name('newsletters.digest.send');
     Route::patch('/newsletters/{subscriber}/active', [AdminController::class, 'toggleNewsletterActive'])->name('newsletters.active');
     Route::delete('/newsletters/{subscriber}', [AdminController::class, 'destroyNewsletter'])->name('newsletters.destroy');
     Route::get('/newsletters/export', [AdminController::class, 'exportNewsletters'])->name('newsletters.export');
