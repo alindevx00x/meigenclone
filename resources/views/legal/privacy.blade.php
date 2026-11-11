@@ -19,8 +19,8 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start;">
-        <div class="panel-card" style="padding: 32px; font-size: 14px; line-height: 1.7; color: #374151;">
+    <div class="legal-layout">
+        <div class="panel-card legal-content">
             <h2 style="font-size: 19px; font-weight: 700; color: #111827; margin: 0 0 12px;">1. Information We Collect</h2>
             <p>We believe in minimal data footprint collection. We collect only what is strictly necessary to deliver a world-class prompt discovery experience:</p>
             <ul style="padding-left: 20px; margin: 12px 0 20px; list-style-type: disc;">
@@ -37,7 +37,7 @@
             <ul style="padding-left: 20px; margin: 12px 0 20px; list-style-type: disc;">
                 <li style="margin-bottom: 8px;">Operating and maintaining the prompt catalog.</li>
                 <li style="margin-bottom: 8px;">Attributing prompt authorship to verified creators.</li>
-                <li style="margin-bottom: 8px;">Allowing creators to earn tips and download prompt pack archives.</li>
+                <li style="margin-bottom: 8px;">Allowing creators to publish prompts and download prompt collection archives.</li>
                 <li style="margin-bottom: 8px;">Maintaining system integrity and preventing bot abuse.</li>
             </ul>
 
@@ -52,7 +52,7 @@
             <p>We employ TLS 1.3 encryption, secure HTTP-only session cookies, strict Content Security Policies, and Bcrypt cryptographic hashing for authentication. Account data is retained for the active lifetime of your account or until you request account deletion.</p>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="legal-sidebar">
             <div class="panel-card" style="padding: 20px;">
                 <h3 style="font-size: 13.5px; font-weight: 700; color: #111827; margin: 0 0 12px;">Legal Documents</h3>
                 <nav style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">

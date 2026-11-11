@@ -32,27 +32,19 @@
     @endif
 
     @if (!request('category') && !request('q') && !request('model') && !request('page') && isset($featuredPrompts) && $featuredPrompts->isNotEmpty())
+        @section('preload')
+            <link rel="preload" as="image" href="{{ $featuredPrompts->first()->cover_url }}" fetchpriority="high">
+        @endsection
+
         <!-- Prompt of the Day / Featured Carousel -->
         <section class="hero-carousel" x-data="{
             currentIndex: 0,
             isPaused: false,
-            slides: {{ json_encode($featuredPrompts->map(fn($p) => [
-                'id' => $p->id,
-                'slug' => $p->slug,
-                'title' => $p->title,
-                'prompt_text' => $p->prompt_text,
-                'cover_url' => $p->cover_url,
-                'category' => $p->category->name,
-                'category_icon' => $p->category->icon,
-                'model' => $p->model,
-                'author' => $p->user?->username ? '@' . $p->user->username : ($p->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community')),
-                'author_url' => $p->user ? route('creators.show', $p->user) : null,
-                'author_verified' => (bool) ($p->user?->is_verified ?? false),
-                'author_avatar' => strtoupper(substr($p->user?->username ?? $p->user?->name ?? 'P', 0, 1)),
-                'likes' => number_format($p->likes_count),
-                'url' => route('prompts.show', $p->slug),
-                'discord_copy' => '/imagine prompt: ' . addslashes(str_replace(["\r", "\n"], ' ', $p->prompt_text)) . ' --ar 16:9 --v 6.1',
-            ])) }},
+            total: {{ $featuredPrompts->count() }},
+            touchStartX: 0,
+            touchEndX: 0,
+            touchStartY: 0,
+            touchEndY: 0,
             timer: null,
             init() {
                 this.timer = setInterval(() => {
@@ -62,22 +54,54 @@
                 }, 6500);
             },
             next() {
-                this.currentIndex = (this.currentIndex + 1) % this.slides.length;
+                this.currentIndex = (this.currentIndex + 1) % this.total;
             },
             prev() {
-                this.currentIndex = (this.currentIndex - 1 + this.slides.length) % this.slides.length;
+                this.currentIndex = (this.currentIndex - 1 + this.total) % this.total;
+            },
+            handleTouchStart(e) {
+                if (!e.changedTouches || !e.changedTouches[0]) return;
+                this.touchStartX = e.changedTouches[0].screenX;
+                this.touchStartY = e.changedTouches[0].screenY;
+                this.isPaused = true;
+            },
+            handleTouchEnd(e) {
+                if (!e.changedTouches || !e.changedTouches[0]) return;
+                this.touchEndX = e.changedTouches[0].screenX;
+                this.touchEndY = e.changedTouches[0].screenY;
+                this.isPaused = false;
+                const diffX = this.touchStartX - this.touchEndX;
+                const diffY = this.touchStartY - this.touchEndY;
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+                    if (diffX > 0) {
+                        this.next();
+                    } else {
+                        this.prev();
+                    }
+                }
             }
-        }" @mouseenter="isPaused = true" @mouseleave="isPaused = false">
+        }"
+        @mouseenter="isPaused = true"
+        @mouseleave="isPaused = false"
+        @touchstart.passive="handleTouchStart($event)"
+        @touchend.passive="handleTouchEnd($event)">
             <div class="carousel-stage">
-                <template x-for="(slide, idx) in slides" :key="slide.id">
-                    <div x-show="currentIndex === idx"
+                @foreach ($featuredPrompts as $idx => $slide)
+                    @php
+                        $authorName = $slide->user?->username ? '@' . $slide->user->username : ($slide->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community'));
+                        $authorUrl = $slide->user ? route('creators.show', $slide->user) : null;
+                        $authorAvatar = strtoupper(substr($slide->user?->username ?? $slide->user?->name ?? 'P', 0, 1));
+                        $discordCopy = '/imagine prompt: ' . addslashes(str_replace(["\r", "\n"], ' ', $slide->prompt_text)) . ' --ar 16:9 --v 6.1';
+                    @endphp
+                    <div x-show="currentIndex === {{ $idx }}"
+                         @if ($idx > 0) x-cloak @endif
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 scale-[0.99]"
                          x-transition:enter-end="opacity-100 scale-100"
                          x-transition:leave="transition ease-in duration-200"
                          x-transition:leave-start="opacity-100 scale-100"
                          x-transition:leave-end="opacity-0 scale-[0.99]"
-                         class="carousel-slide">
+                         class="carousel-slide {{ $idx === 0 ? 'is-first-slide' : '' }}">
                         <!-- Left: Info & Meta & Action Buttons -->
                         <div class="carousel-info">
                             <div>
@@ -86,67 +110,71 @@
                                         <span>✦</span> PROMPT OF THE DAY
                                     </span>
                                     <span class="carousel-pill">
-                                        <span x-text="slide.category_icon"></span>
-                                        <span x-text="slide.category"></span>
+                                        <span>{{ $slide->category->icon }}</span>
+                                        <span>{{ $slide->category->name }}</span>
                                     </span>
-                                    <span class="carousel-pill" x-text="slide.model"></span>
-                                    <a :href="slide.author_url || '#'" class="carousel-author" style="text-decoration: none; color: #ffffff;">
-                                        <span class="avatar avatar-tiny" x-text="slide.author_avatar"></span>
-                                        <span style="color: #ffffff; font-weight: 600;" x-text="slide.author"></span>
-                                        <template x-if="slide.author_verified">
+                                    <span class="carousel-pill">{{ $slide->model }}</span>
+                                    <a href="{{ $authorUrl ?? '#' }}" class="carousel-author" style="text-decoration: none; color: #ffffff;">
+                                        <span class="avatar avatar-tiny">{{ $authorAvatar }}</span>
+                                        <span style="color: #ffffff; font-weight: 600;">{{ $authorName }}</span>
+                                        @if ($slide->user?->is_verified)
                                             <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-size:8px;font-weight:700;">✓</span>
-                                        </template>
+                                        @endif
                                     </a>
                                 </div>
 
                                 <h2 class="carousel-title">
-                                    <a :href="slide.url" x-text="slide.title"></a>
+                                    <a href="{{ route('prompts.show', $slide->slug) }}">{{ $slide->title }}</a>
                                 </h2>
 
-                                <div class="carousel-prompt-preview" x-text="slide.prompt_text"></div>
+                                <div class="carousel-prompt-preview">{{ $slide->prompt_text }}</div>
                             </div>
 
                             <div class="carousel-actions">
-                                <a :href="slide.url" class="carousel-btn-primary">
+                                <a href="{{ route('prompts.show', $slide->slug) }}" class="carousel-btn-primary">
                                     View prompt <span>↗</span>
                                 </a>
-                                <button type="button" :data-copy="slide.prompt_text" class="carousel-btn-glass" title="Copy prompt">
+                                <button type="button" data-copy="{{ $slide->prompt_text }}" class="carousel-btn-glass" title="Copy prompt">
                                     Copy <span>⧉</span>
                                 </button>
-                                <button type="button" :data-discord-copy="slide.discord_copy" class="carousel-btn-glass carousel-btn-discord" title="Copy Discord /imagine prompt">
+                                <button type="button" data-discord-copy="{{ $discordCopy }}" class="carousel-btn-glass carousel-btn-discord" title="Copy Discord /imagine prompt">
                                     /mj
                                 </button>
                                 <span class="carousel-likes">
                                     <span style="color:#f43f5e;">♥</span>
-                                    <span x-text="slide.likes"></span>
+                                    <span>{{ number_format($slide->likes_count) }}</span>
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Right: High Resolution Cover Image Showcase -->
+                        <!-- Right: Cover Image Showcase -->
                         <div class="carousel-visual">
-                            <img :src="slide.cover_url" :alt="slide.title" loading="eager">
+                            @if ($idx === 0)
+                                <img src="{{ $slide->cover_url }}" alt="{{ $slide->title }}" fetchpriority="high" loading="eager" decoding="async" width="680" height="420">
+                            @else
+                                <img src="{{ $slide->cover_url }}" alt="{{ $slide->title }}" loading="lazy" decoding="async" width="680" height="420">
+                            @endif
                             <div class="carousel-visual-scrim"></div>
-                            <span class="carousel-visual-chip" x-text="slide.model"></span>
-                            <a :href="slide.url" style="position: absolute; inset: 0; z-index: 1;" aria-label="View prompt detail"></a>
+                            <span class="carousel-visual-chip">{{ $slide->model }}</span>
+                            <a href="{{ route('prompts.show', $slide->slug) }}" style="position: absolute; inset: 0; z-index: 1;" aria-label="View prompt detail"></a>
                         </div>
                     </div>
-                </template>
+                @endforeach
             </div>
 
             <!-- Carousel Controls -->
             <div class="carousel-controls">
                 <button type="button" @click="prev()" class="carousel-nav-btn" aria-label="Previous slide">‹</button>
                 <div class="carousel-dots">
-                    <template x-for="(slide, idx) in slides" :key="'dot-' + slide.id">
+                    @foreach ($featuredPrompts as $idx => $slide)
                         <button type="button"
-                                @click="currentIndex = idx"
+                                @click="currentIndex = {{ $idx }}"
                                 class="carousel-dot"
-                                :style="currentIndex === idx ? 'background: #ffffff; width: 16px;' : 'background: rgba(255,255,255,0.3); width: 5px;'"
-                                :aria-label="'Go to slide ' + (idx + 1)"></button>
-                    </template>
+                                :style="currentIndex === {{ $idx }} ? 'background: #ffffff; width: 16px;' : 'background: rgba(255,255,255,0.3); width: 5px;'"
+                                aria-label="Go to slide {{ $idx + 1 }}"></button>
+                    @endforeach
                 </div>
-                <span class="carousel-counter" x-text="(currentIndex + 1) + ' / ' + slides.length"></span>
+                <span class="carousel-counter" x-text="(currentIndex + 1) + ' / ' + total"></span>
                 <button type="button" @click="next()" class="carousel-nav-btn" aria-label="Next slide">›</button>
             </div>
         </section>

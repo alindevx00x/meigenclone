@@ -19,8 +19,8 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start;">
-        <div class="panel-card" style="padding: 32px; font-size: 14px; line-height: 1.7; color: #374151;">
+    <div class="legal-layout">
+        <div class="panel-card legal-content">
             <h2 style="font-size: 19px; font-weight: 700; color: #111827; margin: 0 0 12px;">1. What Are Cookies?</h2>
             <p>Cookies are small alphanumeric text files stored on your device by your web browser. They are essential for keeping you logged in and securing your session state against CSRF exploits.</p>
 
@@ -51,7 +51,7 @@
             <p>We do not load third-party ad networks, tracking pixels, or intrusive commercial profiling scripts on {{ $directorySettings['site_name'] }}.</p>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="legal-sidebar">
             <div class="panel-card" style="padding: 20px;">
                 <h3 style="font-size: 13.5px; font-weight: 700; color: #111827; margin: 0 0 12px;">Legal Documents</h3>
                 <nav style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">

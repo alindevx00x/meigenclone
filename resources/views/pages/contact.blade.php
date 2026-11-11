@@ -40,38 +40,38 @@
         </div>
     @endif
 
-    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start;">
-        <div class="panel-card" style="padding: 32px;">
+    <div class="contact-layout">
+        <div class="panel-card contact-form-card">
             <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 6px;">Send us a message</h2>
             <p style="font-size: 13px; color: #6b7280; margin: 0 0 24px;">Fill out the form below and our team will get back to your email address promptly.</p>
 
             <form method="POST" action="{{ route('contact.store') }}" class="form-stack">
                 @csrf
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="contact-names-row">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #374151;">
                         Your Name <span style="color: #ef4444;">*</span>
-                        <input type="text" name="name" value="{{ old('name', auth()->user()?->name) }}" required placeholder="e.g. Alex Morgan" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px;">
+                        <input type="text" name="name" value="{{ old('name', auth()->user()?->name) }}" required placeholder="e.g. Alex Morgan" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px; box-sizing: border-box;">
                     </label>
 
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #374151;">
                         Email Address <span style="color: #ef4444;">*</span>
-                        <input type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" required placeholder="you@domain.com" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px;">
+                        <input type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" required placeholder="you@domain.com" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px; box-sizing: border-box;">
                     </label>
                 </div>
 
                 <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-top: 14px;">
                     Subject
-                    <input type="text" name="subject" value="{{ old('subject') }}" placeholder="e.g. Creator monetization question, general feedback, bug report" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px;">
+                    <input type="text" name="subject" value="{{ old('subject') }}" placeholder="e.g. Creator account question, general feedback, bug report" style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 13.5px; box-sizing: border-box;">
                 </label>
 
                 <label style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-top: 14px;">
                     Message <span style="color: #ef4444;">*</span>
-                    <textarea name="message" rows="6" required placeholder="Describe your inquiry in detail..." style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 14px; font-size: 13.5px; font-family: inherit; line-height: 1.5; resize: vertical;">{{ old('message') }}</textarea>
+                    <textarea name="message" rows="6" required placeholder="Describe your inquiry in detail..." style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 14px; font-size: 13.5px; font-family: inherit; line-height: 1.5; resize: vertical; box-sizing: border-box;">{{ old('message') }}</textarea>
                 </label>
 
-                <div style="margin-top: 20px; display: flex; align-items: center; justify-content: space-between;">
+                <div class="contact-submit-row">
                     <span style="font-size: 12px; color: #9ca3af;">Protected by rate-limiting & spam filters.</span>
-                    <button class="primary-button" type="submit" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-size: 13.5px; font-weight: 600; border-radius: 8px; background: #6366f1; color: #fff; border: 0; cursor: pointer;">
+                    <button class="primary-button" type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 22px; font-size: 13.5px; font-weight: 600; border-radius: 8px; background: #6366f1; color: #fff; border: 0; cursor: pointer;">
                         <span>Send Message</span>
                         <svg style="width: 15px; height: 15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
@@ -79,7 +79,7 @@
             </form>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="contact-sidebar">
             <div class="panel-card" style="padding: 24px;">
                 <h3 style="font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 12px; display: flex; align-items: center; gap: 8px;">
                     <svg style="width: 18px; height: 18px; color: #6366f1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -99,7 +99,7 @@
                     Creator & Prompt Help
                 </h3>
                 <p style="font-size: 13px; color: #4b5563; margin: 0 0 14px; line-height: 1.5;">
-                    Looking to submit prompts, set up your creator payout tipping, or browse models?
+                    Looking to submit prompts, customize your creator profile, or browse models?
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
                     <a href="{{ auth()->check() ? route('dashboard.prompts.create') : route('register') }}" style="color: #4b5563; text-decoration: none; font-weight: 500; display: flex; align-items: center; justify-content: space-between;">

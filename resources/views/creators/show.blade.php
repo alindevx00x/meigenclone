@@ -6,89 +6,85 @@
 @section('toolbar-title', $user->name)
 
 @section('content')
-<div class="workspace-page creator-profile-page" style="max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px;">
+<div class="workspace-page creator-profile-page">
     <a class="back-link" href="{{ route('prompts.index') }}"><span>&larr;</span> Back to prompts gallery</a>
 
     <!-- Creator Profile Header Card -->
-    <div class="panel-card creator-hero-card" style="padding: 28px 32px; border-radius: 18px; background: #ffffff; border: 1px solid #ebebf0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 28px;">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+    <div class="panel-card creator-hero-card">
+        <div class="creator-hero-layout">
             <!-- Left: Avatar & Identity -->
-            <div style="display: flex; gap: 20px; align-items: flex-start; flex: 1 1 450px;">
-                <div style="flex-shrink: 0;">
+            <div class="creator-identity-group">
+                <div class="creator-avatar-wrap">
                     @if ($user->avatar_url)
-                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" style="width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid #ffffff; box-shadow: 0 4px 14px rgba(121, 88, 238, 0.15);">
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="creator-avatar-img">
                     @else
-                        <div class="avatar" style="width: 84px; height: 84px; font-size: 32px; font-weight: 700; border-radius: 50%; background: linear-gradient(135deg, #ede9ff, #f3efff); color: #654bd1; border: 3px solid #ffffff; box-shadow: 0 4px 14px rgba(121, 88, 238, 0.12);">
+                        <div class="avatar creator-avatar-fallback">
                             {{ str($user->name)->substr(0, 1)->upper() }}
                         </div>
                     @endif
                 </div>
 
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <h1 style="font-size: 24px; font-weight: 700; color: #17171b; margin: 0; line-height: 1.2;">
-                            {{ $user->name }}
-                        </h1>
+                <div class="creator-details">
+                    <div class="creator-name-row">
+                        <h1 class="creator-title">{{ $user->name }}</h1>
                         @if ($user->is_verified)
-                            <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #ffffff; font-size: 11px; font-weight: 700;" aria-label="Verified Creator">✓</span>
+                            <span title="Verified Creator" class="creator-verified-badge" aria-label="Verified Creator">✓</span>
                         @endif
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 99px; background: {{ $user->isAdmin() ? '#f2efff' : '#f4f4f6' }}; color: {{ $user->isAdmin() ? '#6d52d9' : '#52525c' }}; font-size: 11px; font-weight: 600;">
+                        <span class="creator-role-badge {{ $user->isAdmin() ? 'is-admin' : '' }}">
                             {{ $user->isAdmin() ? 'Administrator' : ($user->is_verified ? 'Verified Creator' : 'Creator') }}
                         </span>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 13px; color: #52525c; flex-wrap: wrap;">
-                        <span style="font-weight: 600; color: #6d52d9; background: #f2efff; padding: 2px 8px; border-radius: 6px;">{{ $user->handle }}</span>
-                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('creators.show', $user) }}'); const el = this.querySelector('.copy-label'); if(el) { el.textContent = 'Copied!'; setTimeout(() => el.textContent = 'Copy link', 2000); }" style="background: transparent; border: 0; color: #71717a; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;" title="Copy profile URL">
+                    <div class="creator-meta-chips">
+                        <span class="creator-handle-chip">{{ $user->handle }}</span>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('creators.show', $user) }}'); const el = this.querySelector('.copy-label'); if(el) { el.textContent = 'Copied!'; setTimeout(() => el.textContent = 'Copy link', 2000); }" class="creator-copy-link" title="Copy profile URL">
                             <span>⧉</span> <span class="copy-label">Copy link</span>
                         </button>
-                        <span>&bull;</span>
-                        <span>Member since {{ $user->created_at->format('M Y') }}</span>
+                        <span class="meta-separator">&bull;</span>
+                        <span class="creator-since">Member since {{ $user->created_at->format('M Y') }}</span>
                         @if ($user->website)
-                            <span>&bull;</span>
-                            <a href="{{ $user->website }}" target="_blank" rel="noopener noreferrer" style="color: #7958ee; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">
+                            <span class="meta-separator">&bull;</span>
+                            <a href="{{ $user->website }}" target="_blank" rel="noopener noreferrer" class="creator-website-link">
                                 {{ parse_url($user->website, PHP_URL_HOST) ?: 'Portfolio' }} <span>↗</span>
                             </a>
                         @endif
                     </div>
 
                     @if ($user->bio)
-                        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #3f3f46; max-width: 650px;">
-                            {{ $user->bio }}
-                        </p>
+                        <p class="creator-bio">{{ $user->bio }}</p>
                     @endif
                 </div>
             </div>
 
             <!-- Right: Stats & Action Buttons -->
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 16px; flex-shrink: 0;">
-                <div style="display: flex; align-items: center; gap: 18px; background: #fafafc; padding: 12px 20px; border-radius: 12px; border: 1px solid #eeeeef;">
-                    <div style="text-align: center;">
-                        <strong style="display: block; font-size: 20px; font-weight: 700; color: #18181b;">{{ number_format($user->approved_prompts_count ?? 0) }}</strong>
-                        <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Prompts</span>
+            <div class="creator-side-panel">
+                <div class="creator-stats-panel">
+                    <div class="creator-stat-item">
+                        <strong>{{ number_format($user->approved_prompts_count ?? 0) }}</strong>
+                        <span>Prompts</span>
                     </div>
-                    <div style="width: 1px; height: 28px; background: #e4e4e7;"></div>
-                    <div style="text-align: center;">
-                        <strong style="display: block; font-size: 20px; font-weight: 700; color: #e11d48;">♥ {{ number_format($totalLikes) }}</strong>
-                        <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Likes</span>
+                    <div class="creator-stat-divider"></div>
+                    <div class="creator-stat-item">
+                        <strong class="likes-stat">♥ {{ number_format($totalLikes) }}</strong>
+                        <span>Likes</span>
                     </div>
-                    <div style="width: 1px; height: 28px; background: #e4e4e7;"></div>
-                    <div style="text-align: center;">
-                        <strong style="display: block; font-size: 20px; font-weight: 700; color: #18181b;">{{ number_format($user->followers_count ?? 0) }}</strong>
-                        <span style="font-size: 11.5px; color: #64646e; font-weight: 500;">Followers</span>
+                    <div class="creator-stat-divider"></div>
+                    <div class="creator-stat-item">
+                        <strong>{{ number_format($user->followers_count ?? 0) }}</strong>
+                        <span>Followers</span>
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div class="creator-hero-actions">
                     @auth
                         @if (auth()->id() === $user->id)
                             <a href="{{ route('dashboard.profile.edit') }}" class="primary-button" style="text-decoration: none;">
                                 Edit profile <span>⚙</span>
                             </a>
                         @else
-                            <form method="POST" action="{{ route('creators.follow', $user) }}" style="display: inline;">
+                            <form method="POST" action="{{ route('creators.follow', $user) }}" style="display: inline-flex; width: 100%;">
                                 @csrf
-                                <button type="submit" class="{{ $isFollowing ? 'outline-button' : 'primary-button' }}" style="min-height: 36px; padding: 0 16px; font-weight: 600;">
+                                <button type="submit" class="{{ $isFollowing ? 'outline-button' : 'primary-button' }}" style="width: 100%; min-height: 38px; justify-content: center; font-weight: 600;">
                                     {{ $isFollowing ? '✓ Following' : '+ Follow creator' }}
                                 </button>
                             </form>
@@ -99,7 +95,7 @@
                             @endif
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="primary-button" style="min-height: 36px; padding: 0 16px; font-weight: 600; text-decoration: none;">
+                        <a href="{{ route('login') }}" class="primary-button" style="min-height: 38px; padding: 0 16px; font-weight: 600; text-decoration: none;">
                             + Follow creator
                         </a>
                     @endauth
@@ -109,32 +105,32 @@
     </div>
 
     <!-- Creator Submissions Header & Filters -->
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+    <div class="creator-filter-toolbar">
         <div>
-            <h2 style="font-size: 20px; font-weight: 700; color: #17171b; margin: 0;">
+            <h2 class="creator-section-heading">
                 Prompts by {{ $user->name }}
-                <span style="font-size: 14px; font-weight: 500; color: #71717a; margin-left: 6px;">({{ $prompts->total() }})</span>
+                <span>({{ $prompts->total() }})</span>
             </h2>
         </div>
 
         <!-- Filter & Sort Bar -->
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <div class="creator-filter-controls">
             @if ($categories->isNotEmpty())
-                <div style="display: flex; align-items: center; gap: 4px; overflow-x: auto;">
-                    <a href="{{ route('creators.show', $user) }}" class="category-pill {{ !request('category') ? 'is-active' : '' }}" style="display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; {{ !request('category') ? 'background: #17171b; color: #ffffff;' : 'background: #f4f4f6; color: #52525c;' }}">
+                <div class="creator-category-scroll">
+                    <a href="{{ route('creators.show', $user) }}" class="creator-category-chip {{ !request('category') ? 'is-active' : '' }}">
                         All ({{ $user->approved_prompts_count }})
                     </a>
                     @foreach ($categories as $cat)
-                        <a href="{{ route('creators.show', [$user, 'category' => $cat->slug]) }}" class="category-pill {{ request('category') === $cat->slug ? 'is-active' : '' }}" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; {{ request('category') === $cat->slug ? 'background: #17171b; color: #ffffff;' : 'background: #f4f4f6; color: #52525c;' }}">
+                        <a href="{{ route('creators.show', [$user, 'category' => $cat->slug]) }}" class="creator-category-chip {{ request('category') === $cat->slug ? 'is-active' : '' }}">
                             <span>{{ $cat->icon }}</span> {{ $cat->name }} ({{ $cat->count }})
                         </a>
                     @endforeach
                 </div>
             @endif
 
-            <form method="GET" action="{{ route('creators.show', $user) }}" style="display: inline-flex; align-items: center; margin: 0;">
+            <form method="GET" action="{{ route('creators.show', $user) }}" class="creator-sort-form">
                 @if(request('category'))<input type="hidden" name="category" value="{{ request('category') }}">@endif
-                <select name="sort" onchange="this.form.submit()" style="min-height: 34px; padding: 0 10px; border-radius: 8px; border: 1px solid #e4e4e7; font-size: 12px; color: #3f3f46; background: #ffffff;">
+                <select name="sort" onchange="this.form.submit()" class="creator-sort-select">
                     <option value="newest" @selected(request('sort', 'newest') === 'newest')>Newest first</option>
                     <option value="popular" @selected(request('sort') === 'popular')>Most popular</option>
                     <option value="oldest" @selected(request('sort') === 'oldest')>Oldest first</option>

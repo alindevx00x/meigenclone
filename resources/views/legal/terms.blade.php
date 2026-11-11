@@ -19,8 +19,8 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start;">
-        <div class="panel-card" style="padding: 32px; font-size: 14px; line-height: 1.7; color: #374151;">
+    <div class="legal-layout">
+        <div class="panel-card legal-content">
             <h2 style="font-size: 19px; font-weight: 700; color: #111827; margin: 0 0 12px;">1. Acceptance of Terms</h2>
             <p>By creating an account, browsing the prompt gallery, or utilizing our creator studios, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use the service.</p>
 
@@ -36,7 +36,7 @@
             <p>The platform is provided on an \"AS IS\" and \"AS AVAILABLE\" basis. While we strive for 99.9% uptime and curate high-quality generation tokens, we make no guarantees regarding output reproducibility across external AI model providers (Midjourney, Flux, Stable Diffusion, DALL-E).</p>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="legal-sidebar">
             <div class="panel-card" style="padding: 20px;">
                 <h3 style="font-size: 13.5px; font-weight: 700; color: #111827; margin: 0 0 12px;">Legal Documents</h3>
                 <nav style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
