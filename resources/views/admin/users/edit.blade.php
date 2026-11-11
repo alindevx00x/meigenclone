@@ -185,56 +185,6 @@
             </div>
         </div>
 
-        <!-- Section 2: Creator Tipping & Monetization -->
-        <div style="margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #eeeef2;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <span>☕</span> Creator Tipping &amp; Monetization
-                </h3>
-                <span style="font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; padding: 2px 10px; border-radius: 99px; font-weight: 600;">
-                    Tips Earned: ${{ number_format((float) $user->tips_earned_total, 2) }}
-                </span>
-            </div>
-
-            <div class="form-grid">
-                <div class="wide-field" style="padding: 12px 14px; background: #fffdf5; border: 1px solid #fef3c7; border-radius: 10px;">
-                    <label class="check-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #92400e;">
-                        <input type="checkbox" name="monetization_enabled" value="1" @checked(old('monetization_enabled', $user->monetization_enabled)) style="width: 17px; height: 17px; accent-color: #d97706;">
-                        <span>Enable Creator Tipping Button</span>
-                    </label>
-                    <small style="color: #78350f; display: block; margin-top: 4px; margin-left: 27px;">Allows fans and community members to send tips directly or via custom payment link.</small>
-                </div>
-
-                <label>
-                    <span>Stripe Connect Account ID <span class="optional-label">Optional</span></span>
-                    <input type="text" name="stripe_account_id" value="{{ old('stripe_account_id', $user->stripe_account_id) }}" placeholder="acct_1234567890">
-                    <small>Stripe Connect Express/Custom account ID for automated direct payout transfers.</small>
-                    @error('stripe_account_id') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>PayPal Payout Email <span class="optional-label">Optional</span></span>
-                    <input type="email" name="paypal_email" value="{{ old('paypal_email', $user->paypal_email) }}" placeholder="payouts@creator.com">
-                    <small>PayPal account email address for receiving creator payouts.</small>
-                    @error('paypal_email') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>External Tip / Payment Link <span class="optional-label">Optional</span></span>
-                    <input type="url" name="tip_link" value="{{ old('tip_link', $user->tip_link) }}" placeholder="https://buymeacoffee.com/... or Stripe link">
-                    <small>Buy Me a Coffee, Ko-fi, Stripe Payment link, or PayPal URL.</small>
-                    @error('tip_link') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>Creator Tip Goal <span class="optional-label">Optional</span></span>
-                    <input type="text" name="tip_goal" maxlength="255" value="{{ old('tip_goal', $user->tip_goal) }}" placeholder="e.g. Funding Midjourney v7 compute">
-                    <small>Goal motivation message displayed in tipping modal.</small>
-                    @error('tip_goal') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-            </div>
-        </div>
-
         <!-- Section 3: Studio & AI Credits -->
         <div style="margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #eeeef2;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">

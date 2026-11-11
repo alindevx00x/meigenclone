@@ -5,21 +5,21 @@
 @section('toolbar-title', 'Profile settings')
 
 @section('content')
-<div class="workspace-page form-page" style="max-width: 980px; margin: 0 auto; padding: 24px 20px 60px;">
+<div class="workspace-page form-page profile-settings-page">
     <a class="back-link" href="{{ route('dashboard.index') }}"><span>&larr;</span> Back to creator dashboard</a>
 
-    <div class="page-heading form-heading" style="margin-bottom: 24px;">
+    <div class="page-heading form-heading">
         <div>
             <span class="section-kicker">CREATOR PROFILE &middot; {{ strtoupper(auth()->user()->name) }}</span>
-            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
                 <h1>Profile settings</h1>
                 @if(auth()->user()->is_verified)
                     <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 11px; font-weight: 700;">✓</span>
                 @endif
             </div>
-            <p>Customize your public creator persona, handle, avatar, monetization, and studio keys.</p>
+            <p>Customize your public creator persona, handle, avatar, and account credentials.</p>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div class="page-heading-actions">
             <a href="{{ route('creators.show', auth()->user()) }}" target="_blank" class="outline-button" style="text-decoration: none; color: #6366f1; border-color: #c7d2fe; font-weight: 600;">
                 View public profile ({{ auth()->user()->handle }}) <span>↗</span>
             </a>
@@ -27,40 +27,41 @@
     </div>
 
     <!-- Friendly Guidance Banner -->
-    <div style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: #f5f3ff; border: 1px solid #ddd6fe; color: #4338ca; margin-bottom: 24px;">
-        <span style="font-size: 20px;">💡</span>
-        <div style="font-size: 13px; line-height: 1.5;">
+    <div class="profile-guidance-banner">
+        <span class="guidance-icon">💡</span>
+        <div class="guidance-text">
             <strong>Quick update:</strong> You do <em>not</em> need to enter your current password to save your profile details, handle, or bio. Simply update the fields below and click <strong>Save profile</strong>.
         </div>
     </div>
 
     <!-- Main Profile Edit Form -->
-    <form class="prompt-form panel-card" method="POST" action="{{ route('dashboard.profile.update') }}" enctype="multipart/form-data" style="padding: 28px; border-radius: 16px; background: #ffffff; border: 1px solid #ebebf0; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+    <form class="prompt-form panel-card profile-form-card" method="POST" action="{{ route('dashboard.profile.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
         <!-- Section 1: Public Identity & Avatar -->
-        <div style="margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid #eeeef2;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 16px; display: flex; align-items: center; gap: 8px;">
+        <div class="profile-form-section">
+            <h3 class="profile-section-title">
                 <span>👤</span> Public Creator Identity &amp; Handle
             </h3>
 
             <!-- Avatar Block -->
-            <div style="display: flex; align-items: center; gap: 18px; padding: 16px; background: #faf9fd; border: 1px solid #eae6f8; border-radius: 12px; margin-bottom: 18px;">
-                <div style="flex-shrink: 0;">
+            <div class="profile-avatar-row">
+                <div class="profile-avatar-preview">
                     @if (auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(121, 88, 238, 0.15);">
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="profile-avatar-img">
                     @else
-                        <div class="avatar" style="width: 64px; height: 64px; font-size: 24px; font-weight: 700; border-radius: 50%; background: linear-gradient(135deg, #ede9ff, #f3efff); color: #654bd1; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(121, 88, 238, 0.12);">
+                        <div class="avatar profile-avatar-fallback">
                             {{ str(auth()->user()->name)->substr(0, 1)->upper() }}
                         </div>
                     @endif
                 </div>
 
-                <div style="flex: 1; min-width: 0;">
-                    <label style="display: block; font-weight: 600; font-size: 13px; color: #3f3f46; margin-bottom: 6px;">Profile Avatar</label>
-                    <input type="file" name="avatar" accept="image/*" class="file-input" style="font-size: 11px;">
-                    <small style="color: #71717a; font-size: 11px; margin-top: 4px; display: block;">Upload PNG, JPG, or WebP (max 4MB). Square images look best.</small>
+                <div class="profile-avatar-upload">
+                    <label class="field-label">Profile Avatar</label>
+                    <input type="file" name="avatar" accept="image/*" class="file-input">
+                    <small>Upload PNG, JPG, or WebP (max 4MB). Square images look best.</small>
+                    @error('avatar') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </div>
             </div>
 
@@ -73,11 +74,11 @@
 
                 <label>
                     <span>Creator Handle / Username <span class="required-star">*</span></span>
-                    <div style="position: relative; display: flex; align-items: center;">
-                        <span style="position: absolute; left: 12px; color: #7c3aed; font-weight: 700; font-size: 14px;">@</span>
-                        <input type="text" name="username" required maxlength="30" value="{{ old('username', auth()->user()->username) }}" style="padding-left: 30px; font-weight: 600; color: #3730a3;" placeholder="username">
+                    <div class="username-input-wrap">
+                        <span class="username-prefix">@</span>
+                        <input type="text" name="username" required maxlength="30" value="{{ old('username', auth()->user()->username) }}" placeholder="username">
                     </div>
-                    <small style="color: #71717a; font-size: 11.5px;">Public URL: <span style="font-family: monospace; color: #6d52d9;">{{ url('/creators/@') }}{{ old('username', auth()->user()->username) }}</span></small>
+                    <small>Public URL: <span class="username-preview">{{ url('/creators/@') }}{{ old('username', auth()->user()->username) }}</span></small>
                     @error('username') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
@@ -89,89 +90,39 @@
 
                 <label>
                     <span>Website or Social Profile <span class="optional-label">Optional</span></span>
-                    <input type="url" name="website" maxlength="255" value="{{ old('website', auth()->user()->website) }}" placeholder="https://x.com/username or your portfolio URL">
-                    <small style="color: #71717a; font-size: 11.5px;">Shown on your public creator card so fans can explore your work.</small>
+                    <input type="url" name="website" maxlength="255" value="{{ old('website', auth()->user()->website) }}" placeholder="https://x.com/username or portfolio URL">
+                    <small>Shown on your public creator card so fans can explore your work.</small>
                     @error('website') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 
                 <label class="wide-field">
                     <span>Creator Bio &amp; Aesthetic <span class="optional-label">Optional</span></span>
-                    <textarea name="bio" rows="3" maxlength="500" placeholder="Tell the community about your aesthetic styles, favorite models (Flux, Midjourney, Seedance), and creative focus&hellip;">{{ old('bio', auth()->user()->bio) }}</textarea>
-                    <small style="color: #71717a; font-size: 11.5px;">Displayed prominently on your public profile. Up to 500 characters.</small>
+                    <textarea name="bio" rows="3" maxlength="500" placeholder="Tell the community about your aesthetic styles, favorite models (Flux, Midjourney, Seedance), and creative focus…">{{ old('bio', auth()->user()->bio) }}</textarea>
+                    <small>Displayed prominently on your public profile. Up to 500 characters.</small>
                     @error('bio') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
             </div>
         </div>
 
-        <!-- Section 2: Creator Monetization & Tipping -->
-        <div style="margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid #eeeef2;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <span>☕</span> Creator Tipping &amp; Monetization
-                </h3>
-                <span style="font-size: 12px; color: #b45309; background: #fffbeb; border: 1px solid #fde68a; padding: 3px 12px; border-radius: 99px; font-weight: 700;">
-                    Tips Earned: ${{ number_format((float) auth()->user()->tips_earned_total, 2) }}
-                </span>
-            </div>
-            <p style="font-size: 12.5px; color: #64646e; margin: 0 0 16px; line-height: 1.5;">
-                Receive tips from community members who love your prompts. You can accept direct platform tips, or link your external Buy Me a Coffee / Ko-fi / Stripe Payment Link.
-            </p>
-
-            <div class="form-grid">
-                <label class="wide-field check-label" style="display: inline-flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important; cursor: pointer; font-size: 13.5px; font-weight: 600; color: #1e1e24;">
-                    <input type="checkbox" name="monetization_enabled" value="1" @checked(old('monetization_enabled', auth()->user()->monetization_enabled)) style="width: 17px !important; height: 17px !important; min-height: 17px !important; max-height: 17px !important; margin: 0 !important; accent-color: #7c3aed; flex-shrink: 0;">
-                    <span>Enable "Tip Creator" button on your public profile and prompt cards</span>
-                </label>
-
-                <label>
-                    <span>Stripe Connect Account ID <span class="optional-label">Optional</span></span>
-                    <input type="text" name="stripe_account_id" value="{{ old('stripe_account_id', auth()->user()->stripe_account_id) }}" placeholder="acct_1234567890">
-                    <small style="color: #71717a; font-size: 11.5px;">Connect your Stripe Express/Standard account for automatic direct tip payouts.</small>
-                    @error('stripe_account_id') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>PayPal Payout Email <span class="optional-label">Optional</span></span>
-                    <input type="email" name="paypal_email" value="{{ old('paypal_email', auth()->user()->paypal_email) }}" placeholder="payouts@yourdomain.com">
-                    <small style="color: #71717a; font-size: 11.5px;">Your PayPal email address for receiving supporter tips.</small>
-                    @error('paypal_email') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>External Tip / Payment Link <span class="optional-label">Optional</span></span>
-                    <input type="url" name="tip_link" value="{{ old('tip_link', auth()->user()->tip_link) }}" placeholder="https://buymeacoffee.com/username or Stripe Payment Link">
-                    <small style="color: #71717a; font-size: 11.5px;">Buy Me A Coffee, Ko-fi, Stripe Payment link, or PayPal.me URL.</small>
-                    @error('tip_link') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <label>
-                    <span>Creator Tip Goal or Note <span class="optional-label">Optional</span></span>
-                    <input type="text" name="tip_goal" maxlength="255" value="{{ old('tip_goal', auth()->user()->tip_goal) }}" placeholder="e.g. Funding Midjourney v7 compute & custom FLUX LoRAs">
-                    <small style="color: #71717a; font-size: 11.5px;">Shown to supporters in your tipping modal to motivate contributions.</small>
-                    @error('tip_goal') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-            </div>
-        </div>
-
-        <!-- Section 4: Password Update (Optional) -->
-        <div style="margin-bottom: 12px;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
-                <span>🔒</span> Security &amp; Password <span class="optional-label" style="font-size: 11px;">Leave empty to keep unchanged</span>
+        <!-- Section 2: Password Update (Optional) -->
+        <div class="profile-form-section profile-security-section">
+            <h3 class="profile-section-title">
+                <span>🔒</span> Security &amp; Password <span class="optional-label">Leave empty to keep unchanged</span>
             </h3>
 
             <div class="form-grid">
                 <label class="wide-field">
-                    New Password
-                    <input type="password" name="password" minlength="8" placeholder="Enter new password (min. 8 characters) &mdash; leave blank to keep current password" autocomplete="new-password">
-                    <small style="color: #71717a; font-size: 11.5px;">No current password is required. Only fill this in if you want to set a new password.</small>
+                    <span>New Password</span>
+                    <input type="password" name="password" minlength="8" placeholder="Enter new password (min. 8 characters) — leave blank to keep current password" autocomplete="new-password">
+                    <small>No current password is required. Only fill this in if you want to set a new password.</small>
                     @error('password') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
             </div>
         </div>
 
-        <div class="form-footer" style="margin-top: 24px; padding-top: 18px; border-top: 1px solid #efeff2;">
-            <span style="color: #555562; font-size: 12.5px;"><i>&lowast;</i> Synchronized across your public creator page and directory prompts</span>
-            <div style="display: flex; gap: 10px;">
+        <div class="form-footer">
+            <span class="footer-note"><i>&lowast;</i> Synchronized across your public creator page and directory prompts</span>
+            <div class="footer-buttons">
                 <a class="outline-button" href="{{ route('dashboard.index') }}">Cancel</a>
                 <button class="primary-button" type="submit">Save profile <span>&rarr;</span></button>
             </div>

@@ -344,6 +344,7 @@ class PromptController extends Controller
             . "Sitemap: {$sitemapUrl}\n";
 
         return response($content, 200)
-            ->header('Content-Type', 'text/plain; charset=UTF-8');
+            ->header('Content-Type', 'text/plain; charset=UTF-8')
+            ->header('Cache-Control', 'public, max-age=300, must-revalidate');
     }
 }

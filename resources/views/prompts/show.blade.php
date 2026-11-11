@@ -70,16 +70,6 @@
             <div class="detail-actions" style="flex-wrap: wrap; gap: 8px;">
                 <button class="primary-button" type="button" data-prompt-id="{{ $prompt->id }}" data-copy="{{ $prompt->prompt_text }}">Copy prompt <span>⧉</span></button>
                 <button class="outline-button" type="button" data-prompt-id="{{ $prompt->id }}" data-discord-copy="/imagine prompt: {{ addslashes($prompt->prompt_text) }} --ar 16:9 --v 6.1" style="color: #4f46e5; border-color: #c7d2fe; background: #eef2ff; font-weight: 600;" title="Copy Midjourney Discord command">/mj <span>⧉</span></button>
-                @if($prompt->user && $prompt->user->monetization_enabled)
-                <button class="outline-button" type="button" onclick="window.openTipModal({
-                    creatorId: '{{ $prompt->user_id }}',
-                    creatorName: '{{ addslashes($prompt->user->name) }}',
-                    creatorHandle: '{{ addslashes($prompt->user->handle) }}',
-                    tipGoal: '{{ addslashes($prompt->user->tip_goal ?? '') }}',
-                    tipLink: '{{ addslashes($prompt->user->tip_link ?? '') }}',
-                    promptId: {{ $prompt->id }}
-                })" style="color: #b45309; border-color: #fde68a; background: #fffbeb; font-weight: 600; cursor: pointer;">Tip <span>☕</span></button>
-                @endif
                 @auth
                     <form method="POST" action="{{ route('prompts.favorite', $prompt->slug) }}" class="favorite-form" style="display:inline-flex;">@csrf<button class="outline-button {{ $prompt->is_favorited ? 'saved' : '' }}" type="submit">{{ $prompt->is_favorited ? '♥ Saved' : '♡ Save' }}</button></form>
                 @else

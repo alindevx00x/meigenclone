@@ -25,22 +25,22 @@
         <div class="stat-card"><span class="stat-icon stat-pink">♡</span><span class="stat-label">Saved prompts</span><strong>{{ $counts['favorites'] }}</strong><small>Your personal collection</small></div>
     </div>
 
-    <!-- Creator Performance & Monetization Analytics -->
+    <!-- Creator Performance Analytics -->
     <section class="workspace-section" id="creator-analytics" style="margin-bottom: 36px;">
         <div class="section-heading" style="margin-bottom: 20px;">
             <div>
                 <span class="section-kicker" style="color: #7c3aed; font-weight: 700;">INSIGHTS &amp; ENGAGEMENT</span>
-                <h2 style="font-size: 22px; font-weight: 700; color: #1e1e24; margin: 4px 0 0;">Creator Analytics &amp; Monetization</h2>
+                <h2 style="font-size: 22px; font-weight: 700; color: #1e1e24; margin: 4px 0 0;">Creator Analytics &amp; Performance</h2>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
                 <a class="subtle-link" href="{{ route('dashboard.profile.edit') }}" style="font-weight: 600; color: #6366f1;">
-                    <span>⚙</span> Configure Tipping &amp; Handle <span>→</span>
+                    <span>⚙</span> Edit profile <span>→</span>
                 </a>
             </div>
         </div>
 
         <!-- KPI Summary Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 22px;">
             <div style="background: #ffffff; border: 1px solid #e4e4eb; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <span style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;">Prompt Views</span>
@@ -66,15 +66,6 @@
                 </div>
                 <div style="font-size: 28px; font-weight: 800; color: #18181b; line-height: 1.1;">{{ $analytics['copy_rate'] }}%</div>
                 <div style="font-size: 12px; color: #71717a; margin-top: 6px;">Conversion from views to copies</div>
-            </div>
-
-            <div style="background: #ffffff; border: 1px solid #e4e4eb; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em;">Tips Earned</span>
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #fef3c7; color: #d97706; font-size: 15px;">☕</span>
-                </div>
-                <div style="font-size: 28px; font-weight: 800; color: #18181b; line-height: 1.1;">${{ number_format($analytics['total_tips'], 2) }}</div>
-                <div style="font-size: 12px; color: #71717a; margin-top: 6px;">{{ $analytics['tips_count'] }} supporter {{ Str::plural('contribution', $analytics['tips_count']) }}</div>
             </div>
         </div>
 
@@ -245,27 +236,6 @@
                                 </div>
                             </div>
                         @endforeach
-                    </div>
-                @endif
-
-                @if ($analytics['recent_tips']->isNotEmpty())
-                    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                        <span style="font-size: 12px; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                            <span>☕</span> Recent Supporters
-                        </span>
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            @foreach ($analytics['recent_tips']->take(2) as $tip)
-                                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; background: #fffdf5; border: 1px solid #fef3c7; border-radius: 6px; padding: 6px 10px;">
-                                    <div>
-                                        <strong style="color: #92400e;">{{ $tip->tipper_name ?: 'Anonymous supporter' }}</strong>
-                                        @if ($tip->message)
-                                            <span style="color: #78350f; font-style: italic;">&ldquo;{{ Str::limit($tip->message, 35) }}&rdquo;</span>
-                                        @endif
-                                    </div>
-                                    <strong style="color: #b45309; font-weight: 700;">+${{ number_format($tip->amount, 2) }}</strong>
-                                </div>
-                            @endforeach
-                        </div>
                     </div>
                 @endif
             </div>

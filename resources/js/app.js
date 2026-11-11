@@ -13,21 +13,6 @@ Alpine.data('globalAppModal', () => ({
     userMoodboards: [],
     newBoardName: '',
 
-    tipOpen: false,
-    tipCreatorId: null,
-    tipCreatorName: '',
-    tipCreatorHandle: '',
-    tipPromptId: null,
-    tipGoal: '',
-    tipLink: '',
-    tipAmount: 5,
-    tipCustomAmount: '',
-    tipNote: '',
-    tipSubmitting: false,
-    tipSuccess: false,
-    tipSuccessMessage: '',
-    tipTransactionRef: '',
-
     openSearch() {
         this.searchOpen = true;
         this.$nextTick(() => {
@@ -102,60 +87,6 @@ Alpine.data('globalAppModal', () => ({
             }
         } catch (e) {
             console.error(e);
-        }
-    },
-
-    openTip(detail) {
-        this.tipCreatorId = detail.creatorId;
-        this.tipCreatorName = detail.creatorName;
-        this.tipCreatorHandle = detail.creatorHandle || '';
-        this.tipPromptId = detail.promptId || null;
-        this.tipGoal = detail.tipGoal || '';
-        this.tipLink = detail.tipLink || '';
-        this.tipAmount = 5;
-        this.tipCustomAmount = '';
-        this.tipNote = '';
-        this.tipGateway = 'stripe';
-        this.tipSuccess = false;
-        this.tipOpen = true;
-    },
-
-    async submitTip() {
-        const amount = this.tipCustomAmount ? parseFloat(this.tipCustomAmount) : parseFloat(this.tipAmount);
-        if (!amount || amount < 1) {
-            alert('Please select or enter an amount of at least $1.');
-            return;
-        }
-        this.tipSubmitting = true;
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        try {
-            const res = await fetch('/creators/' + this.tipCreatorId + '/tip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify({
-                    amount: amount,
-                    message: this.tipNote,
-                    prompt_id: this.tipPromptId,
-                    payment_gateway: this.tipGateway || 'stripe'
-                })
-            });
-            const data = await res.json();
-            if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-                return;
-            }
-            if (data.success) {
-                this.tipSuccess = true;
-                this.tipSuccessMessage = data.message;
-                this.tipTransactionRef = data.tip?.reference || '';
-            } else {
-                alert(data.message || 'Could not complete tip.');
-            }
-        } catch (e) {
-            console.error(e);
-            alert('Network error while processing tip.');
-        } finally {
-            this.tipSubmitting = false;
         }
     }
 }));
@@ -305,9 +236,6 @@ Alpine.data('generationStudio', (config = {}) => ({
 }));
 
 window.Alpine = Alpine;
-window.openTipModal = function (detail) {
-    window.dispatchEvent(new CustomEvent('open-tip-modal', { detail: detail || {} }));
-};
 Alpine.start();
 
 const toast = document.getElementById('copy-toast');

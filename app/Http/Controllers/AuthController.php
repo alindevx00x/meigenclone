@@ -7,6 +7,7 @@ use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -61,12 +62,21 @@ class AuthController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
-            'username' => ['required', 'string', 'min:3', 'max:30', 'regex:/^[a-zA-Z0-9_\.]+$/', 'unique:users,username'],
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:30',
+                'regex:/^[a-zA-Z0-9_\.]+$/',
+                'unique:users,username',
+                Rule::notIn(User::reservedUsernames()),
+            ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'username.regex' => 'The username may only contain letters, numbers, underscores, and dots.',
             'username.unique' => 'This creator username is already taken. Please choose another.',
+            'username.not_in' => 'This username is reserved and cannot be used.',
         ]);
 
         $user = User::create([

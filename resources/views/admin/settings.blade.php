@@ -208,43 +208,7 @@
                 </div>
             </section>
 
-            <section class="settings-card">
-                <div class="settings-card-heading"><span class="shortcut-icon">💳</span><div><h2>Payment Gateways &amp; Creator Tips</h2><p>Configure Stripe Checkout &amp; PayPal for direct on-site supporter tips.</p></div></div>
-                <label class="settings-toggle"><span><strong>Enable Stripe Checkout</strong><small>Allows supporters to tip creators directly on-site using Credit Cards, Apple Pay, and Google Pay.</small></span><input type="checkbox" name="stripe_enabled" value="1" @checked(($settings['stripe_enabled'] ?? '0') === '1')><i aria-hidden="true"></i></label>
-                <div class="settings-fields settings-fields-inline" style="margin-bottom: 20px;">
-                    <label class="settings-field">Stripe Publishable Key
-                        <input name="stripe_publishable_key" value="{{ old('stripe_publishable_key', $settings['stripe_publishable_key'] ?? '') }}" placeholder="pk_test_... or pk_live_...">
-                        <small>Public key from your Stripe account.</small>
-                    </label>
-                    <label class="settings-field">Stripe Secret Key
-                        <input type="password" name="stripe_secret_key" value="{{ old('stripe_secret_key', $settings['stripe_secret_key'] ?? '') }}" placeholder="sk_test_... or sk_live_..." autocomplete="off">
-                        <small>Secret key used for sessions and creator payout transfers.</small>
-                    </label>
-                    <label class="settings-field" style="grid-column: 1 / -1;">Stripe Webhook Secret <span class="optional-label">Optional</span>
-                        <input type="password" name="stripe_webhook_secret" value="{{ old('stripe_webhook_secret', $settings['stripe_webhook_secret'] ?? '') }}" placeholder="whsec_..." autocomplete="off">
-                        <small>Webhook endpoint: <code>{{ url('/api/webhooks/tips') }}</code></small>
-                    </label>
-                </div>
 
-                <label class="settings-toggle"><span><strong>Enable PayPal Checkout</strong><small>Allows supporters to tip creators via PayPal balances and credit cards.</small></span><input type="checkbox" name="paypal_enabled" value="1" @checked(($settings['paypal_enabled'] ?? '0') === '1')><i aria-hidden="true"></i></label>
-                <div class="settings-fields settings-fields-inline">
-                    <label class="settings-field">PayPal Environment Mode
-                        <select name="paypal_mode">
-                            <option value="sandbox" @selected(($settings['paypal_mode'] ?? 'sandbox') === 'sandbox')>Sandbox (Test Environment)</option>
-                            <option value="live" @selected(($settings['paypal_mode'] ?? '') === 'live')>Live (Production Payments)</option>
-                        </select>
-                        <small>Test tipping freely in Sandbox before going Live.</small>
-                    </label>
-                    <label class="settings-field">PayPal Client ID
-                        <input name="paypal_client_id" value="{{ old('paypal_client_id', $settings['paypal_client_id'] ?? '') }}" placeholder="PayPal REST App Client ID">
-                        <small>Client ID from PayPal Developer Portal.</small>
-                    </label>
-                    <label class="settings-field" style="grid-column: 1 / -1;">PayPal Secret Key
-                        <input type="password" name="paypal_secret" value="{{ old('paypal_secret', $settings['paypal_secret'] ?? '') }}" placeholder="PayPal Secret..." autocomplete="off">
-                        <small>Secret used to capture orders and credit creator balances.</small>
-                    </label>
-                </div>
-            </section>
 
             <section class="settings-card">
                 <div class="settings-card-heading"><span class="shortcut-icon">⌕</span><div><h2>SEO and social sharing</h2><p>Set the search result metadata, indexing, and social preview defaults.</p></div></div>

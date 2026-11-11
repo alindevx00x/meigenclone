@@ -73,6 +73,48 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Reserved keywords that cannot be registered or claimed as usernames.
+     *
+     * @var array<int, string>
+     */
+    public static array $reservedUsernames = [
+        // System and Administration
+        'admin', 'administrator', 'root', 'superuser', 'system', 'sysadmin',
+        'moderator', 'mod', 'staff', 'team', 'support', 'help', 'info',
+        'contact', 'security', 'official', 'billing', 'finance', 'legal',
+        'compliance', 'privacy', 'terms', 'tos', 'abuse', 'webmaster',
+        'hostmaster', 'postmaster', 'mailer-daemon',
+
+        // Application Routes & Core Entity names
+        'api', 'dashboard', 'prompt', 'prompts', 'category', 'categories',
+        'model', 'models', 'creator', 'creators', 'collection', 'collections',
+        'pack', 'packs', 'sref', 'srefs', 'studio', 'remix', 'generate',
+        'explore', 'discover', 'search', 'favorite', 'favorites', 'saved',
+        'user', 'users', 'member', 'members', 'profile', 'profiles',
+        'account', 'settings', 'me', 'auth', 'login', 'logout', 'register',
+        'signin', 'signup', 'signout', 'password', 'reset', 'verify',
+        'verification', 'email', 'newsletter', 'newsletters', 'feed', 'rss',
+        'sitemap', 'robots', 'up', 'health', 'app', 'home',
+
+        // Brand and Technical Terms
+        'promptimage', 'meigen', 'meigenclone', 'anonymous', 'guest',
+        'null', 'undefined', 'void', 'test', 'demo', 'bot', 'crawler',
+        'spider', 'webhook', 'webhooks', 'callback', 'stripe', 'paypal',
+        'public', 'static', 'assets', 'build', 'storage', 'vendor',
+    ];
+
+    public static function reservedUsernames(): array
+    {
+        return static::$reservedUsernames;
+    }
+
+    public static function isReservedUsername(string $username): bool
+    {
+        $clean = strtolower(ltrim(trim($username), '@'));
+        return in_array($clean, static::$reservedUsernames, true);
+    }
+
+    /**
      * Custom route key for URLs like /creators/@username or /creators/username
      */
     public function getRouteKey()

@@ -67,7 +67,7 @@
         {!! $directorySettings['custom_head_code'] !!}
     @endif
 </head>
-<body x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-tip-modal.window="openTip($event.detail)">
+<body x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()">
     @include('partials.sidebar')
 
     <main class="app-main">
@@ -158,115 +158,6 @@
                     </a>
                 </template>
             </div>
-        </div>
-    </div>
-
-    <!-- 2. Tip Creator Modal -->
-    <div x-show="tipOpen" x-cloak style="display: none;" class="app-modal-overlay">
-        <div @click.away="tipOpen = false" class="app-modal-card">
-            <!-- Header -->
-            <div class="app-modal-header">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <h3 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0;">Tip <span style="color: #a78bfa;" x-text="tipCreatorName"></span></h3>
-                        <span style="font-size: 11px; font-family: monospace; color: #a1a1aa; background: #27272e; padding: 2px 6px; border-radius: 6px;" x-text="tipCreatorHandle"></span>
-                    </div>
-                    <p style="font-size: 11.5px; color: #a1a1aa; margin: 4px 0 0;">Show appreciation and support creator prompts.</p>
-                </div>
-                <button type="button" @click="tipOpen = false" class="app-modal-close" aria-label="Close modal">&times;</button>
-            </div>
-
-            <!-- Success Screen -->
-            <template x-if="tipSuccess">
-                <div style="padding: 16px 0; text-align: center;">
-                    <div style="width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700;">
-                        ✓
-                    </div>
-                    <h4 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0 0 6px;">Tip Sent Successfully!</h4>
-                    <p style="font-size: 12.5px; color: #d4d4d8; margin: 0 0 12px;" x-text="tipSuccessMessage"></p>
-                    <div style="font-size: 11px; font-family: monospace; color: #71717a; background: #0e0e12; padding: 8px; border-radius: 8px; border: 1px solid #27272e; margin-bottom: 16px;" x-text="'Ref: ' + tipTransactionRef"></div>
-                    <button type="button" @click="tipOpen = false" class="tip-submit-btn" style="background: #27272e; box-shadow: none;">
-                        Close
-                    </button>
-                </div>
-            </template>
-
-            <!-- Tip Form -->
-            <template x-if="!tipSuccess">
-                <div>
-                    <!-- Creator Goal if set -->
-                    <template x-if="tipGoal">
-                        <div style="padding: 10px 12px; border-radius: 10px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde68a; font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
-                            <span style="font-size: 16px;">🎯</span>
-                            <div>
-                                <strong style="display: block; font-size: 11px; color: #fbbf24;">Creator Goal</strong>
-                                <span x-text="tipGoal"></span>
-                            </div>
-                        </div>
-                    </template>
-
-                    <!-- Preset Amounts -->
-                    <div style="margin-bottom: 14px;">
-                        <label style="display: block; font-size: 11.5px; font-weight: 600; color: #a1a1aa; margin-bottom: 6px;">Select Amount</label>
-                        <div class="tip-amount-grid">
-                            <button type="button" @click="tipAmount = 2; tipCustomAmount = ''" :class="tipAmount === 2 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
-                                <span class="tip-amount-val">$2</span>
-                                <span class="tip-amount-sub">☕ Coffee</span>
-                            </button>
-                            <button type="button" @click="tipAmount = 5; tipCustomAmount = ''" :class="tipAmount === 5 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
-                                <span class="tip-amount-val">$5</span>
-                                <span class="tip-amount-sub">⚡ Spark</span>
-                            </button>
-                            <button type="button" @click="tipAmount = 10; tipCustomAmount = ''" :class="tipAmount === 10 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
-                                <span class="tip-amount-val">$10</span>
-                                <span class="tip-amount-sub">🎨 Patron</span>
-                            </button>
-                            <button type="button" @click="tipAmount = 25; tipCustomAmount = ''" :class="tipAmount === 25 && !tipCustomAmount ? 'is-active' : ''" class="tip-amount-btn">
-                                <span class="tip-amount-val">$25</span>
-                                <span class="tip-amount-sub">🚀 Super</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Custom Amount Input -->
-                    <div class="tip-field">
-                        <label>Or Custom Amount ($ USD)</label>
-                        <input type="number" min="1" max="500" step="1" x-model="tipCustomAmount" placeholder="e.g. 15">
-                    </div>
-
-                    <!-- Custom Note -->
-                    <div class="tip-field">
-                        <label>Note to creator (Optional)</label>
-                        <input type="text" x-model="tipNote" maxlength="300" placeholder="Thanks for this amazing prompt!">
-                    </div>
-
-                    <!-- Payment Method Selection -->
-                    <div class="tip-field" style="margin-bottom: 14px;">
-                        <label>Payment Method</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            <button type="button" @click="tipGateway = 'stripe'" :style="tipGateway === 'stripe' ? 'border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #fff;' : 'border-color: #27272e; background: #14141a; color: #a1a1aa;'" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; border-width: 1.5px; border-style: solid; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
-                                <span>💳</span> Card (Stripe)
-                            </button>
-                            <button type="button" @click="tipGateway = 'paypal'" :style="tipGateway === 'paypal' ? 'border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); color: #fff;' : 'border-color: #27272e; background: #14141a; color: #a1a1aa;'" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; border-width: 1.5px; border-style: solid; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;">
-                                <span>🅿️</span> PayPal
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- External Tip Link option if creator configured BuyMeACoffee/Stripe -->
-                    <template x-if="tipLink">
-                        <a :href="tipLink" target="_blank" rel="noopener noreferrer" class="tip-external-btn">
-                            ☕ Creator's External Tip Link (BuyMeACoffee / Stripe) <span>↗</span>
-                        </a>
-                    </template>
-
-                    <!-- Submit Button -->
-                    <button type="button" @click="submitTip()" :disabled="tipSubmitting" class="tip-submit-btn">
-                        <span x-show="!tipSubmitting">Tip $<span x-text="tipCustomAmount ? tipCustomAmount : tipAmount"></span> with <span x-text="tipGateway === 'paypal' ? 'PayPal' : 'Stripe'"></span> <span>→</span></span>
-                        <span x-show="tipSubmitting">Connecting to secure checkout…</span>
-                    </button>
-                </div>
-            </template>
         </div>
     </div>
     @if (!empty($directorySettings['custom_body_code']))
