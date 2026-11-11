@@ -73,6 +73,8 @@ class AdminController extends Controller
             'paypal_client_id' => ['nullable', 'string', 'max:255'],
             'paypal_secret' => ['nullable', 'string', 'max:255'],
             'paypal_mode' => ['nullable', 'in:sandbox,live'],
+            'custom_head_code' => ['nullable', 'string', 'max:65000'],
+            'custom_body_code' => ['nullable', 'string', 'max:65000'],
             'favicon' => ['nullable', 'file', 'max:2048', function ($attribute, $value, $fail) {
                 if (!$value instanceof \Illuminate\Http\UploadedFile) return;
                 $ext = strtolower($value->getClientOriginalExtension());
@@ -126,6 +128,9 @@ class AdminController extends Controller
         if ($mailPassword !== '') {
             $data['mail_password'] = Crypt::encryptString($mailPassword);
         }
+
+        $data['custom_head_code'] = (string) $request->input('custom_head_code', '');
+        $data['custom_body_code'] = (string) $request->input('custom_body_code', '');
 
         SiteSetting::updateValues($data);
         if ($request->boolean('clear_mail_password')) {

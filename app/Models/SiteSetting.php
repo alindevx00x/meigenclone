@@ -64,6 +64,8 @@ class SiteSetting extends Model
             'paypal_client_id' => '',
             'paypal_secret' => '',
             'paypal_mode' => 'sandbox',
+            'custom_head_code' => '',
+            'custom_body_code' => '',
         ];
     }
 

@@ -63,6 +63,9 @@
     @if (file_exists(public_path('build/manifest.json')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
+    @if (!empty($directorySettings['custom_head_code']))
+        {!! $directorySettings['custom_head_code'] !!}
+    @endif
 </head>
 <body x-data="globalAppModal()" @keydown.window.cmd.k.prevent="openSearch()" @keydown.window.ctrl.k.prevent="openSearch()" @open-tip-modal.window="openTip($event.detail)">
     @include('partials.sidebar')
@@ -255,6 +258,9 @@
             </template>
         </div>
     </div>
+    @if (!empty($directorySettings['custom_body_code']))
+        {!! $directorySettings['custom_body_code'] !!}
+    @endif
 </body>
 </html>
 

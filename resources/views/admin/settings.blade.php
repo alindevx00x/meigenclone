@@ -284,6 +284,21 @@
                     </div>
                 </div>
             </section>
+
+            <section class="settings-card">
+                <div class="settings-card-heading"><span class="shortcut-icon">&lt;/&gt;</span><div><h2>Code injection</h2><p>Inject custom tracking tags, analytics, pixels, or scripts into your directory pages.</p></div></div>
+                <div class="settings-fields">
+                    <label class="settings-field">Header Code Injection (<code>&lt;head&gt;</code>) <span class="optional-label">Optional</span>
+                        <textarea name="custom_head_code" rows="7" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.5; background: #fafafc;" placeholder="<!-- Injected immediately before </head> -->&#10;<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXX&quot;></script>&#10;<script>&#10;  window.dataLayer = window.dataLayer || [];&#10;  function gtag(){dataLayer.push(arguments);}&#10;  gtag('js', new Date());&#10;  gtag('config', 'G-XXXXX');&#10;</script>">{{ old('custom_head_code', $settings['custom_head_code'] ?? '') }}</textarea>
+                        <small>Injected right before the closing <code>&lt;/head&gt;</code> tag on every page. Use for Google Analytics (GA4), Meta Pixel, Google Tag Manager, custom CSS (<code>&lt;style&gt;</code>), or verification tags.</small>
+                    </label>
+
+                    <label class="settings-field">Body Code Injection (<code>&lt;body&gt;</code>) <span class="optional-label">Optional</span>
+                        <textarea name="custom_body_code" rows="7" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.5; background: #fafafc;" placeholder="<!-- Injected immediately before </body> -->&#10;<script>&#10;  // Custom chat widget, ad tags, or affiliate scripts&#10;</script>">{{ old('custom_body_code', $settings['custom_body_code'] ?? '') }}</textarea>
+                        <small>Injected right before the closing <code>&lt;/body&gt;</code> tag on every page. Use for live chat widgets (Crisp, Intercom, Tidio), affiliate trackers, ad network tags, or custom JavaScript.</small>
+                    </label>
+                </div>
+            </section>
         </div>
 
         <div class="settings-footer"><span>Settings are saved to your directory database.</span><button class="primary-button" type="submit">Save settings <span>→</span></button></div>

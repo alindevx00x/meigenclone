@@ -111,8 +111,8 @@ APP_URL=https://promptimage.cc
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=promptimage_db
-DB_USERNAME=promptimage_user
+DB_DATABASE=promptimagedb
+DB_USERNAME=promptimageusr
 DB_PASSWORD="YOUR_DATABASE_PASSWORD_HERE"
 
 SESSION_DRIVER=database
@@ -131,7 +131,7 @@ The repository includes the complete production dump `database/promptimage_expor
 
 Import it directly on the server:
 ```bash
-zcat /home/promptimage/htdocs/promptimage.cc/database/promptimage_export.sql.gz | mysql -u promptimage_user -p promptimage_db
+zcat /home/promptimage/htdocs/promptimage.cc/database/promptimage_export.sql.gz | mysql -u promptimageusr -p promptimagedb
 ```
 
 ### 3.3 Transfer Local Cover Images
