@@ -187,7 +187,7 @@
     @else
         <div class="prompt-grid">
             @foreach ($prompts as $prompt)
-                @include('partials.prompt-card', ['prompt' => $prompt])
+                @include('partials.prompt-card', ['prompt' => $prompt, 'priority' => $loop->index < 4])
             @endforeach
         </div>
         <div class="pagination-wrap">{{ $prompts->links() }}</div>

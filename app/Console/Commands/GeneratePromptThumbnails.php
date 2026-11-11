@@ -12,7 +12,8 @@ class GeneratePromptThumbnails extends Command
 {
     protected $signature = 'prompt-covers:generate-thumbnails 
                             {--limit=0 : Maximum number of thumbnails to generate in this run (0 for all)} 
-                            {--force : Regenerate even if thumbnail already exists}';
+                            {--force : Regenerate even if thumbnail already exists}
+                            {--reverse : Process oldest prompts first instead of newest}';
 
     protected $description = 'Generate WebP thumbnails (max 540px) for existing prompt cover images.';
 
@@ -21,10 +22,12 @@ class GeneratePromptThumbnails extends Command
         $disk = Storage::disk('public');
         $force = (bool) $this->option('force');
         $limit = (int) $this->option('limit');
+        $reverse = (bool) $this->option('reverse');
 
         $query = Prompt::query()
             ->whereNotNull('image_path')
-            ->where('image_path', '!=', '');
+            ->where('image_path', '!=', '')
+            ->orderBy($reverse ? 'id' : 'id', $reverse ? 'asc' : 'desc');
 
         $totalFound = $query->count();
         $this->info("Found {$totalFound} prompt covers in total.");

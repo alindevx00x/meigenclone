@@ -69,6 +69,16 @@
                     <textarea name="message" rows="6" required placeholder="Describe your inquiry in detail..." style="margin-top: 6px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 12px 14px; font-size: 13.5px; font-family: inherit; line-height: 1.5; resize: vertical; box-sizing: border-box;">{{ old('message') }}</textarea>
                 </label>
 
+                @if (($settings['cloudflare_turnstile_enabled'] ?? '0') === '1' && !empty($settings['cloudflare_turnstile_site_key']))
+                    <div style="margin-top: 16px; margin-bottom: 8px;">
+                        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                        <div class="cf-turnstile" data-sitekey="{{ $settings['cloudflare_turnstile_site_key'] }}" data-theme="light"></div>
+                        @error('turnstile')
+                            <span style="color: #ef4444; font-size: 12px; display: block; margin-top: 4px; font-weight: 500;">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @endif
+
                 <div class="contact-submit-row">
                     <span style="font-size: 12px; color: #9ca3af;">Protected by rate-limiting & spam filters.</span>
                     <button class="primary-button" type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 22px; font-size: 13.5px; font-weight: 600; border-radius: 8px; background: #6366f1; color: #fff; border: 0; cursor: pointer;">

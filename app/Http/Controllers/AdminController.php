@@ -73,6 +73,9 @@ class AdminController extends Controller
             'paypal_client_id' => ['nullable', 'string', 'max:255'],
             'paypal_secret' => ['nullable', 'string', 'max:255'],
             'paypal_mode' => ['nullable', 'in:sandbox,live'],
+            'cloudflare_turnstile_enabled' => ['nullable'],
+            'cloudflare_turnstile_site_key' => ['nullable', 'string', 'max:255'],
+            'cloudflare_turnstile_secret_key' => ['nullable', 'string', 'max:255'],
             'custom_head_code' => ['nullable', 'string', 'max:65000'],
             'custom_body_code' => ['nullable', 'string', 'max:65000'],
             'favicon' => ['nullable', 'file', 'max:2048', function ($attribute, $value, $fail) {
@@ -107,7 +110,7 @@ class AdminController extends Controller
 
         $data['featured_prompt_id'] = $request->input('featured_prompt_id') ?: '';
 
-        foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled', 'require_email_verification', 'stripe_enabled', 'paypal_enabled'] as $toggle) {
+        foreach (['allow_registrations', 'allow_submissions', 'require_approval', 'mail_settings_enabled', 'require_email_verification', 'stripe_enabled', 'paypal_enabled', 'cloudflare_turnstile_enabled'] as $toggle) {
             $data[$toggle] = $request->boolean($toggle) ? '1' : '0';
         }
 
@@ -115,7 +118,8 @@ class AdminController extends Controller
             'storage_driver', 'storage_aws_access_key_id', 'storage_aws_secret_access_key',
             'storage_aws_default_region', 'storage_aws_bucket', 'storage_aws_url', 'storage_aws_endpoint',
             'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
-            'paypal_client_id', 'paypal_secret', 'paypal_mode'
+            'paypal_client_id', 'paypal_secret', 'paypal_mode',
+            'cloudflare_turnstile_site_key', 'cloudflare_turnstile_secret_key'
         ] as $settingKey) {
             if ($request->has($settingKey)) {
                 $data[$settingKey] = (string) $request->input($settingKey, '');

@@ -64,6 +64,9 @@ class SiteSetting extends Model
             'paypal_client_id' => '',
             'paypal_secret' => '',
             'paypal_mode' => 'sandbox',
+            'cloudflare_turnstile_enabled' => '0',
+            'cloudflare_turnstile_site_key' => '',
+            'cloudflare_turnstile_secret_key' => '',
             'custom_head_code' => '',
             'custom_body_code' => '',
         ];
@@ -85,7 +88,8 @@ class SiteSetting extends Model
                 $values['stripe_secret_key'],
                 $values['stripe_webhook_secret'],
                 $values['paypal_secret'],
-                $values['storage_aws_access_key_id']
+                $values['storage_aws_access_key_id'],
+                $values['cloudflare_turnstile_secret_key']
             );
         }
 

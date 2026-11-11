@@ -30,7 +30,6 @@
                 <input type="email" name="email" required placeholder="Enter your email for weekly Top 10..." class="footer-email-input">
                 <button type="submit" class="primary-button footer-subscribe-btn">Subscribe</button>
             </form>
-            <div class="footer-note-sub">Weekly digest powered by SMTP. No spam, unsubscribe anytime.</div>
         </div>
 
         <!-- Explore Prompts Column -->
@@ -55,7 +54,6 @@
                 @else
                     <li><a href="{{ route('dashboard.prompts.create') }}">Publish a Prompt</a></li>
                 @endguest
-                <li><a href="{{ route('sitemap') }}">XML Sitemap</a></li>
             </ul>
         </div>
 

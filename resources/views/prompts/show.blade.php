@@ -22,13 +22,48 @@
 </script>
 @endsection
 @section('content')
-<div class="detail-page">
+<div class="detail-page" x-data="{ lightboxOpen: false }">
     <a class="back-link" href="{{ url()->previous() !== url()->current() ? url()->previous() : route('prompts.index') }}"><span>←</span> Back to gallery</a>
     <div class="detail-layout">
         <div class="detail-visual">
-            @if ($prompt->cover_url)<img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}">@else<div class="image-placeholder detail-placeholder"><span>✦</span></div>@endif
+            @if ($prompt->cover_url)
+                <img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}" @click="lightboxOpen = true" style="cursor: zoom-in;" title="Click to enlarge image">
+                <button type="button" @click="lightboxOpen = true" class="detail-zoom-trigger" aria-label="Enlarge image" title="Click to view full size">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                    <span>Full size</span>
+                </button>
+            @else
+                <div class="image-placeholder detail-placeholder"><span>✦</span></div>
+            @endif
             <span class="model-chip">{{ $prompt->model }}</span>
         </div>
+
+        {{-- Full-screen Image Lightbox Modal with X Close Button --}}
+        @if ($prompt->cover_url)
+            <div x-show="lightboxOpen"
+                 x-cloak
+                 @keydown.escape.window="lightboxOpen = false"
+                 class="prompt-lightbox-overlay"
+                 @click.self="lightboxOpen = false"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-label="{{ $prompt->title }} - Full View">
+                <button type="button"
+                        class="prompt-lightbox-close"
+                        @click="lightboxOpen = false"
+                        aria-label="Close image preview"
+                        title="Close (Esc)">
+                    ✕
+                </button>
+                <div class="prompt-lightbox-content" @click.self="lightboxOpen = false">
+                    <img src="{{ $prompt->cover_url }}" alt="{{ $prompt->title }}" class="prompt-lightbox-img">
+                    <div class="prompt-lightbox-footer">
+                        <span class="prompt-lightbox-title">{{ $prompt->title }}</span>
+                        <span class="prompt-lightbox-model">{{ $prompt->model }}</span>
+                    </div>
+                </div>
+            </div>
+        @endif
         <div class="detail-info">
             <div class="detail-category"><span>{{ $prompt->category->icon }}</span> {{ $prompt->category->name }} <i>·</i> {{ $prompt->model }}</div>
             <h1>{{ $prompt->title }}</h1>

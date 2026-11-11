@@ -23,6 +23,39 @@ Route::get('/robots.txt', [PromptController::class, 'robots'])->name('robots');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware(['auth', 'throttle:30,1'])->name('prompts.favorite');
 
+// On-demand fast WebP thumbnail delivery & auto-generation
+Route::get('/storage/prompt-covers/thumbs/{filename}', function (string $filename) {
+    $thumbRelative = 'prompt-covers/thumbs/' . $filename;
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+    if ($disk->exists($thumbRelative)) {
+        return response()->file(storage_path('app/public/' . $thumbRelative), [
+            'Content-Type' => 'image/webp',
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+
+    $originalRelative = 'prompt-covers/' . $filename;
+    if ($disk->exists($originalRelative)) {
+        try {
+            $generated = \App\Support\WebpImageStorage::generateThumbnail($originalRelative, 540, 78);
+            if ($generated && $disk->exists($generated)) {
+                return response()->file(storage_path('app/public/' . $generated), [
+                    'Content-Type' => 'image/webp',
+                    'Cache-Control' => 'public, max-age=31536000, immutable',
+                ]);
+            }
+        } catch (\Throwable) {
+            // Fall through to original
+        }
+        return response()->file(storage_path('app/public/' . $originalRelative), [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    abort(404);
+})->where('filename', '[a-zA-Z0-9_\-\.]+')->name('prompt.thumbnail.serve');
+
 // Redirect removed legacy sections to Home
 Route::redirect('/generate', '/')->name('generations.index');
 Route::redirect('/remix', '/')->name('studio.remix');
@@ -88,6 +121,7 @@ Route::view('/gdpr', 'legal.gdpr')->name('legal.gdpr');
 Route::view('/cookies', 'legal.cookies')->name('legal.cookies');
 
 // Authentication
+Route::get('/api/check-username', [AuthController::class, 'checkUsername'])->middleware('throttle:60,1')->name('check.username');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.store');

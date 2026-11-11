@@ -82,14 +82,12 @@ class Prompt extends Model
             $filename = basename($this->image_path);
             $thumbRelPath = ($dir === '.' ? 'thumbs' : $dir.'/thumbs').'/'.$filename;
 
-            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($thumbRelPath)) {
-                $cdnUrl = SiteSetting::value('storage_aws_url');
-                if (! empty($cdnUrl)) {
-                    return rtrim($cdnUrl, '/').'/'.ltrim($thumbRelPath, '/');
-                }
-
-                return asset('storage/'.$thumbRelPath);
+            $cdnUrl = SiteSetting::value('storage_aws_url');
+            if (! empty($cdnUrl)) {
+                return rtrim($cdnUrl, '/').'/'.ltrim($thumbRelPath, '/');
             }
+
+            return asset('storage/'.$thumbRelPath);
         }
 
         return $this->cover_url;

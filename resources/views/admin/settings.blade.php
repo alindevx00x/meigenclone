@@ -250,6 +250,21 @@
             </section>
 
             <section class="settings-card">
+                <div class="settings-card-heading"><span class="shortcut-icon">🛡️</span><div><h2>Cloudflare Turnstile (Anti-Spam)</h2><p>Protect your contact form from bots and spam without annoying CAPTCHAs.</p></div></div>
+                <label class="settings-toggle"><span><strong>Enable Cloudflare Turnstile on Contact Form</strong><small>Blocks automated bot submissions and spam while keeping the experience frictionless for real visitors.</small></span><input type="checkbox" name="cloudflare_turnstile_enabled" value="1" @checked(($settings['cloudflare_turnstile_enabled'] ?? '0') === '1')><i aria-hidden="true"></i></label>
+                <div class="settings-fields settings-fields-inline">
+                    <label class="settings-field">Turnstile Site Key
+                        <input name="cloudflare_turnstile_site_key" value="{{ old('cloudflare_turnstile_site_key', $settings['cloudflare_turnstile_site_key'] ?? '') }}" placeholder="0x4AAAAAAAc...">
+                        <small>Public Site Key provided by the Cloudflare Turnstile dashboard.</small>
+                    </label>
+                    <label class="settings-field">Turnstile Secret Key
+                        <input type="password" name="cloudflare_turnstile_secret_key" autocomplete="new-password" value="{{ old('cloudflare_turnstile_secret_key', $settings['cloudflare_turnstile_secret_key'] ?? '') }}" placeholder="0x4AAAAAAAc...">
+                        <small>Secret Key used to securely verify challenge responses with Cloudflare API.</small>
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-card">
                 <div class="settings-card-heading"><span class="shortcut-icon">&lt;/&gt;</span><div><h2>Code injection</h2><p>Inject custom tracking tags, analytics, pixels, or scripts into your directory pages.</p></div></div>
                 <div class="settings-fields">
                     <label class="settings-field">Header Code Injection (<code>&lt;head&gt;</code>) <span class="optional-label">Optional</span>

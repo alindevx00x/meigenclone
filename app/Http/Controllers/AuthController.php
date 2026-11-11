@@ -103,6 +103,67 @@ class AuthController extends Controller
         return redirect()->route('dashboard.index')->with('success', 'Welcome to the community. Your profile is ready.');
     }
 
+    public function checkUsername(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $raw = (string) $request->query('username', '');
+        $username = strtolower(trim(ltrim($raw, '@')));
+
+        if ($username === '') {
+            return response()->json([
+                'available' => false,
+                'status' => 'empty',
+                'message' => 'Please enter a username.',
+            ]);
+        }
+
+        if (strlen($username) < 3) {
+            return response()->json([
+                'available' => false,
+                'status' => 'too_short',
+                'message' => 'Username must be at least 3 characters.',
+            ]);
+        }
+
+        if (strlen($username) > 30) {
+            return response()->json([
+                'available' => false,
+                'status' => 'too_long',
+                'message' => 'Username cannot exceed 30 characters.',
+            ]);
+        }
+
+        if (! preg_match('/^[a-zA-Z0-9_\.]+$/', $username)) {
+            return response()->json([
+                'available' => false,
+                'status' => 'invalid',
+                'message' => 'Only letters, numbers, underscores, and dots are allowed.',
+            ]);
+        }
+
+        if (in_array($username, User::reservedUsernames(), true)) {
+            return response()->json([
+                'available' => false,
+                'status' => 'reserved',
+                'message' => 'This username is reserved and cannot be used.',
+            ]);
+        }
+
+        $exists = User::where('username', $username)->exists();
+        if ($exists) {
+            return response()->json([
+                'available' => false,
+                'status' => 'taken',
+                'message' => "The username @{$username} is already taken.",
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'status' => 'available',
+            'message' => "The username @{$username} is available!",
+        ]);
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();

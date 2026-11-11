@@ -133,7 +133,7 @@ img { display: block; max-width: 100%; }
 .prompt-grid.is-masonry { grid-auto-rows:7px; }
 .prompt-grid.is-measuring { grid-auto-rows:auto!important; }
 .prompt-grid.is-measuring .prompt-card { grid-row-end:auto!important; }
-.prompt-card { min-width:0; overflow:hidden; border:1px solid #efeff1; border-radius:13px; background:#fff; box-shadow:0 2px 8px rgba(37,34,46,.025); transition:transform .2s,border-color .2s,box-shadow .2s; }
+.prompt-card { min-width:0; overflow:hidden; border:1px solid #efeff1; border-radius:13px; background:#fff; box-shadow:0 2px 8px rgba(37,34,46,.025); transition:transform .2s,border-color .2s,box-shadow .2s; content-visibility: auto; contain-intrinsic-size: 280px 380px; }
 .prompt-card:hover { transform:translateY(-2px); border-color:#e5e2ef; box-shadow:0 8px 22px rgba(37,34,46,.075); }
 .prompt-image { position:relative; display:block; overflow:hidden; aspect-ratio:.79; background:#f1eef7; }
 .prompt-card:nth-child(4n+1) .prompt-image { aspect-ratio:.74; }
@@ -430,7 +430,120 @@ input[type="checkbox"] {
 .back-link span { font-size:18px; }
 .detail-layout { display:grid; grid-template-columns:minmax(320px,.91fr) minmax(360px,1.09fr); gap:28px; align-items:start; }
 .detail-visual { position:relative; overflow:hidden; min-height:380px; max-height:790px; aspect-ratio:.78; border:1px solid #ededf0; border-radius:14px; background:#f1eef7; }
-.detail-visual > img { width:100%; height:100%; object-fit:cover; }
+.detail-visual > img { width:100%; height:100%; object-fit:cover; transition: transform 0.25s ease; }
+.detail-visual:hover > img { transform: scale(1.012); }
+.detail-zoom-trigger {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 99px;
+    background: rgba(18, 17, 26, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+.detail-zoom-trigger:hover {
+    background: rgba(18, 17, 26, 0.92);
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+/* Lightbox Modal & X Close Button */
+.prompt-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 14, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 24px;
+    box-sizing: border-box;
+    cursor: zoom-out;
+}
+.prompt-lightbox-close {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000000;
+}
+.prompt-lightbox-close:hover {
+    background: rgba(239, 68, 68, 0.85);
+    border-color: rgba(239, 68, 68, 1);
+    transform: scale(1.08) rotate(90deg);
+}
+.prompt-lightbox-content {
+    position: relative;
+    max-width: 95vw;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+.prompt-lightbox-img {
+    max-width: 95vw;
+    max-height: calc(90vh - 46px);
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85);
+    user-select: none;
+}
+.prompt-lightbox-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.prompt-lightbox-title {
+    color: #f3f4f6;
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.prompt-lightbox-model {
+    color: #a5b4fc;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 .detail-placeholder { min-height:400px; }
 .detail-info { padding:9px 5px; }
 .detail-category { display:flex; align-items:center; gap:7px; color:#777780; font-size:10.8px; }

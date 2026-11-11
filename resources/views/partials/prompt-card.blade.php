@@ -1,7 +1,13 @@
 <article class="prompt-card" data-prompt-id="{{ $prompt->id }}">
     <a class="prompt-image" href="{{ route('prompts.show', $prompt->slug) }}" aria-label="View {{ $prompt->title }}">
         @if ($prompt->cover_url)
-            <img src="{{ $prompt->thumbnail_url ?? $prompt->cover_url }}" alt="{{ $prompt->title }}" loading="lazy" decoding="async" width="400" height="500">
+            <img src="{{ $prompt->thumbnail_url ?? $prompt->cover_url }}"
+                 alt="{{ $prompt->title }}"
+                 loading="{{ ($priority ?? false) ? 'eager' : 'lazy' }}"
+                 fetchpriority="{{ ($priority ?? false) ? 'high' : 'auto' }}"
+                 decoding="async"
+                 width="400"
+                 height="500">
         @else
             <div class="image-placeholder"><span>✦</span><small>AI PROMPT</small></div>
         @endif
