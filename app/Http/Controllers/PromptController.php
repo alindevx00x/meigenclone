@@ -331,13 +331,61 @@ class PromptController extends Controller
     public function sitemap()
     {
         $categories = Category::all();
-        $creators = \App\Models\User::whereHas('prompts', fn ($q) => $q->where('status', 'approved'))->limit(200)->get();
-        $prompts = Prompt::with('category')->where('status', 'approved')->latest('approved_at')->limit(5000)->get();
+        $latestPromptAt = Prompt::where('status', 'approved')->latest('approved_at')->value('approved_at');
+        if ($latestPromptAt) {
+            $latestPromptAt = \Carbon\Carbon::parse($latestPromptAt);
+        }
 
         $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
         $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
 
-        return response()->view('seo.sitemap', compact('categories', 'creators', 'prompts', 'baseUrl'))
+        return response()->view('seo.sitemap-index', compact('categories', 'latestPromptAt', 'baseUrl'))
+            ->header('Content-Type', 'text/xml; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    }
+
+    public function sitemapMain()
+    {
+        $categories = Category::all();
+        $creators = \App\Models\User::whereHas('prompts', fn ($q) => $q->where('status', 'approved'))->limit(250)->get();
+
+        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
+
+        return response()->view('seo.sitemap-main', compact('categories', 'creators', 'baseUrl'))
+            ->header('Content-Type', 'text/xml; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    }
+
+    public function sitemapPrompts()
+    {
+        $prompts = Prompt::with('category')
+            ->where('status', 'approved')
+            ->latest('approved_at')
+            ->limit(10000)
+            ->get();
+
+        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
+
+        return response()->view('seo.sitemap-prompts', compact('prompts', 'baseUrl'))
+            ->header('Content-Type', 'text/xml; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    }
+
+    public function sitemapCategoryPrompts(string $slug)
+    {
+        $category = Category::where('slug', $slug)->firstOrFail();
+        $prompts = $category->prompts()
+            ->where('status', 'approved')
+            ->latest('approved_at')
+            ->limit(5000)
+            ->get();
+
+        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
+
+        return response()->view('seo.sitemap-prompts', compact('prompts', 'baseUrl'))
             ->header('Content-Type', 'text/xml; charset=utf-8')
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
     }

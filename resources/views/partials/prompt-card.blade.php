@@ -18,7 +18,8 @@
             @if ($prompt->user)
                 <a href="{{ route('creators.show', $prompt->user) }}" class="author-profile-link" style="display: flex; align-items: center; gap: 6px; text-decoration: none; min-width: 0; flex: 1 1 auto; color: inherit;">
                     @if ($prompt->user->avatar_url)
-                        <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->handle }}" class="avatar avatar-tiny" width="20" height="20" loading="lazy" decoding="async" style="object-fit: cover; flex-shrink: 0;">
+                        <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->handle }}" class="avatar avatar-tiny" width="20" height="20" loading="lazy" decoding="async" style="object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='grid';}">
+                        <span class="avatar avatar-tiny" style="flex-shrink: 0; display: none;">{{ strtoupper(substr(ltrim($prompt->user->handle, '@'), 0, 1)) }}</span>
                     @else
                         <span class="avatar avatar-tiny" style="flex-shrink: 0;">{{ strtoupper(substr(ltrim($prompt->user->handle, '@'), 0, 1)) }}</span>
                     @endif

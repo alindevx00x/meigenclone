@@ -98,7 +98,8 @@
                 @if ($prompt->user)
                     <a href="{{ route('creators.show', $prompt->user) }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
                         @if ($prompt->user->avatar_url)
-                            <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->name }}" class="avatar" style="object-fit: cover;">
+                            <img src="{{ $prompt->user->avatar_url }}" alt="{{ $prompt->user->name }}" class="avatar" style="object-fit: cover;" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='grid';}">
+                            <span class="avatar" style="display: none;">{{ str($prompt->user->name)->substr(0, 1)->upper() }}</span>
                         @else
                             <span class="avatar">{{ str($prompt->user->name)->substr(0, 1)->upper() }}</span>
                         @endif

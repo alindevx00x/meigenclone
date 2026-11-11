@@ -16,7 +16,10 @@
             <div class="creator-identity-group">
                 <div class="creator-avatar-wrap">
                     @if ($user->avatar_url)
-                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="creator-avatar-img">
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="creator-avatar-img" onerror="this.style.display='none'; if(this.nextElementSibling){this.nextElementSibling.style.display='grid';}">
+                        <div class="avatar creator-avatar-fallback" style="display: none;">
+                            {{ str($user->name)->substr(0, 1)->upper() }}
+                        </div>
                     @else
                         <div class="avatar creator-avatar-fallback">
                             {{ str($user->name)->substr(0, 1)->upper() }}

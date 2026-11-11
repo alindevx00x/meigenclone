@@ -251,48 +251,62 @@ function showToast(message) {
 
 const masonryRowSize = 7;
 const masonryGrids = [...document.querySelectorAll('.prompt-grid')];
-const masonryObservers = [];
-const pendingMasonryGrids = new Set();
-let masonryFrame = 0;
 
-function layoutMasonry(grid) {
-    const cards = [...grid.querySelectorAll('.prompt-card')];
-    if (!cards.length) return;
+function layoutCard(card, rowGap) {
+    const img = card.querySelector('.prompt-image');
+    const body = card.querySelector('.prompt-card-body');
+    if (!img || !body) return;
 
-    grid.classList.add('is-measuring');
-    const rowGap = Number.parseFloat(getComputedStyle(grid).rowGap) || 0;
-    const heights = cards.map((card) => card.getBoundingClientRect().height);
-    grid.classList.remove('is-measuring');
-    grid.classList.add('is-masonry');
+    const contentHeight = img.offsetHeight + body.offsetHeight + 2;
+    if (contentHeight <= 2) return;
 
-    cards.forEach((card, index) => {
-        const rowSpan = Math.max(1, Math.ceil((heights[index] + rowGap) / (masonryRowSize + rowGap)));
+    const rowSpan = Math.max(1, Math.ceil((contentHeight + rowGap) / (masonryRowSize + rowGap)));
+    if (card.dataset.masonrySpan !== String(rowSpan)) {
+        card.dataset.masonrySpan = String(rowSpan);
         card.style.gridRowEnd = `span ${rowSpan}`;
-    });
+    }
 }
 
-function scheduleMasonryLayout(grid) {
-    pendingMasonryGrids.add(grid);
-    if (masonryFrame) return;
+function layoutMasonry(grid) {
+    const cards = grid.querySelectorAll('.prompt-card');
+    if (!cards.length) return;
 
-    masonryFrame = window.requestAnimationFrame(() => {
-        pendingMasonryGrids.forEach(layoutMasonry);
-        pendingMasonryGrids.clear();
-        masonryFrame = 0;
-    });
+    grid.classList.add('is-masonry');
+    const rowGap = Number.parseFloat(getComputedStyle(grid).rowGap) || 12;
+
+    cards.forEach((card) => layoutCard(card, rowGap));
 }
 
 masonryGrids.forEach((grid) => {
     layoutMasonry(grid);
 
+    grid.querySelectorAll('.prompt-image img').forEach((img) => {
+        if (!img.complete) {
+            img.addEventListener('load', () => {
+                const card = img.closest('.prompt-card');
+                if (card) {
+                    const rowGap = Number.parseFloat(getComputedStyle(grid).rowGap) || 12;
+                    layoutCard(card, rowGap);
+                }
+            }, { once: true });
+        }
+    });
+
     if ('ResizeObserver' in window) {
-        const observer = new ResizeObserver(() => scheduleMasonryLayout(grid));
-        masonryObservers.push(observer);
-        grid.querySelectorAll('.prompt-image, .prompt-card-body').forEach((element) => observer.observe(element));
+        const observer = new ResizeObserver((entries) => {
+            const rowGap = Number.parseFloat(getComputedStyle(grid).rowGap) || 12;
+            for (const entry of entries) {
+                const card = entry.target.closest('.prompt-card');
+                if (card) {
+                    layoutCard(card, rowGap);
+                }
+            }
+        });
+        grid.querySelectorAll('.prompt-card-body').forEach((element) => observer.observe(element));
     }
 });
 
-window.addEventListener('resize', () => masonryGrids.forEach(scheduleMasonryLayout), { passive: true });
+window.addEventListener('resize', () => masonryGrids.forEach(layoutMasonry), { passive: true });
 
 document.addEventListener('click', async (event) => {
     const menuToggle = event.target.closest('[data-user-menu-toggle]');

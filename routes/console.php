@@ -15,9 +15,14 @@ Schedule::command('prompts:sync --latest-posts=100')
     ->appendOutputTo(storage_path('logs/scraper.log'))
     ->runInBackground();
 
-// Weekly maintenance: deduplicate prompt titles and optimize storage
+// Weekly maintenance: deduplicate prompt titles, clean broken avatars, and optimize storage
 Schedule::command('prompts:remove-duplicates')
     ->weeklyOn(1, '03:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('avatars:clean-broken')
+    ->weeklyOn(1, '04:00')
     ->withoutOverlapping()
     ->runInBackground();
 

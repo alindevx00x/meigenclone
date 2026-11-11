@@ -48,29 +48,29 @@
         @endif
 
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1 1 300px;">
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by title, prompt text, creator…" style="flex: 1 1 220px; min-height: 38px;" aria-label="Search prompts">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by title, prompt text, creator…" class="table-filter-input" style="flex: 1 1 220px; min-height: 38px;" aria-label="Search prompts">
             
-            <select name="category_id" style="min-height: 38px; width: 150px;" aria-label="Filter by category">
+            <select name="category_id" class="table-filter-select" style="min-height: 38px; width: 150px;" aria-label="Filter by category">
                 <option value="">All Categories</option>
                 @foreach ($categories as $cat)
                     <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>{{ $cat->icon }} {{ $cat->name }}</option>
                 @endforeach
             </select>
 
-            <select name="model" style="min-height: 38px; width: 140px;" aria-label="Filter by AI model">
+            <select name="model" class="table-filter-select" style="min-height: 38px; width: 140px;" aria-label="Filter by AI model">
                 <option value="">All Models</option>
                 @foreach ($models as $mod)
                     <option value="{{ $mod->name }}" @selected(request('model') === $mod->name)>{{ $mod->icon }} {{ $mod->name }}</option>
                 @endforeach
             </select>
 
-            <select name="featured" style="min-height: 38px; width: 130px;" aria-label="Filter by featured status">
+            <select name="featured" class="table-filter-select" style="min-height: 38px; width: 130px;" aria-label="Filter by featured status">
                 <option value="">Featured: Any</option>
                 <option value="1" @selected(request('featured') === '1')>Featured only</option>
                 <option value="0" @selected(request('featured') === '0')>Standard only</option>
             </select>
 
-            <select name="sort" style="min-height: 38px; width: 140px;" aria-label="Sort prompts">
+            <select name="sort" class="table-filter-select" style="min-height: 38px; width: 140px;" aria-label="Sort prompts">
                 <option value="newest" @selected(request('sort', 'newest') === 'newest')>Newest first</option>
                 <option value="oldest" @selected(request('sort') === 'oldest')>Oldest first</option>
                 <option value="likes" @selected(request('sort') === 'likes')>Most likes</option>

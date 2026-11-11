@@ -56,21 +56,21 @@
     <!-- Search & Filter Controls -->
     <form class="panel-card" method="GET" action="{{ route('admin.users.index') }}" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1 1 300px;">
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by name or email…" style="flex: 1 1 200px; min-height: 38px;" aria-label="Search members">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by name or email…" class="table-filter-input" style="flex: 1 1 200px; min-height: 38px;" aria-label="Search members">
             
-            <select name="role" style="min-height: 38px; width: 140px;" aria-label="Filter by role">
+            <select name="role" class="table-filter-select" style="min-height: 38px; width: 140px;" aria-label="Filter by role">
                 <option value="">All Roles</option>
                 <option value="admin" @selected(request('role') === 'admin')>Administrator</option>
                 <option value="user" @selected(request('role') === 'user')>Creator</option>
             </select>
 
-            <select name="status" style="min-height: 38px; width: 140px;" aria-label="Filter by status">
+            <select name="status" class="table-filter-select" style="min-height: 38px; width: 140px;" aria-label="Filter by status">
                 <option value="">All Statuses</option>
                 <option value="active" @selected(request('status') === 'active')>Active</option>
                 <option value="suspended" @selected(request('status') === 'suspended')>Suspended</option>
             </select>
 
-            <select name="sort" style="min-height: 38px; width: 150px;" aria-label="Sort members">
+            <select name="sort" class="table-filter-select" style="min-height: 38px; width: 150px;" aria-label="Sort members">
                 <option value="newest" @selected(request('sort', 'newest') === 'newest')>Newest first</option>
                 <option value="oldest" @selected(request('sort') === 'oldest')>Oldest first</option>
                 <option value="prompts" @selected(request('sort') === 'prompts')>Most submissions</option>

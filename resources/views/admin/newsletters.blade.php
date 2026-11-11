@@ -68,7 +68,7 @@
             @if (request('status'))
                 <input type="hidden" name="status" value="{{ request('status') }}">
             @endif
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by email..." style="padding: 7px 12px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 6px; min-width: 240px;">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by email..." class="table-filter-input" style="padding: 7px 12px; font-size: 13px; min-width: 240px;">
             <button class="primary-button" type="submit" style="padding: 7px 14px; font-size: 12.5px;">Filter</button>
             @if (request('q') || request('status'))
                 <a href="{{ route('admin.newsletters.index') }}" class="secondary-button" style="padding: 7px 12px; font-size: 12.5px;">Reset</a>
