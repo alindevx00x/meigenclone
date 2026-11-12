@@ -39,6 +39,7 @@
                 <li><a href="{{ route('prompts.index') }}">Featured Prompts</a></li>
                 <li><a href="{{ route('prompts.index', ['sort' => 'newest']) }}">Newest Prompts</a></li>
                 <li><a href="{{ route('prompts.index', ['sort' => 'popular']) }}">Most Popular</a></li>
+                <li><a href="{{ route('blog.index') }}">Blog &amp; Guides</a></li>
                 <li><a href="{{ route('prompts.index') }}#sidebar">Categories</a></li>
             </ul>
         </div>
@@ -47,6 +48,8 @@
         <div class="footer-col">
             <div class="footer-col-title">Community</div>
             <ul class="footer-nav-list">
+                <li><a href="{{ route('about') }}">About Us</a></li>
+                <li><a href="{{ route('blog.index') }}">Prompt Tutorials</a></li>
                 <li><a href="{{ route('prompts.index', ['sort' => 'popular']) }}">Trending Today</a></li>
                 <li><a href="{{ auth()->check() ? route('dashboard.index') : route('login') }}">Creator Dashboard</a></li>
                 @guest
@@ -61,6 +64,7 @@
         <div class="footer-col">
             <div class="footer-col-title">Legal &amp; Privacy</div>
             <ul class="footer-nav-list">
+                <li><a href="{{ route('about') }}">About PromptImage</a></li>
                 <li><a href="{{ route('legal.privacy') }}">Privacy Policy</a></li>
                 <li><a href="{{ route('legal.terms') }}">Terms of Service</a></li>
                 <li><a href="{{ route('contact.index') }}">Contact Us</a></li>
@@ -76,6 +80,10 @@
             &copy; {{ date('Y') }} {{ $directorySettings['site_name'] }}. All rights reserved. Built for creators and prompt artists worldwide.
         </div>
         <div class="footer-bottom-links">
+            <a href="{{ route('about') }}">About</a>
+            <span>&bull;</span>
+            <a href="{{ route('blog.index') }}">Blog</a>
+            <span>&bull;</span>
             <a href="{{ route('legal.gdpr') }}">GDPR Compliant</a>
             <span>&bull;</span>
             <a href="{{ route('legal.privacy') }}">Privacy</a>

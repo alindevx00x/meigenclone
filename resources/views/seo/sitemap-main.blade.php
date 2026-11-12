@@ -46,7 +46,36 @@
         </url>
     @endforeach
 
-    <!-- Information, Legal & Contact Pages -->
+    <!-- Information, Blog & Legal Pages -->
+    <url>
+        <loc>{{ $baseUrl }}/about</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.85</priority>
+    </url>
+    <url>
+        <loc>{{ $baseUrl }}/blog</loc>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    @if (!empty($blogCategories))
+        @foreach ($blogCategories as $bcat)
+            <url>
+                <loc>{{ $baseUrl }}/blog/category/{{ $bcat->slug }}</loc>
+                <changefreq>weekly</changefreq>
+                <priority>0.8</priority>
+            </url>
+        @endforeach
+    @endif
+    @if (!empty($blogPosts))
+        @foreach ($blogPosts as $bpost)
+            <url>
+                <loc>{{ $baseUrl }}/blog/{{ $bpost->slug }}</loc>
+                <lastmod>{{ $bpost->updated_at ? $bpost->updated_at->toIso8601String() : now()->toIso8601String() }}</lastmod>
+                <changefreq>weekly</changefreq>
+                <priority>0.85</priority>
+            </url>
+        @endforeach
+    @endif
     <url>
         <loc>{{ $baseUrl }}/contact</loc>
         <changefreq>monthly</changefreq>

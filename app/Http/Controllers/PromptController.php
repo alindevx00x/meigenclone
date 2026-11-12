@@ -348,11 +348,13 @@ class PromptController extends Controller
     {
         $categories = Category::all();
         $creators = \App\Models\User::whereHas('prompts', fn ($q) => $q->where('status', 'approved'))->limit(250)->get();
+        $blogCategories = \App\Models\BlogCategory::all();
+        $blogPosts = \App\Models\BlogPost::published()->latest('updated_at')->limit(500)->get();
 
         $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
         $baseUrl = $canonicalBase !== '' ? rtrim($canonicalBase, '/') : url('/');
 
-        return response()->view('seo.sitemap-main', compact('categories', 'creators', 'baseUrl'))
+        return response()->view('seo.sitemap-main', compact('categories', 'creators', 'baseUrl', 'blogCategories', 'blogPosts'))
             ->header('Content-Type', 'text/xml; charset=utf-8')
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
     }

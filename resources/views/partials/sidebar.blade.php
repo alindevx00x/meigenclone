@@ -11,6 +11,8 @@
     <nav class="side-scroll" aria-label="Main navigation">
         <div class="side-group">
             <a class="side-link {{ request()->routeIs('prompts.index', 'prompts.show') && !request('category') ? 'is-active' : '' }}" href="{{ route('prompts.index') }}"><span class="side-icon">⌂</span><span>Home</span></a>
+            <a class="side-link {{ request()->routeIs('blog.*') ? 'is-active' : '' }}" href="{{ route('blog.index') }}"><span class="side-icon">✦</span><span>Blog</span></a>
+            <a class="side-link {{ request()->routeIs('about') ? 'is-active' : '' }}" href="{{ route('about') }}"><span class="side-icon">ⓘ</span><span>About Us</span></a>
             <a class="side-link" href="{{ auth()->check() ? route('dashboard.index').'#favorites' : route('login') }}"><span class="side-icon">♡</span><span>Favorites</span></a>
             @auth
                 <a class="side-link {{ request()->routeIs('dashboard.profile.*') ? 'is-active' : '' }}" href="{{ route('dashboard.profile.edit') }}"><span class="side-icon">⚙</span><span>Profile settings</span></a>
@@ -26,6 +28,8 @@
                 <div class="side-section admin-side-section">
                     <div class="side-heading">Admin tools</div>
                     <a class="side-link {{ request()->routeIs('admin.prompts.*') ? 'is-active' : '' }}" href="{{ route('admin.prompts.index', ['status' => 'pending']) }}"><span class="side-icon">◷</span><span>Review queue</span></a>
+                    <a class="side-link {{ request()->routeIs('admin.blog.index', 'admin.blog.create', 'admin.blog.edit') ? 'is-active' : '' }}" href="{{ route('admin.blog.index') }}"><span class="side-icon">✎</span><span>Blog Posts</span></a>
+                    <a class="side-link {{ request()->routeIs('admin.blog.categories.*') ? 'is-active' : '' }}" href="{{ route('admin.blog.categories.index') }}"><span class="side-icon">🏷</span><span>Blog Topics</span></a>
                     <a class="side-link {{ request()->routeIs('admin.categories.*') ? 'is-active' : '' }}" href="{{ route('admin.categories.index') }}"><span class="side-icon">▦</span><span>Categories</span></a>
                     <a class="side-link {{ request()->routeIs('admin.models.*') ? 'is-active' : '' }}" href="{{ route('admin.models.index') }}"><span class="side-icon">◈</span><span>AI Models</span></a>
                     <a class="side-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}" href="{{ route('admin.users.index') }}"><span class="side-icon">◎</span><span>Members</span></a>

@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CreatorController;
@@ -128,6 +131,14 @@ Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request
 
 Route::get('/newsletter/unsubscribe/{email}', [AdminController::class, 'unsubscribeNewsletter'])->name('newsletter.unsubscribe');
 
+// About Us Page (SEO-Optimized)
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+
+// Blog & Knowledge Base (Guides & Tutorials)
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/category/{slug}', [BlogController::class, 'category'])->name('blog.category');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+
 // Contact Page
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
@@ -196,6 +207,28 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::patch('/newsletters/{subscriber}/active', [AdminController::class, 'toggleNewsletterActive'])->name('newsletters.active');
     Route::delete('/newsletters/{subscriber}', [AdminController::class, 'destroyNewsletter'])->name('newsletters.destroy');
     Route::get('/newsletters/export', [AdminController::class, 'exportNewsletters'])->name('newsletters.export');
+    // Pinterest Bulk Export Download
+    Route::get('/prompts/pinterest-export-zip', function () {
+        $zipPath = storage_path('app/pinterest-bulk-csv-all.zip');
+        if (!file_exists($zipPath)) {
+            abort(404, 'Pinterest export archive not found. Run php artisan prompts:export-pinterest-bulk first.');
+        }
+        return response()->download($zipPath, 'promptimage-pinterest-bulk-all-25-parts.zip');
+    })->name('prompts.pinterest_export_zip');
+
+    // Blog Management
+    Route::get('/blog/posts', [AdminBlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/posts/create', [AdminBlogController::class, 'create'])->name('blog.create');
+    Route::post('/blog/posts', [AdminBlogController::class, 'store'])->name('blog.store');
+    Route::get('/blog/posts/{post}/edit', [AdminBlogController::class, 'edit'])->name('blog.edit');
+    Route::put('/blog/posts/{post}', [AdminBlogController::class, 'update'])->name('blog.update');
+    Route::delete('/blog/posts/{post}', [AdminBlogController::class, 'destroy'])->name('blog.destroy');
+    Route::post('/blog/upload-image', [AdminBlogController::class, 'uploadImage'])->name('blog.upload_image');
+    Route::get('/blog/categories', [AdminBlogController::class, 'categories'])->name('blog.categories.index');
+    Route::post('/blog/categories', [AdminBlogController::class, 'storeCategory'])->name('blog.categories.store');
+    Route::put('/blog/categories/{category}', [AdminBlogController::class, 'updateCategory'])->name('blog.categories.update');
+    Route::delete('/blog/categories/{category}', [AdminBlogController::class, 'destroyCategory'])->name('blog.categories.destroy');
+
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });

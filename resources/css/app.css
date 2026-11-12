@@ -2253,3 +2253,101 @@ a.stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(30,27
     border-color: #94a3b8 !important;
     background: #f8fafc !important;
 }
+
+/* ==========================================================================
+   Blog & Article Typography Styling
+   ========================================================================== */
+.blog-article-content {
+    color: #1e293b;
+    font-size: 16px;
+    line-height: 1.82;
+}
+
+.blog-article-content h2 {
+    font-size: clamp(20px, 2.8vw, 26px);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.015em;
+    margin-top: 36px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    scroll-margin-top: 90px;
+}
+
+.blog-article-content h3 {
+    font-size: clamp(17px, 2.2vw, 20px);
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+    margin-top: 26px;
+    margin-bottom: 10px;
+    scroll-margin-top: 90px;
+}
+
+.blog-article-content p {
+    margin-bottom: 18px;
+    color: #334155;
+}
+
+.blog-article-content blockquote {
+    background: #f8fafc;
+    border-left: 4px solid #6366f1;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 22px 0;
+    color: #1e293b;
+    font-style: italic;
+    font-size: 15.5px;
+    line-height: 1.65;
+}
+
+.blog-article-content pre {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+.blog-article-content code {
+    background: #f1f5f9;
+    color: #4f46e5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.blog-article-content pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+.blog-article-content ul,
+.blog-article-content ol {
+    margin-bottom: 20px;
+    padding-left: 24px;
+    color: #334155;
+}
+
+.blog-article-content li {
+    margin-bottom: 8px;
+}
+
+.blog-article-content img {
+    border-radius: 10px;
+    max-width: 100%;
+    height: auto;
+    margin: 22px 0;
+    border: 1.5px solid #e2e8f0;
+}
+
+.blog-page article:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}

@@ -4,11 +4,17 @@
 @section('toolbar-title', 'Prompt management')
 @section('content')
 <div class="workspace-page admin-page">
-    <div class="page-heading list-heading">
+    <div class="page-heading list-heading" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div>
             <span class="section-kicker">LIBRARY MANAGEMENT</span>
             <h1>Prompt submissions</h1>
             <p>Review community posts, search the library, and curate the public gallery.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a class="outline-button" href="{{ route('admin.prompts.pinterest_export_zip') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;">
+                <span style="color: #e60023; font-size: 16px; line-height: 1;">📌</span>
+                <span>Pinterest Bulk Pins (All 25 Parts Zip)</span>
+            </a>
         </div>
     </div>
 
