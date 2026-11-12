@@ -31,6 +31,33 @@
         </div>
     @endif
 
+    <!-- Current Mail Delivery Status Banner -->
+    @php
+        $settings = \App\Models\SiteSetting::current(true);
+        $isCustom = $settings['mail_settings_enabled'] === '1';
+        $isBrevo = str_contains($settings['mail_host'] ?? '', 'brevo');
+    @endphp
+    <div style="background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">{{ $isBrevo ? '⚡' : '✉️' }}</span>
+            <div>
+                <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
+                    Active Mail Transport: 
+                    <span style="color: {{ $isBrevo ? '#009262' : '#6366f1' }}; font-weight: 800;">
+                        {{ $isBrevo ? 'Brevo SMTP Relay (smtp-relay.brevo.com)' : ($isCustom ? 'Custom SMTP (' . ($settings['mail_host'] ?: 'host not set') . ')' : 'Server Default Environment') }}
+                    </span>
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                    From: <strong>{{ $settings['mail_from_address'] ?: config('mail.from.address') }}</strong>
+                    &middot; Sender: {{ $settings['mail_from_name'] ?: config('mail.from.name') }}
+                </div>
+            </div>
+        </div>
+        <a href="{{ route('admin.settings') }}" class="outline-button" style="font-size: 12px; padding: 5px 12px; font-weight: 600;">
+            ⚙️ Configure Brevo / SMTP in Settings →
+        </a>
+    </div>
+
     <!-- Status Stats -->
     <div class="stats-row admin-stats" style="margin-bottom: 24px;">
         <div class="stat-card">

@@ -74,11 +74,11 @@
 
                 <label>
                     <span>Creator Handle / Username <span class="required-star">*</span></span>
-                    <div class="username-input-wrap">
-                        <span class="username-prefix">@</span>
-                        <input type="text" name="username" required maxlength="30" value="{{ old('username', auth()->user()->username) }}" placeholder="username">
+                    <div class="username-input-group" style="display: flex; align-items: stretch; width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; transition: border-color 0.15s, box-shadow 0.15s;">
+                        <span class="username-prefix-addon" style="display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; background: #f8fafc; color: #6366f1; font-weight: 700; font-size: 15px; border-right: 1.5px solid #e2e8f0; user-select: none;">@</span>
+                        <input type="text" name="username" required maxlength="30" value="{{ old('username', auth()->user()->username) }}" placeholder="username" style="flex: 1; border: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 12px !important; min-height: 40px; font-size: 14px; font-weight: 500; color: #1e293b; background: transparent !important;">
                     </div>
-                    <small>Public URL: <span class="username-preview">{{ url('/creators/@') }}{{ old('username', auth()->user()->username) }}</span></small>
+                    <small style="margin-top: 4px; display: block;">Public URL: <span class="username-preview" style="font-weight: 600;">{{ url('/creators/@') }}{{ old('username', auth()->user()->username) }}</span></small>
                     @error('username') <small style="color: #c62828;">{{ $message }}</small> @enderror
                 </label>
 

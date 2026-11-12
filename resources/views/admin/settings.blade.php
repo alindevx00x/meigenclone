@@ -158,55 +158,111 @@
             </section>
 
             <section class="settings-card">
-                <div class="settings-card-heading"><span class="shortcut-icon">✉</span><div><h2>Email delivery</h2><p>Configure the outgoing mail transport and sender identity.</p></div></div>
-                <label class="settings-toggle settings-email-enable"><span><strong>Use custom email settings</strong><small>When disabled, Laravel uses the mail settings from your server environment.</small></span><input type="checkbox" name="mail_settings_enabled" value="1" @checked($settings['mail_settings_enabled'] === '1')><i aria-hidden="true"></i></label>
+                <div class="settings-card-heading">
+                    <span class="shortcut-icon">✉</span>
+                    <div>
+                        <h2>Email delivery &amp; Brevo integration</h2>
+                        <p>Configure outgoing transactional emails, newsletter digests, and Brevo / custom SMTP delivery.</p>
+                    </div>
+                </div>
+
+                <!-- Brevo Quick Helper / Auto-fill banner -->
+                <div style="background: linear-gradient(135deg, #0b996f15, #00926208); border: 1.5px solid #00926240; border-radius: 10px; padding: 16px 18px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: #009262; color: #fff; font-weight: 800; font-size: 16px;">B</span>
+                            <div>
+                                <strong style="font-size: 14px; color: #0f172a; display: block;">Using Brevo (formerly Sendinblue)?</strong>
+                                <small style="color: #475569; font-size: 12px;">Click below to automatically fill Brevo's verified SMTP relay host, port (587), and TLS encryption.</small>
+                            </div>
+                        </div>
+                        <button type="button" class="outline-button" onclick="applyBrevoPreset()" style="border-color: #009262 !important; color: #009262 !important; background: #fff !important; font-weight: 700; padding: 6px 14px; font-size: 12.5px; cursor: pointer;">
+                            ⚡ Auto-fill Brevo SMTP Settings
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 11.5px; color: #334155; line-height: 1.5; border-top: 1px dashed #00926230; padding-top: 8px;">
+                        <strong>Where to find your Brevo credentials:</strong> Log in to <a href="https://app.brevo.com/settings/keys/smtp" target="_blank" rel="noopener" style="color: #009262; font-weight: 600; text-decoration: underline;">Brevo &gt; Transactional &gt; Settings &gt; Configuration</a>. Copy your <strong>Login</strong> (paste into SMTP Username) and generate an <strong>SMTP Key</strong> (paste into SMTP Password). Ensure your Sender email is verified in Brevo.
+                    </div>
+                </div>
+
+                <label class="settings-toggle settings-email-enable">
+                    <span>
+                        <strong>Use custom email delivery</strong>
+                        <small>When enabled, all system emails and newsletter digests are sent via the SMTP server below.</small>
+                    </span>
+                    <input type="checkbox" id="mail_settings_enabled" name="mail_settings_enabled" value="1" @checked($settings['mail_settings_enabled'] === '1')>
+                    <i aria-hidden="true"></i>
+                </label>
+
                 <div class="settings-fields settings-fields-inline">
                     <label class="settings-field">Mail transport
-                        <select name="mail_mailer">
-                            <option value="smtp" @selected($settings['mail_mailer'] === 'smtp')>SMTP</option>
-                            <option value="log" @selected($settings['mail_mailer'] === 'log')>Log (development)</option>
+                        <select name="mail_mailer" id="mail_mailer">
+                            <option value="smtp" @selected($settings['mail_mailer'] === 'smtp')>SMTP (Brevo / Custom)</option>
+                            <option value="log" @selected($settings['mail_mailer'] === 'log')>Log (development only)</option>
                             <option value="array" @selected($settings['mail_mailer'] === 'array')>Array (preview only)</option>
                         </select>
-                        <small>SMTP sends mail through your provider. Log and Array do not deliver messages.</small>
+                        <small>SMTP sends real mail through Brevo or your provider.</small>
                     </label>
                     <label class="settings-field">Contact email <span class="optional-label">Optional</span>
-                        <input type="email" name="contact_email" value="{{ old('contact_email', $settings['contact_email']) }}" placeholder="support@example.com">
-                        <small>Public support address for your prompt directory.</small>
+                        <input type="email" name="contact_email" value="{{ old('contact_email', $settings['contact_email']) }}" placeholder="support@promptimage.cc">
+                        <small>Public support address for user contact messages.</small>
                     </label>
                     <label class="settings-field">SMTP host
-                        <input name="mail_host" value="{{ old('mail_host', $settings['mail_host']) }}" placeholder="smtp.example.com">
+                        <input name="mail_host" id="mail_host" value="{{ old('mail_host', $settings['mail_host']) }}" placeholder="smtp-relay.brevo.com">
                     </label>
                     <label class="settings-field">SMTP port
-                        <input type="number" name="mail_port" min="1" max="65535" value="{{ old('mail_port', $settings['mail_port']) }}" placeholder="587">
+                        <input type="number" name="mail_port" id="mail_port" min="1" max="65535" value="{{ old('mail_port', $settings['mail_port']) }}" placeholder="587">
                     </label>
                     <label class="settings-field">Connection encryption
-                        <select name="mail_encryption">
-                            <option value="tls" @selected($settings['mail_encryption'] === 'tls')>TLS / STARTTLS</option>
+                        <select name="mail_encryption" id="mail_encryption">
+                            <option value="tls" @selected($settings['mail_encryption'] === 'tls')>TLS / STARTTLS (Recommended for Brevo)</option>
                             <option value="ssl" @selected($settings['mail_encryption'] === 'ssl')>SSL</option>
                             <option value="none" @selected($settings['mail_encryption'] === 'none')>None</option>
                         </select>
                     </label>
-                    <label class="settings-field">SMTP username <span class="optional-label">Optional</span>
-                        <input name="mail_username" autocomplete="off" value="{{ old('mail_username', $settings['mail_username']) }}">
+                    <label class="settings-field">SMTP username / Brevo Login
+                        <input name="mail_username" id="mail_username" autocomplete="off" value="{{ old('mail_username', $settings['mail_username']) }}" placeholder="e.g. 783ab001@smtp-brevo.com or your Brevo account email">
                     </label>
-                    <label class="settings-field">SMTP password <span class="optional-label">Optional</span>
-                        <input type="password" name="mail_password" autocomplete="new-password" placeholder="{{ $settings['mail_password_configured'] ? 'Saved securely — leave blank to keep' : 'SMTP password or app key' }}">
-                        <small>The password is encrypted in the database and never shown here.</small>
+                    <label class="settings-field">SMTP password / Brevo Master Key
+                        <input type="password" name="mail_password" id="mail_password" autocomplete="new-password" placeholder="{{ $settings['mail_password_configured'] ? 'Saved securely — leave blank to keep' : 'Brevo SMTP key or password' }}">
+                        <small>Encrypted securely in database. Never exposed in plain text.</small>
                     </label>
                     @if ($settings['mail_password_configured'])
-                        <label class="settings-toggle settings-clear-secret"><span><strong>Remove saved SMTP password</strong><small>Use this if your provider no longer requires authentication.</small></span><input type="checkbox" name="clear_mail_password" value="1"><i aria-hidden="true"></i></label>
+                        <label class="settings-toggle settings-clear-secret"><span><strong>Remove saved SMTP password</strong><small>Check this to remove current password.</small></span><input type="checkbox" name="clear_mail_password" value="1"><i aria-hidden="true"></i></label>
                     @endif
-                    <label class="settings-field">Sender email
-                        <input type="email" name="mail_from_address" value="{{ old('mail_from_address', $settings['mail_from_address']) }}" placeholder="hello@example.com">
+                    <label class="settings-field">Sender email (Verified in Brevo)
+                        <input type="email" name="mail_from_address" id="mail_from_address" value="{{ old('mail_from_address', $settings['mail_from_address']) }}" placeholder="hello@promptimage.cc">
+                        <small>Must match a verified sender or domain in your Brevo account.</small>
                     </label>
                     <label class="settings-field">Sender name <span class="optional-label">Optional</span>
-                        <input name="mail_from_name" value="{{ old('mail_from_name', $settings['mail_from_name']) }}" placeholder="{{ $settings['site_name'] }}">
+                        <input name="mail_from_name" id="mail_from_name" value="{{ old('mail_from_name', $settings['mail_from_name']) }}" placeholder="{{ $settings['site_name'] }}">
                     </label>
                     <label class="settings-field">Reply-to email <span class="optional-label">Optional</span>
-                        <input type="email" name="mail_reply_to" value="{{ old('mail_reply_to', $settings['mail_reply_to']) }}" placeholder="support@example.com">
+                        <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ old('mail_reply_to', $settings['mail_reply_to']) }}" placeholder="support@promptimage.cc">
                     </label>
                 </div>
             </section>
+
+            <script>
+                function applyBrevoPreset() {
+                    const enabledCheck = document.getElementById('mail_settings_enabled');
+                    if (enabledCheck) enabledCheck.checked = true;
+
+                    const mailer = document.getElementById('mail_mailer');
+                    if (mailer) mailer.value = 'smtp';
+
+                    const host = document.getElementById('mail_host');
+                    if (host) host.value = 'smtp-relay.brevo.com';
+
+                    const port = document.getElementById('mail_port');
+                    if (port) port.value = '587';
+
+                    const encryption = document.getElementById('mail_encryption');
+                    if (encryption) encryption.value = 'tls';
+
+                    alert('Brevo SMTP settings applied! (Host: smtp-relay.brevo.com, Port: 587, Encryption: TLS).\n\nNow enter your Brevo SMTP Login in "SMTP username", your Brevo SMTP key in "SMTP password", and click "Save settings" at the bottom.');
+                }
+            </script>
 
 
 

@@ -48,9 +48,25 @@
             <strong>{{ number_format($stats['newsletters_count']) }}</strong>
             <small>Newsletter audience</small>
         </a>
+        <a class="stat-card" href="{{ route('admin.blog.index') }}">
+            <span class="stat-icon" style="color: #6366f1; background: #eef2ff;">✎</span>
+            <span class="stat-label">Blog Articles</span>
+            <strong>{{ number_format($stats['blog_posts']) }}</strong>
+            <small>{{ $stats['blog_categories'] }} blog categories</small>
+        </a>
     </div>
 
     <div class="admin-shortcuts">
+        <a href="{{ route('admin.blog.index') }}" style="border-left: 3px solid #6366f1;">
+            <span class="shortcut-icon">✎</span>
+            <span><strong>Manage blog posts</strong><small>{{ $stats['blog_posts'] }} articles published / drafted</small></span>
+            <b>→</b>
+        </a>
+        <a href="{{ route('admin.blog.categories.index') }}">
+            <span class="shortcut-icon">🏷</span>
+            <span><strong>Manage blog topics</strong><small>{{ $stats['blog_categories'] }} editorial categories</small></span>
+            <b>→</b>
+        </a>
         <a href="{{ route('admin.prompts.index') }}">
             <span class="shortcut-icon">▤</span>
             <span><strong>Manage prompts</strong><small>Approve, feature, or remove submissions</small></span>

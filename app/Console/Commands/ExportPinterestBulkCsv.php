@@ -4,9 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Prompt;
 use App\Models\SiteSetting;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use ZipArchive;
 
 class ExportPinterestBulkCsv extends Command
 {
@@ -17,6 +19,8 @@ class ExportPinterestBulkCsv extends Command
      */
     protected $signature = 'pinterest:export-bulk 
                             {--per-file=200 : Number of pins per CSV file}
+                            {--start-date=2026-11-13 : Start date for scheduled publishing (YYYY-MM-DD)}
+                            {--pins-per-day=6 : Number of pins to schedule per day}
                             {--domain= : Public domain to use for media URLs and links, e.g. https://promptimage.cc}
                             {--output-dir=storage/app/pinterest-exports : Destination directory for generated CSV files}';
 
@@ -25,7 +29,19 @@ class ExportPinterestBulkCsv extends Command
      *
      * @var string
      */
-    protected $description = 'Generate partitioned Pinterest bulk upload CSV files (200 pins per file) based on the official Pinterest CSV template';
+    protected $description = 'Generate partitioned Pinterest bulk upload CSV files (200 pins per file) with continuous scheduled publish dates starting Nov 13, 2026 (6 pins/day)';
+
+    /**
+     * Pinterest publish times for 6 pins per day (distributed throughout high-engagement hours).
+     */
+    protected array $dailySlots = [
+        ['hour' => 9, 'minute' => 0],   // 09:00 AM
+        ['hour' => 12, 'minute' => 0],  // 12:00 PM
+        ['hour' => 15, 'minute' => 0],  // 03:00 PM
+        ['hour' => 18, 'minute' => 0],  // 06:00 PM
+        ['hour' => 20, 'minute' => 30], // 08:30 PM
+        ['hour' => 22, 'minute' => 0],  // 10:00 PM
+    ];
 
     /**
      * Execute the console command.
@@ -33,12 +49,20 @@ class ExportPinterestBulkCsv extends Command
     public function handle()
     {
         $perFile = max(1, (int) $this->option('per-file'));
+        $pinsPerDay = max(1, (int) $this->option('pins-per-day'));
+        $startDateStr = (string) $this->option('start-date');
+
+        try {
+            $startDate = Carbon::parse($startDateStr)->startOfDay();
+        } catch (\Throwable) {
+            $startDate = Carbon::parse('2026-11-13')->startOfDay();
+        }
+
         $rawDomain = $this->option('domain')
             ?: SiteSetting::value('seo_canonical_base')
             ?: config('app.url', 'https://promptimage.cc');
 
         $baseUrl = rtrim($rawDomain, '/');
-        // Ensure scheme
         if (!Str::startsWith($baseUrl, ['http://', 'https://'])) {
             $baseUrl = 'https://' . $baseUrl;
         }
@@ -47,13 +71,13 @@ class ExportPinterestBulkCsv extends Command
         if (!File::isDirectory($outDir)) {
             File::makeDirectory($outDir, 0755, true);
         } else {
-            // Clean up old CSV files in export dir
             foreach (File::glob($outDir . '/*.csv') as $oldFile) {
                 @unlink($oldFile);
             }
         }
 
         $this->info("Exporting Pinterest Bulk Pins with base URL: {$baseUrl}");
+        $this->info("Start date: {$startDate->format('Y-m-d')} | {$pinsPerDay} pins per day");
         $this->info("Target directory: {$outDir}");
 
         $query = Prompt::with('category')
@@ -69,11 +93,12 @@ class ExportPinterestBulkCsv extends Command
             return 0;
         }
 
-        $this->info("Found {$total} approved prompts. Generating batches of {$perFile} pins...");
+        $this->info("Found {$total} approved prompts. Generating batches of {$perFile} pins with continuous scheduled dates...");
 
         $batchIndex = 1;
         $totalFiles = (int) ceil($total / $perFile);
-        $exportedCount = 0;
+        $globalPinIndex = 0;
+        $generatedFiles = [];
 
         $csvHeader = [
             'Title',
@@ -86,7 +111,12 @@ class ExportPinterestBulkCsv extends Command
             'Keywords',
         ];
 
-        $query->chunk($perFile, function ($prompts) use (&$batchIndex, $totalFiles, $outDir, $baseUrl, $csvHeader, &$exportedCount) {
+        $slotsCount = count($this->dailySlots);
+
+        $query->chunk($perFile, function ($prompts) use (
+            &$batchIndex, $totalFiles, $outDir, $baseUrl, $csvHeader, 
+            &$globalPinIndex, &$generatedFiles, $startDate, $pinsPerDay, $slotsCount
+        ) {
             $fileName = sprintf('pinterest-bulk-part-%02d-of-%02d.csv', $batchIndex, $totalFiles);
             $filePath = $outDir . DIRECTORY_SEPARATOR . $fileName;
 
@@ -96,14 +126,13 @@ class ExportPinterestBulkCsv extends Command
                 return false;
             }
 
-            // Write CSV Header
             fputcsv($fp, $csvHeader);
 
             foreach ($prompts as $prompt) {
                 // 1. Title (up to 100 chars on Pinterest)
                 $cleanTitle = Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags($prompt->title))), 95);
 
-                // 2. Media URL (Must be a publicly accessible image URL)
+                // 2. Media URL (Must be publicly accessible on live site)
                 $mediaUrl = '';
                 if (!empty($prompt->image_path)) {
                     $mediaUrl = $baseUrl . '/storage/' . ltrim($prompt->image_path, '/');
@@ -114,7 +143,7 @@ class ExportPinterestBulkCsv extends Command
                 // 3. Pinterest Board (Category name or fallback)
                 $board = $prompt->category?->name ?: 'AI Art Prompts';
 
-                // 4. Thumbnail (Blank for static images, only used for video pins)
+                // 4. Thumbnail (Only used for video pins)
                 $thumbnail = '';
 
                 // 5. Description (Pinterest limit is 500 characters)
@@ -127,8 +156,22 @@ class ExportPinterestBulkCsv extends Command
                 // 6. Link (Prompt detail page on live website)
                 $link = $baseUrl . '/prompts/' . $prompt->slug;
 
-                // 7. Publish date (Leave empty for instant draft/scheduling in Pinterest)
-                $publishDate = '';
+                // 7. Publish date: 6 pins per day starting Nov 13, 2026
+                // Calculate which day and which daily slot this pin falls into
+                $dayOffset = (int) floor($globalPinIndex / $pinsPerDay);
+                $slotIndex = $globalPinIndex % $pinsPerDay;
+
+                // Pick hour/min from dailySlots, cycling if pinsPerDay > slots
+                $slotConfig = $this->dailySlots[$slotIndex % $slotsCount];
+                
+                $pinDate = (clone $startDate)
+                    ->addDays($dayOffset)
+                    ->setHour($slotConfig['hour'])
+                    ->setMinute($slotConfig['minute'])
+                    ->setSecond(0);
+
+                // Standard Pinterest bulk publish date format: YYYY-MM-DD HH:MM:SS
+                $publishDate = $pinDate->format('Y-m-d H:i:s');
 
                 // 8. Keywords (Comma-separated tags for Pinterest search discovery)
                 $keywordsList = [
@@ -141,7 +184,6 @@ class ExportPinterestBulkCsv extends Command
                 if ($prompt->model) {
                     $keywordsList[] = strtolower($prompt->model);
                 }
-                // Extract 2 key words from title
                 $titleWords = array_slice(array_filter(explode(' ', strtolower(preg_replace('/[^a-zA-Z0-9\s]/', '', $prompt->title))), fn($w) => strlen($w) > 3), 0, 3);
                 foreach ($titleWords as $tw) {
                     $keywordsList[] = $tw;
@@ -159,16 +201,35 @@ class ExportPinterestBulkCsv extends Command
                     $keywords,
                 ]);
 
-                $exportedCount++;
+                $globalPinIndex++;
             }
 
             fclose($fp);
-            $this->line("  ✓ Generated: {$fileName} (" . count($prompts) . " pins)");
+            $generatedFiles[] = $filePath;
+            $this->line("  ✓ Generated {$fileName} (" . count($prompts) . " pins)");
             $batchIndex++;
         });
 
-        $this->info("Successfully exported {$exportedCount} pins across {$totalFiles} CSV files!");
-        $this->info("Files are located at: {$outDir}");
+        // Create or update zip archive
+        $zipPath = storage_path('app/pinterest-bulk-csv-all.zip');
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($generatedFiles as $f) {
+                $zip->addFile($f, basename($f));
+            }
+            $zip->close();
+            $this->info("✓ Compressed all CSV partition files into: {$zipPath}");
+        }
+
+        $totalDays = (int) ceil($globalPinIndex / $pinsPerDay);
+        $finalDate = (clone $startDate)->addDays($totalDays - 1)->format('Y-m-d');
+
+        $this->newLine();
+        $this->info("🎉 Completed Pinterest Bulk Export!");
+        $this->info("Total Pins: {$globalPinIndex}");
+        $this->info("Total Files: " . count($generatedFiles));
+        $this->info("Publish Schedule: {$startDate->format('Y-m-d')} to {$finalDate} ({$totalDays} days, {$pinsPerDay} pins/day)");
+        $this->info("Zip Download: {$zipPath}");
 
         return 0;
     }

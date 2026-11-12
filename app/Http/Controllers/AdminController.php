@@ -158,6 +158,8 @@ class AdminController extends Controller
             'contacts_unread' => ContactMessage::where('is_read', false)->count(),
             'contacts_total' => ContactMessage::count(),
             'newsletters_count' => NewsletterSubscriber::count(),
+            'blog_posts' => \App\Models\BlogPost::count(),
+            'blog_categories' => \App\Models\BlogCategory::count(),
         ];
         $pendingPrompts = Prompt::with(['user', 'category'])->where('status', 'pending')->latest()->limit(6)->get();
         $recentContacts = ContactMessage::latest()->limit(5)->get();
