@@ -8,12 +8,14 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Automated Scraping Scheduler (Disabled upon request)
-// Schedule::command('prompts:sync --latest-posts=100')
-//     ->twiceDaily(1, 13)
-//     ->withoutOverlapping()
-//     ->appendOutputTo(storage_path('logs/scraper.log'))
-//     ->runInBackground();
+// Automated Scraping Scheduler (Runs ONLY on the live production website; strictly disabled on local)
+if (!app()->environment('local') && env('ENABLE_PROMPT_SCRAPER', true)) {
+    Schedule::command('prompts:sync --latest-posts=100')
+        ->twiceDaily(1, 13)
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/scraper.log'))
+        ->runInBackground();
+}
 
 // Weekly maintenance: deduplicate prompt titles, clean broken avatars, and optimize storage
 Schedule::command('prompts:remove-duplicates')
