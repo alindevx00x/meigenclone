@@ -812,14 +812,44 @@ class AdminController extends Controller
             $exitCode = Artisan::call('newsletter:send-weekly-digest', [
                 '--test' => $data['test_email'],
             ]);
+            $output = trim(Artisan::output());
 
             if ($exitCode === 0) {
                 return back()->with('success', "Preview test digest sent successfully to {$data['test_email']}.");
             }
 
-            return back()->withErrors(['test_email' => 'Failed to dispatch test digest. Please check your mail settings and server logs.']);
+            return back()->withErrors(['test_email' => 'Failed to dispatch test digest: ' . ($output ?: 'Please check your mail settings and server logs.')]);
         } catch (\Throwable $e) {
             return back()->withErrors(['test_email' => "Error sending test digest: {$e->getMessage()}"]);
+        }
+    }
+
+    public function testSmtpConnection(Request $request)
+    {
+        $data = $request->validate([
+            'test_email' => ['required', 'email', 'max:255'],
+        ]);
+
+        try {
+            $siteName = SiteSetting::value('site_name', 'PromptImage');
+            $fromEmail = SiteSetting::value('mail_from_address') ?: config('mail.from.address', 'noreply@promptimage.cc');
+            $fromName = SiteSetting::value('mail_from_name') ?: $siteName;
+            $host = config('mail.mailers.smtp.host');
+            $port = config('mail.mailers.smtp.port');
+
+            Mail::raw(
+                "Hello!\n\nThis is a verified test email sent via Brevo SMTP relay from PromptImage ({$siteName}).\n\nConfiguration details:\n- SMTP Host: {$host}\n- Port: {$port}\n- Sender: {$fromEmail}\n- Recipient: {$data['test_email']}\n- Timestamp: " . now()->toRfc2822String() . "\n\nIf you received this message, your Brevo SMTP relay and sender domain are working perfectly!",
+                function ($message) use ($data, $siteName, $fromEmail, $fromName) {
+                    $message->to($data['test_email'])
+                        ->from($fromEmail, $fromName)
+                        ->subject("✅ Brevo SMTP Delivery Test Successful — {$siteName}");
+                }
+            );
+
+            return back()->with('success', "Brevo SMTP connection verified! Test email successfully delivered to {$data['test_email']}.");
+        } catch (\Throwable $e) {
+            Log::error("SMTP test connection failed: {$e->getMessage()}", ['exception' => $e]);
+            return back()->withErrors(['mail_password' => "Brevo SMTP connection failed: {$e->getMessage()}"]);
         }
     }
 

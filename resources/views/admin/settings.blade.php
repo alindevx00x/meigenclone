@@ -241,6 +241,19 @@
                         <input type="email" name="mail_reply_to" id="mail_reply_to" value="{{ old('mail_reply_to', $settings['mail_reply_to']) }}" placeholder="support@promptimage.cc">
                     </label>
                 </div>
+
+                <div style="margin-top: 18px; padding: 14px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <strong style="font-size: 13.5px; color: #0f172a; display: block;">⚡ Test Brevo SMTP Connection</strong>
+                        <small style="color: #64748b; font-size: 12px;">Sends a live verification email directly via Brevo relay to test host, port, authentication, and sender domain.</small>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <input type="email" name="test_email" placeholder="Recipient test email" style="padding: 7px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; min-width: 220px;" value="{{ auth()->user()->email ?? '' }}">
+                        <button type="submit" formaction="{{ route('admin.settings.test-smtp') }}" formmethod="POST" class="outline-button" style="border-color: #009262 !important; color: #009262 !important; background: #fff !important; font-weight: 700; padding: 7px 14px; font-size: 12.5px; cursor: pointer;">
+                            Test SMTP Delivery Now →
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <script>

@@ -355,7 +355,7 @@ HTML
             'status' => 'published',
             'published_at' => now()->subDays(1),
             'views_count' => 310,
-            'cover_image' => 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=1200&auto=format&fit=crop&q=80',
+            'cover_image' => 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&auto=format&fit=crop&q=80',
             'meta_title' => 'Seedance 2.5 & 2.0 Video Prompts: AI Video Gallery & Guide',
             'meta_description' => 'Explore trending Seedance prompts, Seedance video prompts, and Seedance 2.5 camera motion formulas. Copy-paste templates for cinematic AI video generation.',
             'meta_keywords' => 'seedance prompts, seedance video prompts, seedance 2.5 prompts, seedance 2.5 video prompts, seedance 2.0 prompts, AI video prompt gallery, copy paste AI prompts, free AI prompt library, trending AI prompts, AI prompt gallery',

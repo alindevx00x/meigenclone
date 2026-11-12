@@ -231,4 +231,5 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
 
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
     Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/settings/test-smtp', [AdminController::class, 'testSmtpConnection'])->name('settings.test-smtp');
 });

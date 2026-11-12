@@ -44,7 +44,7 @@ class SendWeeklyDigest extends Command
         if ($testEmail) {
             $this->info("Sending direct preview digest to {$testEmail}...");
             try {
-                Mail::to($testEmail)->send(new WeeklyDigestMail($prompts, $testEmail));
+                Mail::to($testEmail)->sendNow(new WeeklyDigestMail($prompts, $testEmail));
                 $this->info("Successfully sent preview digest to {$testEmail}.");
                 return self::SUCCESS;
             } catch (\Throwable $e) {
