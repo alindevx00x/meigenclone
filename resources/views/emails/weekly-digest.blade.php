@@ -42,8 +42,13 @@
         <div class="main">
             <!-- Header -->
             <div class="header">
-                <a href="{{ url('/') }}" class="logo">
-                    ✨ {{ $siteName }}
+                <a href="{{ url('/') }}" class="logo" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;">
+                    @if (!empty($logoUrl))
+                        <img src="{{ $logoUrl }}" alt="{{ $siteName }}" style="height: 32px; width: auto; max-width: 48px; object-fit: contain; vertical-align: middle; display: inline-block;">
+                    @else
+                        <span style="font-size: 22px; vertical-align: middle;">✨</span>
+                    @endif
+                    <span style="vertical-align: middle; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">{{ $siteName }}</span>
                 </a>
                 <h1 class="header-title">🎨 Top 10 AI Art Prompts of the Week</h1>
                 <p class="header-sub">Curated standout generations and visual prompts hand-picked for your inspiration.</p>

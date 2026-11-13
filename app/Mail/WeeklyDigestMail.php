@@ -33,6 +33,11 @@ class WeeklyDigestMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         $unsubscribeUrl = URL::signedRoute('newsletter.unsubscribe', ['email' => $this->subscriberEmail]);
+        $siteName = SiteSetting::value('site_name', config('app.name', 'PromptImage'));
+        $logoUrl = SiteSetting::value('logo_url');
+        if ($logoUrl && !str_starts_with($logoUrl, 'http://') && !str_starts_with($logoUrl, 'https://')) {
+            $logoUrl = url($logoUrl);
+        }
 
         return new Content(
             view: 'emails.weekly-digest',
@@ -40,8 +45,9 @@ class WeeklyDigestMail extends Mailable implements ShouldQueue
                 'prompts' => $this->prompts,
                 'subscriberEmail' => $this->subscriberEmail,
                 'unsubscribeUrl' => $unsubscribeUrl,
-                'siteName' => config('app.name', 'PromptImage'),
-                'siteTagline' => 'Discover the best community AI art prompts & references',
+                'siteName' => $siteName,
+                'logoUrl' => $logoUrl,
+                'siteTagline' => SiteSetting::value('site_tagline', 'Discover the best community AI art prompts & references'),
             ],
         );
     }

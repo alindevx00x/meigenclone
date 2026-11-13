@@ -72,9 +72,15 @@ class SiteSetting extends Model
         ];
     }
 
+    private static ?array $memoryCache = null;
+
     public static function allValues(): array
     {
-        return Cache::rememberForever('directory.settings', fn () => static::query()->pluck('value', 'key')->all());
+        if (static::$memoryCache !== null) {
+            return static::$memoryCache;
+        }
+
+        return static::$memoryCache = Cache::rememberForever('directory.settings', fn () => static::query()->pluck('value', 'key')->all());
     }
 
     public static function current(bool $forAdmin = false): array
@@ -124,12 +130,14 @@ class SiteSetting extends Model
 
     public static function removeValue(string $key): void
     {
+        static::$memoryCache = null;
         DB::table('site_settings')->where('key', $key)->delete();
         Cache::forget('directory.settings');
     }
 
     public static function updateValues(array $values): void
     {
+        static::$memoryCache = null;
         $now = now();
         $rows = collect($values)->map(fn ($value, $key) => [
             'key' => $key,
