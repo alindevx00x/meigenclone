@@ -31,7 +31,19 @@
             <span class="stat-icon stat-violet">◎</span>
             <span class="stat-label">Total members</span>
             <strong>{{ number_format($stats['total']) }}</strong>
-            <small>Registered accounts</small>
+            <small>All community accounts</small>
+        </div>
+        <div class="stat-card" style="border-color: #a7f3d0; background: linear-gradient(to bottom, #ffffff, #f0fdf4);">
+            <span class="stat-icon" style="background: #dcfce7; color: #15803d;">👤</span>
+            <span class="stat-label" style="color: #15803d; font-weight: 600;">Manual / Registered</span>
+            <strong style="color: #15803d;">{{ number_format($stats['manual']) }}</strong>
+            <small style="color: #166534;">Real user accounts</small>
+        </div>
+        <div class="stat-card" style="border-color: #cbd5e1; background: linear-gradient(to bottom, #ffffff, #f8fafc);">
+            <span class="stat-icon" style="background: #f1f5f9; color: #475569;">⚡</span>
+            <span class="stat-label" style="color: #475569; font-weight: 600;">Imported (Meigen)</span>
+            <strong style="color: #334155;">{{ number_format($stats['imported']) }}</strong>
+            <small style="color: #64748b;">Crawler / sync profiles</small>
         </div>
         <div class="stat-card">
             <span class="stat-icon stat-pink">✦</span>
@@ -40,17 +52,29 @@
             <small>Full studio access</small>
         </div>
         <div class="stat-card">
-            <span class="stat-icon stat-green">✓</span>
-            <span class="stat-label">Active creators</span>
-            <strong>{{ number_format($stats['active']) }}</strong>
-            <small>In good standing</small>
-        </div>
-        <div class="stat-card">
-            <span class="stat-icon stat-amber">◷</span>
+            <span class="stat-icon stat-amber">◸</span>
             <span class="stat-label">Suspended</span>
             <strong>{{ number_format($stats['suspended']) }}</strong>
             <small>Restricted accounts</small>
         </div>
+    </div>
+
+    <!-- Source Quick Filter Tabs -->
+    <div class="admin-filter-tabs" style="margin-bottom: 16px;">
+        @php
+            $currentSource = request('source', '');
+        @endphp
+        <a class="{{ $currentSource === '' ? 'is-active' : '' }}" href="{{ route('admin.users.index', request()->except(['source', 'page'])) }}">
+            All Members <span>({{ number_format($stats['total']) }})</span>
+        </a>
+        <a class="{{ $currentSource === 'manual' ? 'is-active' : '' }}" href="{{ route('admin.users.index', array_merge(request()->except(['page']), ['source' => 'manual'])) }}" style="{{ $currentSource === 'manual' ? 'border-color: #10b981; color: #047857;' : '' }}">
+            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; margin-right: 4px;"></span>
+            👤 Manual / Registered Only <span>({{ number_format($stats['manual']) }})</span>
+        </a>
+        <a class="{{ $currentSource === 'imported' ? 'is-active' : '' }}" href="{{ route('admin.users.index', array_merge(request()->except(['page']), ['source' => 'imported'])) }}">
+            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #64748b; margin-right: 4px;"></span>
+            ⚡ Imported Only <span>({{ number_format($stats['imported']) }})</span>
+        </a>
     </div>
 
     <!-- Search & Filter Controls -->
@@ -58,6 +82,12 @@
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1 1 300px;">
             <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by name or email…" class="table-filter-input" style="flex: 1 1 200px; min-height: 38px;" aria-label="Search members">
             
+            <select name="source" class="table-filter-select" style="min-height: 38px; width: 160px;" aria-label="Filter by source">
+                <option value="">All Sources</option>
+                <option value="manual" @selected(request('source') === 'manual')>👤 Manual Users</option>
+                <option value="imported" @selected(request('source') === 'imported')>⚡ Imported (Meigen)</option>
+            </select>
+
             <select name="role" class="table-filter-select" style="min-height: 38px; width: 140px;" aria-label="Filter by role">
                 <option value="">All Roles</option>
                 <option value="admin" @selected(request('role') === 'admin')>Administrator</option>
@@ -78,7 +108,7 @@
             </select>
 
             <button class="primary-button" type="submit" style="min-height: 38px; padding: 0 16px;">Filter <span>→</span></button>
-            @if (request()->hasAny(['q', 'role', 'status', 'sort']))
+            @if (request()->hasAny(['q', 'source', 'role', 'status', 'sort']))
                 <a class="outline-button" href="{{ route('admin.users.index') }}" style="min-height: 38px; display: inline-flex; align-items: center;">Clear</a>
             @endif
         </div>
@@ -90,6 +120,7 @@
             <thead>
                 <tr>
                     <th>Member</th>
+                    <th>Source</th>
                     <th>Status</th>
                     <th>Access</th>
                     <th>Submissions</th>
@@ -127,6 +158,19 @@
                                     @endif
                                 </div>
                             </div>
+                        </td>
+                        <td>
+                            @if (! $member->is_imported)
+                                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 9999px; font-size: 11px; font-weight: 700; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; box-shadow: 0 1px 2px rgba(4,120,87,0.08); white-space: nowrap;">
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                                    👤 Manual User
+                                </span>
+                            @else
+                                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 9999px; font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; white-space: nowrap;">
+                                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8;"></span>
+                                    ⚡ Imported (Meigen)
+                                </span>
+                            @endif
                         </td>
                         <td>
                             @if ($member->status === 'suspended')
@@ -186,7 +230,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="table-empty">
+                        <td colspan="7" class="table-empty">
                             No community members match your filter criteria.
                         </td>
                     </tr>

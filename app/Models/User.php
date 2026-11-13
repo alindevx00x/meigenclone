@@ -196,6 +196,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->following()->whereKey($user->id)->exists();
     }
 
+    public function isImported(): bool
+    {
+        return str_ends_with($this->email, '@community.promptimage.cc');
+    }
+
+    public function getIsImportedAttribute(): bool
+    {
+        return $this->isImported();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

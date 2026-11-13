@@ -31,20 +31,38 @@
         </div>
     @endif
 
-    <!-- Status Tabs -->
-    <div class="admin-filter-tabs">
-        @foreach (['all' => 'All', 'pending' => 'Needs review', 'approved' => 'Published', 'rejected' => 'Declined'] as $value => $label)
-            @php
-                $tabParams = request()->except(['status', 'page']);
-                if ($value !== 'all') {
-                    $tabParams['status'] = $value;
-                }
-            @endphp
-            <a class="{{ ($status ?: 'all') === $value ? 'is-active' : '' }}" href="{{ route('admin.prompts.index', $tabParams) }}">
-                {{ $label }}
-                <span>({{ number_format($counts[$value] ?? 0) }})</span>
+    <!-- Status Tabs & Source Quick Switcher -->
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div class="admin-filter-tabs" style="margin-bottom: 0;">
+            @foreach (['all' => 'All', 'pending' => 'Needs review', 'approved' => 'Published', 'rejected' => 'Declined'] as $value => $label)
+                @php
+                    $tabParams = request()->except(['status', 'page']);
+                    if ($value !== 'all') {
+                        $tabParams['status'] = $value;
+                    }
+                @endphp
+                <a class="{{ ($status ?: 'all') === $value ? 'is-active' : '' }}" href="{{ route('admin.prompts.index', $tabParams) }}">
+                    {{ $label }}
+                    <span>({{ number_format($counts[$value] ?? 0) }})</span>
+                </a>
+            @endforeach
+        </div>
+
+        <!-- Source Quick Filter Pills -->
+        <div style="display: inline-flex; align-items: center; background: #f4f4f5; padding: 4px; border-radius: 9999px; gap: 3px; border: 1px solid #e4e4e7;">
+            @php $currentSource = request('source', ''); @endphp
+            <a href="{{ route('admin.prompts.index', request()->except(['source', 'page'])) }}" style="text-decoration: none; font-size: 11.5px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; {{ $currentSource === '' ? 'background: #ffffff; color: #18181b; box-shadow: 0 1px 3px rgba(0,0,0,0.08);' : 'color: #71717a;' }}">
+                All ({{ number_format($counts['all'] ?? 0) }})
             </a>
-        @endforeach
+            <a href="{{ route('admin.prompts.index', array_merge(request()->except(['page']), ['source' => 'manual'])) }}" style="text-decoration: none; font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px; {{ $currentSource === 'manual' ? 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; box-shadow: 0 1px 3px rgba(29,78,216,0.12);' : 'color: #3b82f6;' }}">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #2563eb;"></span>
+                ✍️ User Submissions ({{ number_format($counts['manual'] ?? 0) }})
+            </a>
+            <a href="{{ route('admin.prompts.index', array_merge(request()->except(['page']), ['source' => 'imported'])) }}" style="text-decoration: none; font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px; {{ $currentSource === 'imported' ? 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a; box-shadow: 0 1px 3px rgba(180,83,9,0.12);' : 'color: #d97706;' }}">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+                🤖 Imported / Scraped ({{ number_format($counts['imported'] ?? 0) }})
+            </a>
+        </div>
     </div>
 
     <!-- Search & Filters Bar -->
@@ -54,8 +72,14 @@
         @endif
 
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1 1 300px;">
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by title, prompt text, creator…" class="table-filter-input" style="flex: 1 1 220px; min-height: 38px;" aria-label="Search prompts">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="Search by title, prompt text, creator…" class="table-filter-input" style="flex: 1 1 200px; min-height: 38px;" aria-label="Search prompts">
             
+            <select name="source" class="table-filter-select" style="min-height: 38px; width: 160px;" aria-label="Filter by source">
+                <option value="">All Sources</option>
+                <option value="manual" @selected(request('source') === 'manual')>✍️ User Submissions</option>
+                <option value="imported" @selected(request('source') === 'imported')>🤖 Imported / Scraped</option>
+            </select>
+
             <select name="category_id" class="table-filter-select" style="min-height: 38px; width: 150px;" aria-label="Filter by category">
                 <option value="">All Categories</option>
                 @foreach ($categories as $cat)
@@ -84,7 +108,7 @@
             </select>
 
             <button class="primary-button" type="submit" style="min-height: 38px; padding: 0 16px;">Filter <span>→</span></button>
-            @if (request()->hasAny(['q', 'category_id', 'model', 'featured', 'sort']))
+            @if (request()->hasAny(['q', 'source', 'category_id', 'model', 'featured', 'sort']))
                 <a class="outline-button" href="{{ route('admin.prompts.index', $status && $status !== 'all' ? ['status' => $status] : []) }}" style="min-height: 38px; display: inline-flex; align-items: center;">Clear</a>
             @endif
         </div>
@@ -179,6 +203,7 @@
                             <input type="checkbox" :checked="allSelected" @change="toggleAll($event)" aria-label="Select all prompts on page" style="cursor: pointer; width: 16px; height: 16px;">
                         </th>
                         <th>Prompt Preview</th>
+                        <th>Source</th>
                         <th>Creator</th>
                         <th>Category &amp; Model</th>
                         <th>Stats</th>
@@ -200,12 +225,15 @@
                                         <span class="table-thumb" style="width: 44px; height: 44px; border-radius: 8px;">{{ $prompt->category->icon }}</span>
                                     @endif
                                     <div style="min-width: 0;">
-                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                             <a href="{{ route('prompts.show', $prompt->slug) }}" target="_blank" style="font-weight: 600; color: #1e1e24; text-decoration: none;" title="{{ $prompt->title }}">
                                                 {{ Str::limit($prompt->title, 42) }}
                                             </a>
                                             @if ($prompt->is_featured)
                                                 <span style="display: inline-flex; font-size: 10px; background: #fef3c7; color: #b45309; padding: 1px 6px; border-radius: 4px; font-weight: 600;">Featured</span>
+                                            @endif
+                                            @if (! $prompt->is_imported)
+                                                <span style="display: inline-flex; font-size: 10px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; font-weight: 700;">User Upload</span>
                                             @endif
                                         </div>
                                         <small style="display: block; color: #7f7f88; margin-top: 2px;">
@@ -215,7 +243,31 @@
                                 </div>
                             </td>
                             <td>
-                                <span style="font-size: 12.5px; font-weight: 500; color: #333;">{{ $prompt->user?->name ?? 'Community Pick' }}</span>
+                                @if (! $prompt->is_imported)
+                                    <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 9999px; font-size: 11px; font-weight: 700; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; box-shadow: 0 1px 2px rgba(29,78,216,0.08); white-space: nowrap;">
+                                        <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #2563eb;"></span>
+                                        ✍️ User Created
+                                    </span>
+                                @else
+                                    <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 9999px; font-size: 11px; font-weight: 700; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; white-space: nowrap;">
+                                        <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+                                        🤖 Imported (Meigen)
+                                    </span>
+                                @endif
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    @if ($prompt->user)
+                                        <a href="{{ route('creators.show', $prompt->user) }}" target="_blank" style="font-size: 12.5px; font-weight: {{ ! $prompt->is_imported ? '600' : '500' }}; color: {{ ! $prompt->is_imported ? '#1e1e24' : '#4b5563' }}; text-decoration: none;">
+                                            {{ $prompt->user->name }}
+                                        </a>
+                                        @if (! $prompt->is_imported)
+                                            <span title="Real Community Member" style="font-size: 11px;">👤</span>
+                                        @endif
+                                    @else
+                                        <span style="font-size: 12.5px; font-weight: 500; color: #4b5563;">Community Pick</span>
+                                    @endif
+                                </div>
                                 <small style="display: block; color: #999; font-size: 10.5px;">{{ $prompt->created_at->format('M j, Y') }}</small>
                             </td>
                             <td>
@@ -284,7 +336,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="table-empty">
+                            <td colspan="8" class="table-empty">
                                 No prompts match your search and filter criteria.
                             </td>
                         </tr>

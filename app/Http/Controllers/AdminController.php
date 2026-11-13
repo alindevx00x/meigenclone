@@ -195,6 +195,15 @@ class AdminController extends Controller
             $query->where('model', $request->input('model'));
         }
 
+        if ($request->filled('source')) {
+            $source = $request->input('source');
+            if ($source === 'manual') {
+                $query->whereHas('user', fn ($u) => $u->where('email', 'not like', '%@community.promptimage.cc'));
+            } elseif ($source === 'imported') {
+                $query->where(fn ($sub) => $sub->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->where('email', 'like', '%@community.promptimage.cc')));
+            }
+        }
+
         if ($request->filled('featured')) {
             if ($request->input('featured') === '1') {
                 $query->where('is_featured', true);
@@ -220,6 +229,8 @@ class AdminController extends Controller
             'pending' => Prompt::where('status', 'pending')->count(),
             'approved' => Prompt::where('status', 'approved')->count(),
             'rejected' => Prompt::where('status', 'rejected')->count(),
+            'manual' => Prompt::whereHas('user', fn ($u) => $u->where('email', 'not like', '%@community.promptimage.cc'))->count(),
+            'imported' => Prompt::where(fn ($q) => $q->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->where('email', 'like', '%@community.promptimage.cc')))->count(),
         ];
 
         return view('admin.prompts', compact('prompts', 'status', 'categories', 'models', 'counts'));
@@ -468,6 +479,15 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('source')) {
+            $source = $request->input('source');
+            if ($source === 'manual') {
+                $query->where('email', 'not like', '%@community.promptimage.cc');
+            } elseif ($source === 'imported') {
+                $query->where('email', 'like', '%@community.promptimage.cc');
+            }
+        }
+
         $sort = $request->input('sort', 'newest');
         match ($sort) {
             'oldest' => $query->oldest(),
@@ -480,6 +500,8 @@ class AdminController extends Controller
 
         $stats = [
             'total' => User::count(),
+            'manual' => User::where('email', 'not like', '%@community.promptimage.cc')->count(),
+            'imported' => User::where('email', 'like', '%@community.promptimage.cc')->count(),
             'admins' => User::where('role', 'admin')->count(),
             'creators' => User::where('role', 'user')->count(),
             'active' => User::where('status', 'active')->count(),

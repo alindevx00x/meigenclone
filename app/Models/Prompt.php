@@ -92,4 +92,14 @@ class Prompt extends Model
 
         return $this->cover_url;
     }
+
+    public function isImported(): bool
+    {
+        return ! $this->user || str_ends_with($this->user->email, '@community.promptimage.cc');
+    }
+
+    public function getIsImportedAttribute(): bool
+    {
+        return $this->isImported();
+    }
 }
