@@ -248,8 +248,8 @@
                         <small style="color: #64748b; font-size: 12px;">Sends a live verification email directly via Brevo relay to test host, port, authentication, and sender domain.</small>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <input type="email" name="test_email" placeholder="Recipient test email" style="padding: 7px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; min-width: 220px;" value="{{ auth()->user()->email ?? '' }}">
-                        <button type="submit" formaction="{{ route('admin.settings.test-smtp') }}" formmethod="POST" class="outline-button" style="border-color: #009262 !important; color: #009262 !important; background: #fff !important; font-weight: 700; padding: 7px 14px; font-size: 12.5px; cursor: pointer;">
+                        <input type="email" id="test_smtp_email_input" placeholder="Recipient test email" style="padding: 7px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 12.5px; min-width: 220px;" value="{{ auth()->user()->email ?? '' }}">
+                        <button type="button" onclick="submitSmtpTest()" class="outline-button" style="border-color: #009262 !important; color: #009262 !important; background: #fff !important; font-weight: 700; padding: 7px 14px; font-size: 12.5px; cursor: pointer;">
                             Test SMTP Delivery Now →
                         </button>
                     </div>
@@ -351,5 +351,24 @@
 
         <div class="settings-footer"><span>Settings are saved to your directory database.</span><button class="primary-button" type="submit">Save settings <span>→</span></button></div>
     </form>
+
+    <form id="standalone_smtp_test_form" method="POST" action="{{ route('admin.settings.test-smtp') }}" style="display: none;">
+        @csrf
+        <input type="hidden" name="test_email" id="standalone_test_email">
+    </form>
+
+    <script>
+        function submitSmtpTest() {
+            const emailInput = document.getElementById('test_smtp_email_input');
+            const targetEmail = (emailInput ? emailInput.value : '').trim();
+            if (!targetEmail) {
+                alert('Please enter a recipient email address to test delivery.');
+                if (emailInput) emailInput.focus();
+                return;
+            }
+            document.getElementById('standalone_test_email').value = targetEmail;
+            document.getElementById('standalone_smtp_test_form').submit();
+        }
+    </script>
 </div>
 @endsection
