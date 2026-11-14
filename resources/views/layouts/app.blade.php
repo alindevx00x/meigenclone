@@ -55,6 +55,21 @@
         }
     }
     </script>
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "{{ $seoSiteTitle }}",
+        "url": "{{ url('/') }}",
+        @if (!empty($directorySettings['logo_url']))
+        "logo": "{{ url($directorySettings['logo_url']) }}",
+        @endif
+        "description": "{{ $metaDescription }}",
+        "sameAs": [
+            "https://twitter.com/promptimage"
+        ]
+    }
+    </script>
     @yield('structured_data')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

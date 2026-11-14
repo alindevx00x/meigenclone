@@ -6,6 +6,10 @@
 {
     "@@context": "https://schema.org",
     "@type": "CreativeWork",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ url()->current() }}"
+    },
     "name": "{{ addslashes($prompt->title) }}",
     "headline": "{{ addslashes($prompt->title) }}",
     "text": "{{ addslashes(Str::limit($prompt->prompt_text, 1000)) }}",
@@ -16,7 +20,12 @@
         "name": "{{ addslashes($prompt->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community')) }}"
     },
     @if ($prompt->cover_url)
-    "image": "{{ $prompt->cover_url }}",
+    "image": {
+        "@type": "ImageObject",
+        "url": "{{ $prompt->cover_url }}",
+        "contentUrl": "{{ $prompt->cover_url }}",
+        "caption": "{{ addslashes($prompt->title) }}"
+    },
     @endif
     "keywords": "{{ $prompt->category->name }}, {{ $prompt->model }}, AI Image Prompt"
 }

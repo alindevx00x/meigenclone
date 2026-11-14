@@ -1,5 +1,34 @@
 @extends('layouts.app')
 @section('title', 'AI Prompt Gallery')
+
+@section('structured_data')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "{{ $directorySettings['seo_title'] ?? ($directorySettings['site_name'] ?? 'PromptImage') }} — AI Prompt Gallery",
+    "description": "{{ $directorySettings['seo_description'] ?? 'Discover and copy tested AI prompts for Flux, Midjourney, GPT Image, and Nano Banana.' }}",
+    "url": "{{ url('/') }}",
+    "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": {{ isset($prompts) ? $prompts->count() : 0 }},
+        "itemListElement": [
+            @if(isset($prompts))
+            @foreach($prompts->take(12) as $idx => $p)
+            {
+                "@type": "ListItem",
+                "position": {{ $idx + 1 }},
+                "url": "{{ route('prompts.show', $p->slug) }}",
+                "name": "{{ addslashes($p->title) }}"
+            }@if(!$loop->last),@endif
+            @endforeach
+            @endif
+        ]
+    }
+}
+</script>
+@endsection
+
 @section('toolbar')
     <div class="gallery-toolbar">
         <nav class="model-tabs" aria-label="Filter prompts by model">

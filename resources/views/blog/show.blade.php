@@ -11,7 +11,7 @@
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": ["Article", "BlogPosting"],
     "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": "{{ route('blog.show', $post->slug) }}"
@@ -40,6 +40,47 @@
         }
         @endif
     }
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ url('/') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": "{{ route('blog.index') }}"
+        },
+        @if ($post->category)
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ addslashes($post->category->name) }}",
+            "item": "{{ route('blog.category', $post->category->slug) }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "{{ addslashes($post->title) }}",
+            "item": "{{ route('blog.show', $post->slug) }}"
+        }
+        @else
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ addslashes($post->title) }}",
+            "item": "{{ route('blog.show', $post->slug) }}"
+        }
+        @endif
+    ]
 }
 </script>
 @endsection

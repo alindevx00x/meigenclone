@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+
+Sitemap: https://promptimage.cc/sitemap.xml

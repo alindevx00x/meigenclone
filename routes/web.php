@@ -26,6 +26,15 @@ Route::get('/sitemap-main.xml', [PromptController::class, 'sitemapMain'])->name(
 Route::get('/sitemap-prompts.xml', [PromptController::class, 'sitemapPrompts'])->name('sitemap.prompts');
 Route::get('/sitemap-category-{slug}.xml', [PromptController::class, 'sitemapCategoryPrompts'])->name('sitemap.category');
 Route::get('/robots.txt', [PromptController::class, 'robots'])->name('robots');
+Route::get('/llms.txt', function () {
+    $path = public_path('llms.txt');
+    if (! file_exists($path)) {
+        abort(404);
+    }
+    return response(file_get_contents($path), 200)
+        ->header('Content-Type', 'text/plain; charset=UTF-8')
+        ->header('Cache-Control', 'public, max-age=3600, must-revalidate');
+})->name('llms.txt');
 Route::get('/prompts/{prompt:slug}', [PromptController::class, 'show'])->name('prompts.show');
 Route::get('/prompts/{prompt:slug}/og-image.jpg', [PromptController::class, 'ogImage'])->name('prompts.og_image');
 Route::post('/prompts/{prompt:slug}/favorite', [PromptController::class, 'toggleFavorite'])->middleware(['auth', 'throttle:30,1'])->name('prompts.favorite');

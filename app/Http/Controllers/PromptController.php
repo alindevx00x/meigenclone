@@ -394,11 +394,11 @@ class PromptController extends Controller
 
     public function robots(\Illuminate\Http\Request $request)
     {
-        $canonicalBase = trim(\App\Models\SiteSetting::value('seo_canonical_base', ''));
+        $canonicalBase = trim(rescue(fn () => \App\Models\SiteSetting::value('seo_canonical_base', ''), ''));
         if ($canonicalBase !== '') {
             $sitemapUrl = rtrim($canonicalBase, '/') . '/sitemap.xml';
         } else {
-            $sitemapUrl = $request->getSchemeAndHttpHost() . '/sitemap.xml';
+            $sitemapUrl = 'https://promptimage.cc/sitemap.xml';
         }
 
         $content = "User-agent: *\n"
@@ -407,6 +407,26 @@ class PromptController extends Controller
             . "Disallow: /dashboard/\n"
             . "Disallow: /login\n"
             . "Disallow: /register\n\n"
+            . "User-agent: OAI-SearchBot\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n\n"
+            . "User-agent: PerplexityBot\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n\n"
+            . "User-agent: ClaudeBot\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n\n"
+            . "User-agent: Googlebot\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n\n"
+            . "User-agent: Bingbot\n"
+            . "Allow: /\n"
+            . "Disallow: /admin/\n"
+            . "Disallow: /dashboard/\n\n"
             . "Sitemap: {$sitemapUrl}\n";
 
         return response($content, 200)

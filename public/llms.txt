@@ -1,0 +1,40 @@
+# PromptImage
+
+> The premier open AI image prompt directory, creative engineering library, and visual generation resource. PromptImage hosts thousands of thoroughly tested prompts for leading generative models including Flux.1, Midjourney v6.1, OpenAI GPT Image / DALL-E 3, Nano Banana, and AI video generators (Seedance 2.5).
+
+PromptImage helps creators, marketers, designers, and developers discover, copy, and test production-ready AI prompts with full prompt text, parameters, aspect ratios, model checkpoints, and high-resolution examples.
+
+## Core Directories & Libraries
+
+- [AI Image Prompt Gallery](https://promptimage.cc/): Browse thousands of tested AI prompts curated across art styles, photography, anime, architecture, and commercial design.
+- [AI Video Generation Prompts](https://promptimage.cc/?q=video): Dynamic video prompts tailored for Seedance, Runway, Luma Dream Machine, and Kling AI.
+- [Trending AI Prompts](https://promptimage.cc/?sort=popular): Most upvoted, copied, and tested community prompts.
+- [Creator Community](https://promptimage.cc/admin/users): Verified prompt engineers and visual artists sharing production-ready AI workflows.
+
+## AI Models Covered
+
+- [Flux.1 Prompts](https://promptimage.cc/?model=Flux): Tested prompts for Black Forest Labs Flux.1 Schnell, Dev, and Pro models with exceptional text rendering and anatomical precision.
+- [Midjourney v6.1 Prompts](https://promptimage.cc/?model=Midjourney): Curated prompts featuring stylize parameters, chaos weights, aspect ratios (--ar 16:9), and lighting keywords.
+- [GPT Image / DALL-E 3 Prompts](https://promptimage.cc/?model=DALL-E+3): Descriptive natural language prompt recipes for photorealism, typography, and vector illustration.
+- [Nano Banana Prompts](https://promptimage.cc/?model=Nano+Banana): Ultra-fast, lightweight visual prompt templates for mobile wallpapers, avatars, and digital art.
+- [Stable Diffusion & SDXL Prompts](https://promptimage.cc/?model=Stable+Diffusion): Negative prompt structures, LoRA integrations, sampling steps, and CFG guidance.
+
+## Top Categories & Use Cases
+
+- [Photorealistic Photography Prompts](https://promptimage.cc/prompts/category/photography): 35mm film aesthetic, golden hour, studio flash, volumetric fog, macro textures.
+- [E-Commerce & Product Photography Prompts](https://promptimage.cc/prompts/category/commercial): High-converting prompt templates for luxury cosmetics, perfume bottles, beverage cans, watches, and sneakers.
+- [Character Design & AI Portraits](https://promptimage.cc/prompts/category/portraits): Hyper-detailed character sheets, cyberpunk fashion, cinematic portraiture, skin texture fidelity.
+- [Logo & Brand Identity Prompts](https://promptimage.cc/prompts/category/branding): Modern vector emblems, corporate branding, 3D clay logos, vintage badges.
+- [Architecture & Interior Design Prompts](https://promptimage.cc/prompts/category/architecture): Biophilic architecture, modern Scandinavian interiors, brutalist concrete spaces, warm ambient lighting.
+
+## Authoritative Guides & Topical Pillars
+
+- [100+ Free GPT Image Prompts: The Definitive ChatGPT Visual Prompt Gallery & Copy-Paste Guide (2026)](https://promptimage.cc/blog/free-gpt-image-prompts-chatgpt-guide): Master ChatGPT image generation with 100+ free GPT image prompts, the 5-layer prompt formula, photo editing techniques, and copy-paste prompt templates.
+- [Nano Banana & Nano Banana 2 Prompts: Complete Copy-Paste Gallery, Model Breakdown & Free Prompt Library](https://promptimage.cc/blog/nano-banana-2-prompts-copy-paste-gallery): Complete breakdown of Nano Banana and Nano Banana 2 architecture, parameter tuning (CFG, steps), negative prompts, and copy-paste prompt templates.
+- [Seedance 2.5 & 2.0 Video Prompts: The Complete AI Video Prompt Gallery & Camera Direction Guide](https://promptimage.cc/blog/seedance-video-prompts-ai-gallery): Master 4-D temporal prompt formulas, Hollywood virtual camera trajectories (dolly, orbit, crane, FPV drone), and cinematic prompts for Seedance 2.5 & 2.0.
+- [Image to Prompt Reverse Engineering: How to Extract, Deconstruct & Replicate Any AI Image Style](https://promptimage.cc/blog/image-to-prompt-reverse-engineering-guide): The 6-point checklist to reverse-engineer any image into exact textual prompts, camera descriptors, lighting parameters, and stylistic tokens.
+
+## Search & Discovery API
+
+- [Instant Search](https://promptimage.cc/api/prompts/instant-search?q=cyberpunk): Fast JSON endpoint for programmatic prompt lookup with typo tolerance.
+- [XML Sitemap](https://promptimage.cc/sitemap.xml): Complete search engine and crawler index.

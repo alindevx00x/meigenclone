@@ -5,6 +5,59 @@
 @section('eyebrow', 'CREATOR SPOTLIGHT')
 @section('toolbar-title', $user->name)
 
+@section('structured_data')
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "Person",
+    "name": "{{ addslashes($user->name) }}",
+    "alternateName": "{{ addslashes($user->handle) }}",
+    "url": "{{ route('creators.show', $user) }}",
+    @if ($user->avatar_url)
+    "image": "{{ $user->avatar_url }}",
+    @endif
+    @if ($user->bio)
+    "description": "{{ addslashes($user->bio) }}",
+    @endif
+    @if ($user->website)
+    "sameAs": ["{{ $user->website }}"],
+    @endif
+    "jobTitle": "Prompt Engineer & AI Creator",
+    "worksFor": {
+        "@type": "Organization",
+        "name": "{{ $directorySettings['site_name'] ?? 'PromptImage' }}",
+        "url": "{{ url('/') }}"
+    }
+}
+</script>
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ url('/') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Creators",
+            "item": "{{ url('/') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ addslashes($user->name) }}",
+            "item": "{{ route('creators.show', $user) }}"
+        }
+    ]
+}
+</script>
+@endsection
+
 @section('content')
 <div class="workspace-page creator-profile-page">
     <a class="back-link" href="{{ route('prompts.index') }}"><span>&larr;</span> Back to prompts gallery</a>

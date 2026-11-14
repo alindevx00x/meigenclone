@@ -31,7 +31,8 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('admin', fn (User $user) => $user->isAdmin());
 
-        if (Schema::hasTable('site_settings') && SiteSetting::enabled('mail_settings_enabled')) {
+        $hasSiteSettings = rescue(fn () => Schema::hasTable('site_settings'), false, false);
+        if ($hasSiteSettings && SiteSetting::enabled('mail_settings_enabled')) {
             $settings = SiteSetting::current();
             $mailer = $settings['mail_mailer'];
             $mailConfig = [
