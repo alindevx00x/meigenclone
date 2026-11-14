@@ -16,19 +16,22 @@
 @section('toolbar-title', 'Articles & Guides')
 
 @section('structured_data')
+@php
+    $blogIndexData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Blog',
+        'name' => ($directorySettings['site_name'] ?? 'PromptImage') . ' Blog',
+        'url' => route('blog.index'),
+        'description' => $metaDescription,
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $directorySettings['site_name'] ?? 'PromptImage',
+            'url' => url('/'),
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "Blog",
-    "name": "{{ $directorySettings['site_name'] }} Blog",
-    "url": "{{ route('blog.index') }}",
-    "description": "{{ $metaDescription }}",
-    "publisher": {
-        "@type": "Organization",
-        "name": "{{ $directorySettings['site_name'] }}",
-        "url": "{{ url('/') }}"
-    }
-}
+{!! json_encode($blogIndexData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

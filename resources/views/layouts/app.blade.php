@@ -41,34 +41,39 @@
     @if ($socialImage !== '')<meta property="og:image" content="{{ $socialImage }}"><meta name="twitter:card" content="summary_large_image">@else<meta name="twitter:card" content="summary">@endif
     <meta name="twitter:title" content="{{ $metaTitle }}">
     <meta name="twitter:description" content="{{ $metaDescription }}">
-    <script type="application/ld+json">
-    {
-        "@@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "{{ $seoSiteTitle }}",
-        "url": "{{ url('/') }}",
-        "description": "{{ $metaDescription }}",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": "{{ url('/') }}?q={search_term_string}",
-            "query-input": "required name=search_term_string"
+    @php
+        $websiteData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => $seoSiteTitle,
+            'url' => url('/'),
+            'description' => $metaDescription,
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => url('/') . '?q={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+
+        $orgData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => $seoSiteTitle,
+            'url' => url('/'),
+            'description' => $metaDescription,
+            'sameAs' => [
+                'https://twitter.com/promptimage',
+            ],
+        ];
+        if (!empty($directorySettings['logo_url'])) {
+            $orgData['logo'] = url($directorySettings['logo_url']);
         }
-    }
+    @endphp
+    <script type="application/ld+json">
+    {!! json_encode($websiteData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     <script type="application/ld+json">
-    {
-        "@@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "{{ $seoSiteTitle }}",
-        "url": "{{ url('/') }}",
-        @if (!empty($directorySettings['logo_url']))
-        "logo": "{{ url($directorySettings['logo_url']) }}",
-        @endif
-        "description": "{{ $metaDescription }}",
-        "sameAs": [
-            "https://twitter.com/promptimage"
-        ]
-    }
+    {!! json_encode($orgData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     @yield('structured_data')
     <link rel="preconnect" href="https://fonts.googleapis.com">

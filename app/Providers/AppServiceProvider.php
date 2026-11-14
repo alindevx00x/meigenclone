@@ -63,12 +63,14 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer('*', function ($view) {
-            $view->with('directorySettings', SiteSetting::current());
+            $settings = rescue(fn () => SiteSetting::current(), [], false);
+            $view->with('directorySettings', $settings);
         });
         View::composer('layouts.app', function ($view) {
-            $view->with('sidebarCategories', Category::withCount([
+            $categories = rescue(fn () => Category::withCount([
                 'prompts as prompts_count' => fn ($query) => $query->where('status', 'approved'),
-            ])->orderBy('id')->get());
+            ])->orderBy('id')->get(), collect([]), false);
+            $view->with('sidebarCategories', $categories);
         });
     }
 }

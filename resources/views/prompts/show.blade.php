@@ -2,59 +2,68 @@
 @section('title', $prompt->title)
 @section('og_image', route('prompts.og_image', $prompt->slug))
 @section('structured_data')
+@php
+    $catName = $prompt->category?->name ?? (is_string($prompt->category) ? $prompt->category : 'AI Prompts');
+    $catSlug = $prompt->category?->slug ?? \Illuminate\Support\Str::slug($catName);
+
+    $creativeWorkData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CreativeWork',
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => url()->current(),
+        ],
+        'name' => $prompt->title,
+        'headline' => $prompt->title,
+        'text' => Str::limit($prompt->prompt_text, 1000),
+        'datePublished' => $prompt->created_at?->toIso8601String() ?? now()->toIso8601String(),
+        'dateModified' => $prompt->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+        'author' => [
+            '@type' => 'Person',
+            'name' => $prompt->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community'),
+        ],
+        'keywords' => "{$catName}, {$prompt->model}, AI Image Prompt",
+    ];
+
+    if ($prompt->cover_url) {
+        $creativeWorkData['image'] = [
+            '@type' => 'ImageObject',
+            'url' => $prompt->cover_url,
+            'contentUrl' => $prompt->cover_url,
+            'caption' => $prompt->title,
+        ];
+    }
+
+    $breadcrumbData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $catName,
+                'item' => route('prompts.category_landing', $catSlug),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $prompt->title,
+                'item' => url()->current(),
+            ],
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "CreativeWork",
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "{{ url()->current() }}"
-    },
-    "name": "{{ addslashes($prompt->title) }}",
-    "headline": "{{ addslashes($prompt->title) }}",
-    "text": "{{ addslashes(Str::limit($prompt->prompt_text, 1000)) }}",
-    "datePublished": "{{ $prompt->created_at->toIso8601String() }}",
-    "dateModified": "{{ $prompt->updated_at->toIso8601String() }}",
-    "author": {
-        "@type": "Person",
-        "name": "{{ addslashes($prompt->user?->name ?? (($directorySettings['site_name'] ?? 'Prompt') . ' Community')) }}"
-    },
-    @if ($prompt->cover_url)
-    "image": {
-        "@type": "ImageObject",
-        "url": "{{ $prompt->cover_url }}",
-        "contentUrl": "{{ $prompt->cover_url }}",
-        "caption": "{{ addslashes($prompt->title) }}"
-    },
-    @endif
-    "keywords": "{{ $prompt->category->name }}, {{ $prompt->model }}, AI Image Prompt"
-}
+{!! json_encode($creativeWorkData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "{{ url('/') }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "{{ addslashes($prompt->category->name) }}",
-            "item": "{{ route('prompts.category_landing', $prompt->category->slug) }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "{{ addslashes($prompt->title) }}",
-            "item": "{{ url()->current() }}"
-        }
-    ]
-}
+{!! json_encode($breadcrumbData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 @section('content')

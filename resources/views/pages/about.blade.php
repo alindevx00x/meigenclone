@@ -13,84 +13,87 @@
 @section('toolbar-title', 'About Us')
 
 @section('structured_data')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@graph": [
-        {
-            "@type": "AboutPage",
-            "@id": "{{ route('about') }}",
-            "url": "{{ route('about') }}",
-            "name": "About {{ $siteName }}",
-            "description": "Discover {{ $siteName }}, the premier open directory for verified AI art prompts across Midjourney, Flux.1, and modern diffusion models.",
-            "isPartOf": {
-                "@type": "WebSite",
-                "@id": "{{ $siteUrl }}#website",
-                "name": "{{ $siteName }}",
-                "url": "{{ $siteUrl }}"
-            }
-        },
-        {
-            "@type": "Organization",
-            "@id": "{{ $siteUrl }}#organization",
-            "name": "{{ $siteName }}",
-            "url": "{{ $siteUrl }}",
-            "logo": "{{ $logoUrl }}",
-            "description": "The open creative prompt library for Midjourney, Flux.1, Seedance, and modern AI visual models.",
-            "knowsAbout": [
-                "Artificial Intelligence",
-                "Prompt Engineering",
-                "Midjourney Prompts",
-                "Flux.1 Prompts",
-                "Generative AI Visuals",
-                "Commercial AI Photography",
-                "Text-to-Image Synthesis"
+@php
+    $aboutSchema = [
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'AboutPage',
+                '@id' => route('about'),
+                'url' => route('about'),
+                'name' => 'About ' . $siteName,
+                'description' => 'Discover ' . $siteName . ', the premier open directory for verified AI art prompts across Midjourney, Flux.1, and modern diffusion models.',
+                'isPartOf' => [
+                    '@type' => 'WebSite',
+                    '@id' => $siteUrl . '#website',
+                    'name' => $siteName,
+                    'url' => $siteUrl,
+                ],
             ],
-            "contactPoint": {
-                "@type": "ContactPoint",
-                "contactType": "Customer Support",
-                "url": "{{ route('contact.index') }}"
-            }
-        },
-        {
-            "@type": "FAQPage",
-            "mainEntity": [
-                {
-                    "@type": "Question",
-                    "name": "What is {{ $siteName }}?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "{{ $siteName }} is an open, curated repository of high-fidelity AI visual prompts engineered for Midjourney v6.1, Flux.1, Stable Diffusion, and modern generative models. Every prompt is verified to generate reproducible, high-quality visuals with 1-click copy."
-                    }
-                },
-                {
-                    "@type": "Question",
-                    "name": "Can I use these prompts for commercial projects?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "Yes! All prompts in the public directory can be copied and used freely to generate imagery for commercial client work, advertising campaigns, e-commerce stores, social media, and digital artwork."
-                    }
-                },
-                {
-                    "@type": "Question",
-                    "name": "How are prompts curated and tested?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "Our editorial board and community reviewers benchmark submissions against model syntax, lighting vocabulary, negative prompts, and camera parameters to ensure maximum prompt efficacy."
-                    }
-                },
-                {
-                    "@type": "Question",
-                    "name": "How can creators earn money on {{ $siteName }}?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "Verified prompt engineers can connect Stripe or PayPal to receive direct, zero-platform-fee tips from users who find their prompts valuable."
-                    }
-                }
-            ]
-        }
-    ]
-}
+            [
+                '@type' => 'Organization',
+                '@id' => $siteUrl . '#organization',
+                'name' => $siteName,
+                'url' => $siteUrl,
+                'logo' => $logoUrl,
+                'description' => 'The open creative prompt library for Midjourney, Flux.1, Seedance, and modern AI visual models.',
+                'knowsAbout' => [
+                    'Artificial Intelligence',
+                    'Prompt Engineering',
+                    'Midjourney Prompts',
+                    'Flux.1 Prompts',
+                    'Generative AI Visuals',
+                    'Commercial AI Photography',
+                    'Text-to-Image Synthesis',
+                ],
+                'contactPoint' => [
+                    '@type' => 'ContactPoint',
+                    'contactType' => 'Customer Support',
+                    'url' => route('contact.index'),
+                ],
+            ],
+            [
+                '@type' => 'FAQPage',
+                'mainEntity' => [
+                    [
+                        '@type' => 'Question',
+                        'name' => 'What is ' . $siteName . '?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $siteName . ' is an open, curated repository of high-fidelity AI visual prompts engineered for Midjourney v6.1, Flux.1, Stable Diffusion, and modern generative models. Every prompt is verified to generate reproducible, high-quality visuals with 1-click copy.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Can I use these prompts for commercial projects?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Yes! All prompts in the public directory can be copied and used freely to generate imagery for commercial client work, advertising campaigns, e-commerce stores, social media, and digital artwork.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'How are prompts curated and tested?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Our editorial board and community reviewers benchmark submissions against model syntax, lighting vocabulary, negative prompts, and camera parameters to ensure maximum prompt efficacy.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'How can creators earn money on ' . $siteName . '?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Verified prompt engineers can connect Stripe or PayPal to receive direct, zero-platform-fee tips from users who find their prompts valuable.',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($aboutSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

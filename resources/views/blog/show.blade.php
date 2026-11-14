@@ -8,80 +8,88 @@
 @section('toolbar-title', $post->category ? $post->category->name : 'Guide')
 
 @section('structured_data')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": ["Article", "BlogPosting"],
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "{{ route('blog.show', $post->slug) }}"
-    },
-    "headline": "{{ addslashes($post->title) }}",
-    "description": "{{ addslashes($post->meta_description ?: ($post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->content), 160))) }}",
-    @if ($post->cover_image_url)
-    "image": [
-        "{{ $post->cover_image_url }}"
-    ],
-    @endif
-    "datePublished": "{{ $post->published_at ? $post->published_at->toIso8601String() : $post->created_at->toIso8601String() }}",
-    "dateModified": "{{ $post->updated_at->toIso8601String() }}",
-    "author": {
-        "@type": "Person",
-        "name": "{{ addslashes($post->author->name ?? 'PromptImage Editorial Team') }}"
-    },
-    "publisher": {
-        "@type": "Organization",
-        "name": "{{ $directorySettings['site_name'] }}",
-        "url": "{{ url('/') }}",
-        @if (!empty($directorySettings['logo_url']))
-        "logo": {
-            "@type": "ImageObject",
-            "url": "{{ $directorySettings['logo_url'] }}"
-        }
-        @endif
+@php
+    $articleData = [
+        '@context' => 'https://schema.org',
+        '@type' => ['Article', 'BlogPosting'],
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => route('blog.show', $post->slug),
+        ],
+        'headline' => $post->title,
+        'description' => $post->meta_description ?: ($post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->content), 160)),
+        'datePublished' => $post->published_at ? $post->published_at->toIso8601String() : $post->created_at->toIso8601String(),
+        'dateModified' => $post->updated_at->toIso8601String(),
+        'author' => [
+            '@type' => 'Person',
+            'name' => $post->author->name ?? 'PromptImage Editorial Team',
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $directorySettings['site_name'] ?? 'PromptImage',
+            'url' => url('/'),
+        ],
+    ];
+
+    if ($post->cover_image_url) {
+        $articleData['image'] = [$post->cover_image_url];
     }
-}
+
+    if (!empty($directorySettings['logo_url'])) {
+        $articleData['publisher']['logo'] = [
+            '@type' => 'ImageObject',
+            'url' => url($directorySettings['logo_url']),
+        ];
+    }
+
+    $breadcrumbItems = [
+        [
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => url('/'),
+        ],
+        [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => 'Blog',
+            'item' => route('blog.index'),
+        ],
+    ];
+
+    if ($post->category) {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $post->category->name,
+            'item' => route('blog.category', $post->category->slug),
+        ];
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 4,
+            'name' => $post->title,
+            'item' => route('blog.show', $post->slug),
+        ];
+    } else {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $post->title,
+            'item' => route('blog.show', $post->slug),
+        ];
+    }
+
+    $breadcrumbData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbItems,
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($articleData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "{{ url('/') }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Blog",
-            "item": "{{ route('blog.index') }}"
-        },
-        @if ($post->category)
-        {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "{{ addslashes($post->category->name) }}",
-            "item": "{{ route('blog.category', $post->category->slug) }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 4,
-            "name": "{{ addslashes($post->title) }}",
-            "item": "{{ route('blog.show', $post->slug) }}"
-        }
-        @else
-        {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "{{ addslashes($post->title) }}",
-            "item": "{{ route('blog.show', $post->slug) }}"
-        }
-        @endif
-    ]
-}
+{!! json_encode($breadcrumbData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

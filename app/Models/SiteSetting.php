@@ -80,7 +80,11 @@ class SiteSetting extends Model
             return static::$memoryCache;
         }
 
-        return static::$memoryCache = Cache::rememberForever('directory.settings', fn () => static::query()->pluck('value', 'key')->all());
+        return static::$memoryCache = rescue(
+            fn () => Cache::rememberForever('directory.settings', fn () => static::query()->pluck('value', 'key')->all()),
+            [],
+            false
+        ) ?? [];
     }
 
     public static function current(bool $forAdmin = false): array

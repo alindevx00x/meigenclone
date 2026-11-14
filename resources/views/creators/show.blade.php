@@ -6,55 +6,63 @@
 @section('toolbar-title', $user->name)
 
 @section('structured_data')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "Person",
-    "name": "{{ addslashes($user->name) }}",
-    "alternateName": "{{ addslashes($user->handle) }}",
-    "url": "{{ route('creators.show', $user) }}",
-    @if ($user->avatar_url)
-    "image": "{{ $user->avatar_url }}",
-    @endif
-    @if ($user->bio)
-    "description": "{{ addslashes($user->bio) }}",
-    @endif
-    @if ($user->website)
-    "sameAs": ["{{ $user->website }}"],
-    @endif
-    "jobTitle": "Prompt Engineer & AI Creator",
-    "worksFor": {
-        "@type": "Organization",
-        "name": "{{ $directorySettings['site_name'] ?? 'PromptImage' }}",
-        "url": "{{ url('/') }}"
+@php
+    $personData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Person',
+        'name' => $user->name,
+        'alternateName' => $user->handle,
+        'url' => route('creators.show', $user),
+        'jobTitle' => 'Prompt Engineer & AI Creator',
+        'worksFor' => [
+            '@type' => 'Organization',
+            'name' => $directorySettings['site_name'] ?? 'PromptImage',
+            'url' => url('/'),
+        ],
+    ];
+
+    if ($user->avatar_url) {
+        $personData['image'] = $user->avatar_url;
     }
-}
+
+    if ($user->bio) {
+        $personData['description'] = $user->bio;
+    }
+
+    if ($user->website) {
+        $personData['sameAs'] = [$user->website];
+    }
+
+    $creatorBreadcrumbs = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => 'Creators',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $user->name,
+                'item' => route('creators.show', $user),
+            ],
+        ],
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($personData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "{{ url('/') }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Creators",
-            "item": "{{ url('/') }}"
-        },
-        {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "{{ addslashes($user->name) }}",
-            "item": "{{ route('creators.show', $user) }}"
-        }
-    ]
-}
+{!! json_encode($creatorBreadcrumbs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

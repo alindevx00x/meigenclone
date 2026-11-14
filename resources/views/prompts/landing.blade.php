@@ -7,46 +7,53 @@
 @section('toolbar-title', $title)
 
 @section('structured_data')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "CollectionPage",
-    "name": "{{ $title }}",
-    "description": "{{ $metaDescription }}",
-    "url": "{{ url()->current() }}",
-    "mainEntity": {
-        "@@type": "ItemList",
-        "numberOfItems": {{ $prompts->total() }},
-        "itemListElement": [
-            @foreach($prompts->take(6) as $index => $item)
-            {
-                "@@type": "ListItem",
-                "position": {{ $index + 1 }},
-                "url": "{{ route('prompts.show', $item->slug) }}",
-                "name": "{{ addslashes($item->title) }}"
-            }@if (! $loop->last),@endif
-            @endforeach
-        ]
+@php
+    $collectionItems = [];
+    foreach ($prompts->take(6) as $index => $item) {
+        $collectionItems[] = [
+            '@type' => 'ListItem',
+            'position' => $index + 1,
+            'url' => route('prompts.show', $item->slug),
+            'name' => $item->title,
+        ];
     }
-}
+
+    $collectionPageData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $title,
+        'description' => $metaDescription,
+        'url' => url()->current(),
+        'mainEntity' => [
+            '@type' => 'ItemList',
+            'numberOfItems' => $prompts->total(),
+            'itemListElement' => $collectionItems,
+        ],
+    ];
+
+    $faqEntities = [];
+    foreach (($faqs ?? []) as $faq) {
+        $faqEntities[] = [
+            '@type' => 'Question',
+            'name' => $faq['question'],
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => $faq['answer'],
+            ],
+        ];
+    }
+
+    $faqData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => $faqEntities,
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($collectionPageData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 <script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@type": "FAQPage",
-    "mainEntity": [
-        @foreach($faqs as $faq)
-        {
-            "@@type": "Question",
-            "name": "{{ addslashes($faq['question']) }}",
-            "acceptedAnswer": {
-                "@@type": "Answer",
-                "text": "{{ addslashes($faq['answer']) }}"
-            }
-        }@if (! $loop->last),@endif
-        @endforeach
-    ]
-}
+{!! json_encode($faqData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 
@@ -123,7 +130,7 @@
         <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 4px 0 20px;">Everything you need to know about this collection</h2>
 
         <div style="display: flex; flex-direction: column; gap: 18px;">
-            @foreach($faqs as $faq)
+            @foreach(($faqs ?? []) as $faq)
                 <div style="border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">
                     <h3 style="font-size: 15px; font-weight: 600; color: #1f2937; margin: 0 0 6px;">{{ $faq['question'] }}</h3>
                     <p style="font-size: 13.5px; line-height: 1.6; color: #6b7280; margin: 0;">{{ $faq['answer'] }}</p>

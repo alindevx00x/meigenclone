@@ -2,30 +2,34 @@
 @section('title', 'AI Prompt Gallery')
 
 @section('structured_data')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "{{ $directorySettings['seo_title'] ?? ($directorySettings['site_name'] ?? 'PromptImage') }} — AI Prompt Gallery",
-    "description": "{{ $directorySettings['seo_description'] ?? 'Discover and copy tested AI prompts for Flux, Midjourney, GPT Image, and Nano Banana.' }}",
-    "url": "{{ url('/') }}",
-    "mainEntity": {
-        "@type": "ItemList",
-        "numberOfItems": {{ isset($prompts) ? $prompts->count() : 0 }},
-        "itemListElement": [
-            @if(isset($prompts))
-            @foreach($prompts->take(12) as $idx => $p)
-            {
-                "@type": "ListItem",
-                "position": {{ $idx + 1 }},
-                "url": "{{ route('prompts.show', $p->slug) }}",
-                "name": "{{ addslashes($p->title) }}"
-            }@if(!$loop->last),@endif
-            @endforeach
-            @endif
-        ]
+@php
+    $galleryItems = [];
+    if (isset($prompts)) {
+        foreach ($prompts->take(12) as $idx => $p) {
+            $galleryItems[] = [
+                '@type' => 'ListItem',
+                'position' => $idx + 1,
+                'url' => route('prompts.show', $p->slug),
+                'name' => $p->title,
+            ];
+        }
     }
-}
+
+    $galleryPageData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => ($directorySettings['seo_title'] ?? ($directorySettings['site_name'] ?? 'PromptImage')) . ' — AI Prompt Gallery',
+        'description' => $directorySettings['seo_description'] ?? 'Discover and copy tested AI prompts for Flux, Midjourney, GPT Image, and Nano Banana.',
+        'url' => url('/'),
+        'mainEntity' => [
+            '@type' => 'ItemList',
+            'numberOfItems' => isset($prompts) ? $prompts->count() : 0,
+            'itemListElement' => $galleryItems,
+        ],
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($galleryPageData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 
