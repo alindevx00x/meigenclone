@@ -11,9 +11,13 @@
             <p>Review community posts, search the library, and curate the public gallery.</p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <a class="outline-button" href="{{ route('admin.prompts.pinterest_export_zip') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;">
+            <a class="outline-button" href="{{ route('admin.prompts.pinterest_immediate_zip') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;" title="Publish all pins immediately without date restrictions">
+                <span style="color: #e60023; font-size: 16px; line-height: 1;">⚡</span>
+                <span>Pinterest Bulk (Immediate 25 Parts Zip)</span>
+            </a>
+            <a class="outline-button" href="{{ route('admin.prompts.pinterest_export_zip') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;" title="Scheduled pins distributed over time">
                 <span style="color: #e60023; font-size: 16px; line-height: 1;">📌</span>
-                <span>Pinterest Bulk Pins (All 25 Parts Zip)</span>
+                <span>Pinterest Bulk (Scheduled Zip)</span>
             </a>
         </div>
     </div>

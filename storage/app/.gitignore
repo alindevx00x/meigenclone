@@ -3,5 +3,8 @@
 !public/
 !.gitignore
 !pinterest-bulk-csv-all.zip
+!pinterest-immediate-csv-all.zip
 !pinterest-exports/
 !pinterest-exports/**
+!pinterest-exports-immediate/
+!pinterest-exports-immediate/**

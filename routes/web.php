@@ -225,6 +225,14 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
         return response()->download($zipPath, 'promptimage-pinterest-bulk-all-25-parts.zip');
     })->name('prompts.pinterest_export_zip');
 
+    Route::get('/prompts/pinterest-immediate-zip', function () {
+        $zipPath = storage_path('app/pinterest-immediate-csv-all.zip');
+        if (!file_exists($zipPath)) {
+            abort(404, 'Pinterest immediate archive not found.');
+        }
+        return response()->download($zipPath, 'promptimage-pinterest-immediate-all-25-parts.zip');
+    })->name('prompts.pinterest_immediate_zip');
+
     // Blog Management
     Route::get('/blog/posts', [AdminBlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/posts/create', [AdminBlogController::class, 'create'])->name('blog.create');
