@@ -241,6 +241,14 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
         return response()->download($path, 'pinterest-scheduled-part-01-200pins.csv');
     })->name('prompts.pinterest_scheduled_csv');
 
+    Route::get('/prompts/pinterest-batch-1', function () {
+        $path = storage_path('app/pinterest-exports/Batch_1.csv');
+        if (!file_exists($path)) {
+            abort(404, 'Batch 1 CSV not found.');
+        }
+        return response()->download($path, 'Batch_1.csv');
+    })->name('prompts.pinterest_batch_1');
+
     // Blog Management
     Route::get('/blog/posts', [AdminBlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/posts/create', [AdminBlogController::class, 'create'])->name('blog.create');
