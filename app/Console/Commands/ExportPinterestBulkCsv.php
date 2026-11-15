@@ -36,12 +36,12 @@ class ExportPinterestBulkCsv extends Command
      * Pinterest publish times for day 0 starting at 17:00.
      */
     protected array $day0Slots = [
-        ['hour' => 17, 'minute' => 0],  // 05:00 PM
-        ['hour' => 18, 'minute' => 15], // 06:15 PM
-        ['hour' => 19, 'minute' => 30], // 07:30 PM
-        ['hour' => 20, 'minute' => 45], // 08:45 PM
-        ['hour' => 21, 'minute' => 45], // 09:45 PM
-        ['hour' => 22, 'minute' => 45], // 10:45 PM
+        ['hour' => 19, 'minute' => 30], // 07:30 PM UTC
+        ['hour' => 20, 'minute' => 15], // 08:15 PM UTC
+        ['hour' => 21, 'minute' => 0],  // 09:00 PM UTC
+        ['hour' => 21, 'minute' => 45], // 09:45 PM UTC
+        ['hour' => 22, 'minute' => 30], // 10:30 PM UTC
+        ['hour' => 23, 'minute' => 15], // 11:15 PM UTC
     ];
 
     /**
