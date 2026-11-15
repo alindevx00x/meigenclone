@@ -19,7 +19,8 @@ class ExportPinterestBulkCsv extends Command
      */
     protected $signature = 'pinterest:export-bulk 
                             {--per-file=200 : Number of pins per CSV file}
-                            {--start-date=2026-11-13 : Start date for scheduled publishing (YYYY-MM-DD)}
+                            {--start-date=2026-11-15 : Start date for scheduled publishing (YYYY-MM-DD)}
+                            {--start-time=17:00 : Start time on initial day (HH:MM)}
                             {--pins-per-day=6 : Number of pins to schedule per day}
                             {--domain= : Public domain to use for media URLs and links, e.g. https://promptimage.cc}
                             {--output-dir=storage/app/pinterest-exports : Destination directory for generated CSV files}';
@@ -29,7 +30,19 @@ class ExportPinterestBulkCsv extends Command
      *
      * @var string
      */
-    protected $description = 'Generate partitioned Pinterest bulk upload CSV files (200 pins per file) with continuous scheduled publish dates starting Nov 13, 2026 (6 pins/day)';
+    protected $description = 'Generate partitioned Pinterest bulk upload CSV files (200 pins per file) with continuous scheduled publish dates starting Nov 15, 2026 from 17:00 (6 pins/day)';
+
+    /**
+     * Pinterest publish times for day 0 starting at 17:00.
+     */
+    protected array $day0Slots = [
+        ['hour' => 17, 'minute' => 0],  // 05:00 PM
+        ['hour' => 18, 'minute' => 15], // 06:15 PM
+        ['hour' => 19, 'minute' => 30], // 07:30 PM
+        ['hour' => 20, 'minute' => 45], // 08:45 PM
+        ['hour' => 21, 'minute' => 45], // 09:45 PM
+        ['hour' => 22, 'minute' => 45], // 10:45 PM
+    ];
 
     /**
      * Pinterest publish times for 6 pins per day (distributed throughout high-engagement hours).
@@ -55,7 +68,7 @@ class ExportPinterestBulkCsv extends Command
         try {
             $startDate = Carbon::parse($startDateStr)->startOfDay();
         } catch (\Throwable) {
-            $startDate = Carbon::parse('2026-11-13')->startOfDay();
+            $startDate = Carbon::parse('2026-11-15')->startOfDay();
         }
 
         $rawDomain = $this->option('domain')
@@ -156,13 +169,17 @@ class ExportPinterestBulkCsv extends Command
                 // 6. Link (Prompt detail page on live website)
                 $link = $baseUrl . '/prompts/' . $prompt->slug;
 
-                // 7. Publish date: 6 pins per day starting Nov 13, 2026
+                // 7. Publish date: 6 pins per day starting Nov 15, 2026 from 17:00
                 // Calculate which day and which daily slot this pin falls into
                 $dayOffset = (int) floor($globalPinIndex / $pinsPerDay);
                 $slotIndex = $globalPinIndex % $pinsPerDay;
 
-                // Pick hour/min from dailySlots, cycling if pinsPerDay > slots
-                $slotConfig = $this->dailySlots[$slotIndex % $slotsCount];
+                // Pick hour/min: Day 0 uses evening peak slots starting from 17:00, future days use high-engagement daily slots
+                if ($dayOffset === 0 && !empty($this->day0Slots)) {
+                    $slotConfig = $this->day0Slots[$slotIndex % count($this->day0Slots)];
+                } else {
+                    $slotConfig = $this->dailySlots[$slotIndex % $slotsCount];
+                }
                 
                 $pinDate = (clone $startDate)
                     ->addDays($dayOffset)
