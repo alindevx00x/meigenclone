@@ -153,8 +153,23 @@ class ExportPinterestBulkCsv extends Command
                     $mediaUrl = $prompt->image_url;
                 }
 
-                // 3. Pinterest Board (Category name or fallback)
-                $board = $prompt->category?->name ?: 'AI Art Prompts';
+                // 3. Pinterest Board (SEO optimized board name mapped from category)
+                $categoryName = $prompt->category?->name ?? 'AI Art Prompts';
+                $boardMap = [
+                    'Ads & Product'           => 'AI Product Photography Prompts',
+                    'Portraits'               => 'Cinematic AI Portraits & People',
+                    'Brand & Logo'            => 'AI Logo Design & Brand Identity',
+                    'Creative & Abstract'     => 'Abstract AI Art & Surrealism',
+                    'Posters & Visuals'       => 'Graphic Design & Poster Prompts',
+                    'Illustration & 3D'       => '3D Claymation & Illustration',
+                    'Storyboard & Characters' => 'AI Character Concept Art',
+                    'Wallpaper'               => 'Aesthetic AI Wallpapers 4K',
+                    'Fashion & Editorial'     => 'AI Fashion & Streetwear Style',
+                    'Architecture & Spaces'   => 'Architecture & Interior AI Prompts',
+                    'Anime & Manga'           => 'Retro Anime & Niji Prompts',
+                    'Videos'                  => 'AI Video Prompts & Motion',
+                ];
+                $board = $boardMap[$categoryName] ?? $categoryName;
 
                 // 4. Thumbnail (Only used for video pins)
                 $thumbnail = '';
@@ -187,8 +202,8 @@ class ExportPinterestBulkCsv extends Command
                     ->setMinute($slotConfig['minute'])
                     ->setSecond(0);
 
-                // Standard Pinterest bulk publish date format: YYYY-MM-DD HH:MM:SS
-                $publishDate = $pinDate->format('Y-m-d H:i:s');
+                // Standard Pinterest bulk publish date format: YYYY-MM-DDTHH:MM:SS (ISO 8601 UTC)
+                $publishDate = $pinDate->format('Y-m-d\TH:i:s');
 
                 // 8. Keywords (Comma-separated tags for Pinterest search discovery)
                 $keywordsList = [
