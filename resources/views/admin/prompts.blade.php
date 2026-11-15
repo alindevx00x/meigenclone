@@ -11,6 +11,10 @@
             <p>Review community posts, search the library, and curate the public gallery.</p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <a class="outline-button" href="{{ route('admin.prompts.pinterest_scheduled_csv') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;" title="Scheduled pins for Month 1 (Nov 16 - Dec 10, 8 pins/day, max 30-day window)">
+                <span style="color: #e60023; font-size: 16px; line-height: 1;">📅</span>
+                <span>Pinterest Part 1 Scheduled (200 Pins)</span>
+            </a>
             <a class="outline-button" href="{{ route('admin.prompts.pinterest_immediate_zip') }}" style="min-height: 38px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-color: #cbd5e1; background: #fff;" title="Publish all pins immediately without date restrictions">
                 <span style="color: #e60023; font-size: 16px; line-height: 1;">⚡</span>
                 <span>Pinterest Bulk (Immediate 25 Parts Zip)</span>
