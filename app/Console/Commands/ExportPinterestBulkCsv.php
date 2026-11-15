@@ -142,8 +142,15 @@ class ExportPinterestBulkCsv extends Command
             fputcsv($fp, $csvHeader);
 
             foreach ($prompts as $prompt) {
-                // 1. Title (up to 100 chars on Pinterest)
-                $cleanTitle = Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags($prompt->title))), 95);
+                // 1. Title (clean string without quotes/brackets/newlines, max 70 chars)
+                $cleanTitle = strip_tags($prompt->title);
+                $cleanTitle = str_replace(['"', "'", '“', '”', '‘', '’', "\r", "\n", "\t", '[', ']', '{', '}'], ' ', $cleanTitle);
+                $cleanTitle = preg_replace('/\s+/', ' ', $cleanTitle);
+                $cleanTitle = trim($cleanTitle, ' -|:,.');
+                $cleanTitle = mb_substr($cleanTitle, 0, 70, 'UTF-8');
+                if (empty($cleanTitle)) {
+                    $cleanTitle = 'AI Art Prompt Inspiration';
+                }
 
                 // 2. Media URL (Must be publicly accessible on live site)
                 $mediaUrl = '';
@@ -174,17 +181,19 @@ class ExportPinterestBulkCsv extends Command
                 // 4. Thumbnail (Only used for video pins)
                 $thumbnail = '';
 
-                // 5. Description (Pinterest limit is 500 characters)
-                $promptSnippet = trim(preg_replace('/\s+/', ' ', strip_tags($prompt->prompt_text)));
-                $modelTag = $prompt->model ? " | Model: {$prompt->model}" : '';
-                $descPrefix = "AI Art Prompt: \"{$promptSnippet}\"";
-                $descSuffix = "{$modelTag} | Free AI prompt & visual copy on PromptImage.";
-                $description = Str::limit($descPrefix . ' ' . $descSuffix, 490);
+                // 5. Description (Clean string without internal quotes or braces, max 350 chars)
+                $promptSnippet = strip_tags($prompt->prompt_text);
+                $promptSnippet = str_replace(['"', "'", '“', '”', '‘', '’', "\r", "\n", "\t", '{', '}', '\\', '[', ']'], ' ', $promptSnippet);
+                $promptSnippet = preg_replace('/\s+/', ' ', $promptSnippet);
+                $promptSnippet = trim($promptSnippet);
+                $modelTag = $prompt->model ? " Model: {$prompt->model}." : '';
+                $desc = 'AI Prompt: ' . mb_substr($promptSnippet, 0, 260, 'UTF-8') . "...{$modelTag} Free prompt and visual copy on PromptImage.";
+                $description = mb_substr($desc, 0, 350, 'UTF-8');
 
                 // 6. Link (Prompt detail page on live website)
                 $link = $baseUrl . '/prompts/' . $prompt->slug;
 
-                // 7. Publish date: 6 pins per day starting Nov 15, 2026 from 17:00
+                // 7. Publish date: 6 pins per day starting Nov 16, 2026
                 // Calculate which day and which daily slot this pin falls into
                 $dayOffset = (int) floor($globalPinIndex / $pinsPerDay);
                 $slotIndex = $globalPinIndex % $pinsPerDay;
@@ -202,8 +211,8 @@ class ExportPinterestBulkCsv extends Command
                     ->setMinute($slotConfig['minute'])
                     ->setSecond(0);
 
-                // Standard Pinterest bulk publish date format: YYYY-MM-DDTHH:MM:SS (ISO 8601 UTC)
-                $publishDate = $pinDate->format('Y-m-d\TH:i:s');
+                // Pinterest bulk publish date format: YYYY-MM-DD HH:MM:SS
+                $publishDate = $pinDate->format('Y-m-d H:i:s');
 
                 // 8. Keywords (Comma-separated tags for Pinterest search discovery)
                 $keywordsList = [
