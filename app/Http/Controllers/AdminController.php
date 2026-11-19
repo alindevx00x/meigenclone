@@ -60,7 +60,14 @@ class AdminController extends Controller
             'seo_keywords' => ['nullable', 'string', 'max:500'],
             'seo_canonical_base' => ['nullable', 'url', 'max:2048'],
             'seo_robots' => ['required', Rule::in(['index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow'])],
-            'seo_og_image' => ['nullable', 'url', 'max:2048'],
+            'seo_og_image' => ['nullable', 'string', 'max:2048'],
+            'seo_og_image_file' => ['nullable', 'file', 'max:5120', function ($attribute, $value, $fail) {
+                if (!$value instanceof \Illuminate\Http\UploadedFile) return;
+                $ext = strtolower($value->getClientOriginalExtension());
+                if (!in_array($ext, ['png', 'webp', 'jpg', 'jpeg'], true)) {
+                    $fail('The social preview image must be a PNG, JPG, JPEG, or WebP image.');
+                }
+            }],
             'require_email_verification' => ['nullable'],
             'storage_driver' => ['nullable', 'in:local,s3,r2'],
             'storage_aws_access_key_id' => ['nullable', 'string', 'max:255'],
@@ -111,6 +118,15 @@ class AdminController extends Controller
         } elseif ($request->boolean('remove_logo')) {
             $data['logo_url'] = '';
         }
+
+        if ($request->hasFile('seo_og_image_file')) {
+            $path = $request->file('seo_og_image_file')->store('seo', 'public');
+            $data['seo_og_image'] = '/storage/' . $path;
+        } elseif ($request->boolean('remove_seo_og_image')) {
+            $data['seo_og_image'] = '';
+        }
+
+        unset($data['favicon'], $data['logo'], $data['seo_og_image_file']);
 
         $data['featured_prompt_id'] = $request->input('featured_prompt_id') ?: '';
 

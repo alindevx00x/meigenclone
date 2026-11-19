@@ -17,7 +17,7 @@
                     <span title="Verified Creator" style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 11px; font-weight: 700;">✓</span>
                 @endif
             </div>
-            <p>Manage account profile, verified creator status, studio credits, security, and permissions.</p>
+            <p>Manage account profile, verified creator status, security, and permissions.</p>
         </div>
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('creators.show', $user) }}" target="_blank" class="outline-button" style="color: #6366f1; border-color: #c7d2fe; text-decoration: none;">
@@ -84,10 +84,10 @@
             <small>{{ $user->isAdmin() ? 'Administrator' : ($user->is_verified ? 'Verified Creator' : 'Standard Creator') }}</small>
         </div>
         <div class="stat-card">
-            <span class="stat-icon stat-amber">&#9889;</span>
-            <span class="stat-label">Studio credits</span>
-            <strong>{{ number_format($user->credits) }}</strong>
-            <small>Flux &amp; DALL-E balance</small>
+            <span class="stat-icon stat-violet">📅</span>
+            <span class="stat-label">Member since</span>
+            <strong>{{ $user->created_at ? $user->created_at->format('M Y') : 'N/A' }}</strong>
+            <small>{{ $user->created_at ? $user->created_at->diffForHumans() : 'Registered user' }}</small>
         </div>
     </div>
 
@@ -185,37 +185,7 @@
             </div>
         </div>
 
-        <!-- Section 3: Studio & AI Credits -->
-        <div style="margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #eeeef2;">
-            <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
-                <span>⚡</span> Member Credits &amp; Custom API Keys
-            </h3>
-
-            <div class="form-grid">
-                <label>
-                    <span class="field-label">AI Generation Credits <span class="required-star">*</span></span>
-                    <input type="number" min="0" max="100000" name="credits" value="{{ old('credits', $user->credits) }}" placeholder="25">
-                    <small>Balance allocation for community generation and prompt testing.</small>
-                    @error('credits') <small style="color: #c62828;">{{ $message }}</small> @enderror
-                </label>
-
-                <div></div>
-
-                <label>
-                    <span>OpenAI API Key <span class="optional-label">Optional (Custom BYOK)</span></span>
-                    <input type="password" name="openai_api_key" value="{{ old('openai_api_key', $user->openai_api_key) }}" placeholder="sk-..." autocomplete="off">
-                    <small>User's custom OpenAI key for GPT image prompts.</small>
-                </label>
-
-                <label>
-                    <span>Replicate API Token <span class="optional-label">Optional (Custom BYOK)</span></span>
-                    <input type="password" name="replicate_api_token" value="{{ old('replicate_api_token', $user->replicate_api_token) }}" placeholder="r8_..." autocomplete="off">
-                    <small>User's custom Replicate token for Flux generations.</small>
-                </label>
-            </div>
-        </div>
-
-        <!-- Section 4: Access & Security -->
+        <!-- Section 2: Access & Security -->
         <div style="margin-bottom: 10px;">
             <h3 style="font-size: 16px; font-weight: 600; color: #1e1e24; margin: 0 0 14px; display: flex; align-items: center; gap: 8px;">
                 <span>🔒</span> Account Security &amp; Clearance

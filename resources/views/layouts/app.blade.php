@@ -15,6 +15,11 @@
             ? rtrim($canonicalBase, '/').'/'.ltrim(request()->getPathInfo(), '/')
             : url()->current();
         $socialImage = trim($__env->yieldContent('og_image') ?: ($directorySettings['seo_og_image'] ?? ''));
+        if ($socialImage !== '') {
+            $socialImage = str_starts_with($socialImage, 'http://') || str_starts_with($socialImage, 'https://')
+                ? $socialImage
+                : url($socialImage);
+        }
         $robotsPolicy = request()->routeIs('admin.*', 'dashboard.*', 'login', 'register')
             ? 'noindex,nofollow'
             : $directorySettings['seo_robots'];

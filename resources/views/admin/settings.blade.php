@@ -306,14 +306,49 @@
                             <select name="seo_robots">
                                 <option value="index,follow" @selected($settings['seo_robots'] === 'index,follow')>Index and follow links</option>
                                 <option value="index,nofollow" @selected($settings['seo_robots'] === 'index,nofollow')>Index, do not follow links</option>
-                                <option value="noindex,follow" @selected($settings['seo_robots'] === 'noindex,follow')>Do not index, follow links</option>
+                                <option value="noindex,follow" @selected($settings['seo_robots'] === 'noindex,nofollow')>Do not index, follow links</option>
                                 <option value="noindex,nofollow" @selected($settings['seo_robots'] === 'noindex,nofollow')>Do not index or follow links</option>
                             </select>
+                            <small>Controls global crawler robots meta tag.</small>
                         </label>
-                        <label class="settings-field">Social preview image URL <span class="optional-label">Optional</span>
-                            <input type="url" name="seo_og_image" value="{{ old('seo_og_image', $settings['seo_og_image']) }}" placeholder="https://example.com/social-preview.webp">
-                            <small>Recommended size: 1200 × 630 pixels.</small>
+                    </div>
+
+                    <div class="settings-field" style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; justify-content: space-between; font-weight: 600;">
+                            <span>Social Preview Image (Open Graph / Twitter Card) <span class="optional-label">Optional</span></span>
+                            <span style="font-size: 11px; font-weight: normal; color: #71717a;">Recommended: 1200 × 630 px</span>
                         </label>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+                            @if (!empty($settings['seo_og_image']))
+                                <div style="display: flex; align-items: center; gap: 14px; padding: 10px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; flex-wrap: wrap;">
+                                    <div style="position: relative; width: 140px; height: 74px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; background: #0f172a; flex-shrink: 0;">
+                                        <img src="{{ str_starts_with($settings['seo_og_image'], 'http') ? $settings['seo_og_image'] : asset($settings['seo_og_image']) }}" alt="Current Social Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 200px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: 600; background: #e0e7ff; color: #4338ca; border-radius: 4px;">Active Preview Image</span>
+                                            <a href="{{ str_starts_with($settings['seo_og_image'], 'http') ? $settings['seo_og_image'] : asset($settings['seo_og_image']) }}" target="_blank" rel="noopener" style="font-size: 11px; color: #6366f1; text-decoration: underline;">Open image ↗</a>
+                                        </div>
+                                        <span style="font-size: 12px; color: #64748b; word-break: break-all;">{{ $settings['seo_og_image'] }}</span>
+                                        <label style="font-size: 11px; color: #dc2626; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; width: fit-content;">
+                                            <input type="checkbox" name="remove_seo_og_image" value="1"> <strong>Remove custom image</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 240px;">
+                                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Upload New File (.png, .jpg, .webp)</label>
+                                    <input type="file" name="seo_og_image_file" accept=".png,.webp,.jpg,.jpeg" style="width: 100%; font-size: 12px; border: 1px dashed #cbd5e1; padding: 8px 12px; border-radius: 8px; background: #fafafa; cursor: pointer;">
+                                </div>
+                                <div style="flex: 1; min-width: 240px;">
+                                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Or Direct Image URL</label>
+                                    <input type="text" name="seo_og_image" value="{{ old('seo_og_image', $settings['seo_og_image']) }}" placeholder="https://example.com/social-preview.webp" style="width: 100%;">
+                                </div>
+                            </div>
+                            <small style="color: #64748b;">Displayed when sharing your home page and links across X/Twitter, Facebook, Discord, WhatsApp, and LinkedIn.</small>
+                        </div>
                     </div>
                 </div>
             </section>
